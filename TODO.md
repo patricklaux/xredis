@@ -1,0 +1,50 @@
+### 已完成任务
+
+- [X] 【开发】 Lettuce 单机连接
+- [X] 【开发】 Lettuce 连接池（无需配置连接池）
+- [X] 【开发】 Redis 单机 clear 操作
+- [X] 【开发】 Redis 集群 clear 操作
+- [X] 【开发】 Lettuce 主从连接
+- [X] 【开发】 Lettuce 哨兵连接
+- [X] 【开发】 Lettuce 集群连接
+- [X] 【测试】 Lettuce 单机基本测试
+- [X] 【测试】 Lettuce 主从基本测试
+- [X] 【测试】 Lettuce 集群基本测试
+- [X] 【测试】 Lettuce 哨兵基本测试
+- [X] 【测试】 Lettuce 配置测试
+- [X] 【开发】 Lettuce unixSocket
+- [X] 【开发】 注册 MavenCentral
+- [X] 【开发】 CacheBuilder 构造 Cache 实例
+- [X] 【开发】 SpringCacheAdapter
+- [X] 【测试】 SpringCacheAdapter
+- [X] 【开发】 cacheable & cacheableAll 不能与其它注解共同用于同一个方法
+- [X] 【思考】 RedisCacheStatProvider，channel 根据 group 进行区分，避免每新增一个缓存名称就需写一套采集程序
+- [X] 【开发】 分布式缓存的前缀（group + ":" + cacheName + ":"）
+- [X] 【开发】 NONE 默认为大写
+- [X] 【开发】 删除 ContainsPredicateProvider
+- [X] 【开发】 缓存接口方法名调整
+- [X] 【开发】 删除 CacheWriter
+- [X] 【开发】 Redis Lua 脚本执行失败重加载机制（RedisNoScriptException 异常处理）
+- [X] 【开发】 CacheRefresh 配置
+- [X] 【开发】 RedisHashStore 分为两类实现：一是集群模式，二是非集群模式。
+- [X] 【开发】 RedisHashStore，initKeys 方法，用于初始化缓存的 key 列表，需可配置数量。
+- [X] 【开发】 缓存数据刷新策略（根据时间周期触发，每次刷新均会延长过期时间）
+- [X] 【开发】 对象惰性初始化（SingletonSupplier）
+- [X] 【开发】 Lettuce(stat,sync,stream,...) autoconfiguration（SingletonSupplier）
+- [X] 【开发】 由于确定 StreamMessageCodec 不会改变数组，所以使用 ByteArray 而非 ImmutableByteArray，解决数组复制效率问题
+- [X] 【开发】 RedisSortedSetCommand
+- [X] 【开发】 RedisCommandInterface
+- [X] 【开发】 RedisHash 增加过期时间，判断 RedisServer 版本是否大于 7.4.0
+
+### 待完成任务
+
+- [ ] 【开发】 Lettuce JSON 配置
+- [ ] 【开发】 Lettuce RedisOperator 每次新建实例问题
+- [ ] 【开发】 Lettuce StreamContainer【BLOCK 配置】
+- [ ] 【思考】 统一 Charset？
+- [ ] 【思考】 close 释放资源
+- [ ] 【文档】 Guide，Reference
+- [ ] 【开发】 补充代码注释
+- [ ] 【开发】 ConcurrentHashMap 实现无过期时间的缓存
+- [ ] 【测试】 测试 Xcache 注解参数
+- [ ] 【测试】 RedisSpinLock
