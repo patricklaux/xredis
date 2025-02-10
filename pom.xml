@@ -40,9 +40,9 @@
     </developers>
 
     <properties>
-        <revision>1.0.0</revision>
+        <revision>0.9.0</revision>
         <xtool.version>1.1.1</xtool.version>
-        <lettuce.version>6.5.2.RELEASE</lettuce.version>
+        <lettuce.version>6.5.3.RELEASE</lettuce.version>
         <spring.boot.version>3.4.2</spring.boot.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -73,6 +73,11 @@
             <dependency>
                 <groupId>com.igeeksky.xredis</groupId>
                 <artifactId>xredis-spring-boot-autoconfigure</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.igeeksky.xredis</groupId>
+                <artifactId>xredis-examples</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- ThirdParty -->
@@ -232,8 +237,6 @@
                             <publishingServerId>central</publishingServerId>
                             <autoPublish>false</autoPublish>
                             <checksums>all</checksums>
-                            <excludeArtifacts>
-                            </excludeArtifacts>
                         </configuration>
                     </plugin>
                 </plugins>

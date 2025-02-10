@@ -27,7 +27,7 @@ JDK：21+
 <dependencies>
     <dependency>
         <groupId>com.igeeksky.xredis</groupId>
-        <artifactId>xredis-spring-boot-starter</artifactId>
+        <artifactId>xredis-spring-boot-autoconfigure</artifactId>
         <version>${xredis.version}</version>
     </dependency>
     <!-- ... other ... -->
