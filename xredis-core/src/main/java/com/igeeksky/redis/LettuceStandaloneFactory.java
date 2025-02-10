@@ -10,9 +10,11 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.json.JsonParser;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import io.lettuce.core.resource.ClientResources;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public final class LettuceStandaloneFactory implements RedisOperatorFactory {
 
     private final RedisClient client;
     private final LettuceStandaloneConfig config;
+    private final Mono<JsonParser> jsonParser;
 
     /**
      * Lettuce Standalone 客户端工厂
@@ -41,6 +44,7 @@ public final class LettuceStandaloneFactory implements RedisOperatorFactory {
     public LettuceStandaloneFactory(LettuceStandaloneConfig config, ClientOptions options, ClientResources resources) {
         this.config = config;
         this.client = redisClient(resources, options);
+        this.jsonParser = options.getJsonParser();
     }
 
     private static RedisClient redisClient(ClientResources resources, ClientOptions options) {
@@ -53,6 +57,9 @@ public final class LettuceStandaloneFactory implements RedisOperatorFactory {
     public <K, V> LettuceOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
         StatefulRedisMasterReplicaConnection<K, V> connection = connect(codec, true);
         StatefulRedisMasterReplicaConnection<K, V> batchConnection = connect(codec, false);
+        if (jsonParser != null) {
+            return new LettuceOperator<>(connection, batchConnection, codec, jsonParser);
+        }
         return new LettuceOperator<>(connection, batchConnection, codec);
     }
 
@@ -97,7 +104,7 @@ public final class LettuceStandaloneFactory implements RedisOperatorFactory {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         client.shutdown();
     }
 

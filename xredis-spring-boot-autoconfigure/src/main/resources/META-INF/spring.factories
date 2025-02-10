@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.igeeksky.xredis.autoconfigure.XredisProperties, \
+com.igeeksky.xredis.autoconfigure.XredisAutoConfiguration

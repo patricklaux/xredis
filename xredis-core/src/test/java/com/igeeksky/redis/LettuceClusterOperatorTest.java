@@ -32,7 +32,7 @@ class LettuceClusterOperatorTest {
 
     @AfterAll
     public static void afterAll() {
-        redisOperator.closeAsync().thenAccept(r -> IOUtils.closeQuietly(factory));
+        redisOperator.closeAsync().thenAccept(r -> factory.shutdown());
     }
 
     @Test

@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * @author Patrick.Lau
  * @since 0.0.4 2023-10-01
  */
-public interface RedisOperatorFactory extends AutoCloseable {
+public interface RedisOperatorFactory {
 
     /**
      * 获取 Redis 客户端
@@ -26,5 +26,10 @@ public interface RedisOperatorFactory extends AutoCloseable {
      * @return {@linkplain StreamContainer} – Redis 流客户端
      */
     <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler, long interval);
+
+    /**
+     * 关闭 Redis 客户端工厂
+     */
+    void shutdown();
 
 }

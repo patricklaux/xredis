@@ -10,11 +10,14 @@ import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.json.JsonParser;
 import io.lettuce.core.resource.ClientResources;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Lettuce 集群客户端工厂
@@ -26,6 +29,7 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
 
     private final RedisClusterClient client;
     private final LettuceClusterConfig config;
+    private final Mono<JsonParser> jsonParser;
 
     /**
      * 构造函数
@@ -38,6 +42,7 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
         super();
         this.config = config;
         this.client = redisClient(options, res);
+        this.jsonParser = options.getJsonParser();
     }
 
     private RedisClusterClient redisClient(ClusterClientOptions options, ClientResources res) {
@@ -53,7 +58,7 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
     }
 
     private <K, V> StatefulRedisClusterConnection<K, V> connect(RedisCodec<K, V> codec, boolean autoFlush) {
-        var connection = client.connect(codec);
+        StatefulRedisClusterConnection<K, V> connection = client.connect(codec);
         connection.setReadFrom(config.getReadFrom());
         connection.setAutoFlushCommands(autoFlush);
         return connection;
@@ -63,6 +68,9 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
     public <K, V> LettuceClusterOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
         StatefulRedisClusterConnection<K, V> connection = connect(codec, true);
         StatefulRedisClusterConnection<K, V> batchConnection = connect(codec, false);
+        if (jsonParser != null) {
+            return new LettuceClusterOperator<>(connection, batchConnection, codec, jsonParser);
+        }
         return new LettuceClusterOperator<>(connection, batchConnection, codec);
     }
 
@@ -73,7 +81,7 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         client.shutdown();
     }
 

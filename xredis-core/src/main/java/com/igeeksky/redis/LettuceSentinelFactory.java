@@ -7,9 +7,11 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.json.JsonParser;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import io.lettuce.core.resource.ClientResources;
+import reactor.core.publisher.Mono;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -24,6 +26,7 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
     private final RedisURI uri;
     private final RedisClient client;
     private final LettuceSentinelConfig config;
+    private final Mono<JsonParser> jsonParser;
 
     /**
      * Lettuce Sentinel 客户端工厂
@@ -33,9 +36,11 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
      * @param res     客户端资源
      */
     public LettuceSentinelFactory(LettuceSentinelConfig config, ClientOptions options, ClientResources res) {
+        super();
         this.config = config;
         this.uri = redisUri(config);
         this.client = redisClient(options, res);
+        this.jsonParser = options.getJsonParser();
     }
 
     private static RedisURI redisUri(LettuceSentinelConfig config) {
@@ -57,9 +62,12 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
 
     @Override
     public <K, V> LettuceOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
-        StatefulRedisMasterReplicaConnection<K, V> baseConnection = connect(codec, true);
+        StatefulRedisMasterReplicaConnection<K, V> connection = connect(codec, true);
         StatefulRedisMasterReplicaConnection<K, V> batchConnection = connect(codec, false);
-        return new LettuceOperator<>(baseConnection, batchConnection, codec);
+        if (jsonParser != null) {
+            return new LettuceOperator<>(connection, batchConnection, codec, jsonParser);
+        }
+        return new LettuceOperator<>(connection, batchConnection, codec);
     }
 
     @Override
@@ -69,7 +77,7 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         client.shutdown();
     }
 

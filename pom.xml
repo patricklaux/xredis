@@ -12,6 +12,33 @@
     <url>https://github.com/patricklaux/xredis</url>
     <packaging>pom</packaging>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/patricklaux/xredis</url>
+        <connection>scm:git:https://github.com/patricklaux/xredis</connection>
+        <developerConnection>scm:git:https://github.com/patricklaux/xredis</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>Github Issue</system>
+        <url>https://github.com/patricklaux/xredis/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <name>Patrick.Lau</name>
+            <email>patricklauxx@gmail.com</email>
+            <url>https://www.igeeksky.com</url>
+        </developer>
+    </developers>
+
     <properties>
         <revision>1.0.0</revision>
         <xtool.version>1.1.1</xtool.version>
@@ -36,6 +63,16 @@
             <dependency>
                 <groupId>com.igeeksky.xredis</groupId>
                 <artifactId>xredis-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.igeeksky.xredis</groupId>
+                <artifactId>xredis-spring-configure</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.igeeksky.xredis</groupId>
+                <artifactId>xredis-spring-boot-autoconfigure</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- ThirdParty -->
@@ -67,6 +104,9 @@
 
     <modules>
         <module>xredis-core</module>
+        <module>xredis-spring-configure</module>
+        <module>xredis-spring-boot-autoconfigure</module>
+        <module>xredis-examples</module>
     </modules>
 
     <build>
@@ -164,5 +204,41 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven.gpg.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${maven.central.publishing.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <checksums>all</checksums>
+                            <excludeArtifacts>
+                            </excludeArtifacts>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

@@ -1,18 +1,14 @@
 ## Xredis
 
-[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/v/release/patricklaux/xredis)](https://github.com/patricklaux/xredis/releases) [![Maven](https://img.shields.io/maven-central/v/com.igeeksky.xredis/xredis-parent.svg)](https://central.sonatype.com/namespace/com.igeeksky.xredis) [![Last commit](https://img.shields.io/github/last-commit/patricklaux/xcache)](https://github.com/patricklaux/xredis/commits)
+[![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/v/release/patricklaux/xredis)](https://github.com/patricklaux/xredis/releases) [![Maven](https://img.shields.io/maven-central/v/com.igeeksky.xredis/xredis.svg)](https://central.sonatype.com/namespace/com.igeeksky.xredis) [![Last commit](https://img.shields.io/github/last-commit/patricklaux/xredis)](https://github.com/patricklaux/xredis/commits)
 
 ## 1. 简介
 
-Xredis 是易于扩展、功能强大且配置灵活的 Java 多级缓存框架。
+Xredis 是基于 Lettuce 实现的 Redis 客户端，用于简化 Redis 数据操作。
 
 ## 2. 架构
 
-
-
 ## 3. 特性
-
-
 
 ## 4. 运行环境
 
@@ -24,11 +20,10 @@ JDK：21+
 
 ## 5. 开始使用
 
-
-
 ### 5.1. 第一步：引入依赖
 
 ```xml
+
 <dependencies>
     <dependency>
         <groupId>com.igeeksky.xredis</groupId>
@@ -70,9 +65,9 @@ mvn clean install
 
 ### 7.1. 分支开发
 
-| 分支     | 说明                  |
-| -------- | --------------------- |
-| **main** | 主分支，用于版本发布  |
+| 分支       | 说明           |
+|----------|--------------|
+| **main** | 主分支，用于版本发布   |
 | **dev**  | 开发分支，用于接受 PR |
 
 如您希望参与开发，请 fork 项目到您的仓库，修改 dev 分支并提交 pr。
