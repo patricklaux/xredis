@@ -5,7 +5,6 @@ import com.igeeksky.redis.api.RedisOperatorFactory;
 import com.igeeksky.redis.cases.LettuceTestHelper;
 import com.igeeksky.redis.cases.RedisOperatorProxyTestCase;
 import com.igeeksky.redis.cases.RedisOperatorTestCase;
-import com.igeeksky.xtool.core.io.IOUtils;
 import io.lettuce.core.codec.ByteArrayCodec;
 import org.junit.jupiter.api.*;
 
