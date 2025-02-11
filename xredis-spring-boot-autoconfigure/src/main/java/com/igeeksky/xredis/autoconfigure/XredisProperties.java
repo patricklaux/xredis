@@ -14,9 +14,7 @@ import org.springframework.context.annotation.Configuration;
 public class XredisProperties {
 
     /**
-     * lettuce 配置
-     * <p>
-     * 如不使用 Lettuce，可删除此配置
+     * lettuce 相关配置
      */
     private LettuceConfig lettuce;
 

@@ -6,24 +6,29 @@
 
 Xredis 是基于 Lettuce 实现的 Redis 客户端，用于简化 Redis 数据操作。
 
-## 2. 架构
+## 2. 特性
 
-## 3. 特性
+Xredis 是对 Lettuce 非常薄的一个封装，最大限度地保留了 Lettuce 的原 API。
 
-## 4. 运行环境
+1. 统一 standalone、sentinel 和 cluster 的 API，统一通过 RedisOperator 操作数据。
+2. 提供了 RedisSyncOperator 、RedisAsyncOperator 和 RedisReactiveOperator  接口，可以根据业务场景灵活使用各种编程范式。
+3. 提供了 Pipeline 接口，支持批提交命令。
+4. 提供了 StreamContainer，简化 stream 的订阅发布。
+5. 提供了 RedisOperatorProxy，简化大批量数据操作。
+
+## 3. 运行环境
 
 SpringBoot：3.3.0+
 
-Lettuce：6.5.2.RELEASE+
+Lettuce：6.5.0.RELEASE+
 
 JDK：21+
 
-## 5. 开始使用
+## 4. 开始使用
 
-### 5.1. 第一步：引入依赖
+### 4.1. 第一步：引入依赖
 
 ```xml
-
 <dependencies>
     <dependency>
         <groupId>com.igeeksky.xredis</groupId>
@@ -34,19 +39,19 @@ JDK：21+
 </dependencies>
 ```
 
-### 5.2. 第二步：编写配置
+### 4.2. 第二步：编写配置
 
 ```yaml
 
 ```
 
-### 5.3. 第三步：调用方法
+### 4.3. 第三步：调用方法
 
 ```java
 
 ```
 
-## 6. 项目构建
+## 5. 项目构建
 
 如希望尝试新特性，可以将项目克隆到本地进行编译（需要 JDK21）。
 
@@ -61,9 +66,9 @@ cd xredis
 mvn clean install
 ```
 
-## 7. 项目参与
+## 6. 项目参与
 
-### 7.1. 分支开发
+### 6.1. 分支开发
 
 | 分支       | 说明           |
 |----------|--------------|
@@ -72,13 +77,13 @@ mvn clean install
 
 如您希望参与开发，请 fork 项目到您的仓库，修改 dev 分支并提交 pr。
 
-### 7.2. 寻求帮助
+### 6.2. 寻求帮助
 
 https://github.com/patricklaux/xredis/discussions
 
 如您希望了解如何使用 xcache，或在使用中遇到问题无法解决，欢迎在此提问。
 
-### 7.3. 建议反馈
+### 6.3. 建议反馈
 
 https://github.com/patricklaux/xredis/issues
 
@@ -86,7 +91,7 @@ https://github.com/patricklaux/xredis/issues
 
 如您发现安全漏洞，请私信与我联系。
 
-## 8. 许可证
+## 7. 许可证
 
-Xredis采用 Apache License Version 2.0 进行许可。有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
+Xredis 采用 Apache License Version 2.0 进行许可。有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
 

@@ -9,24 +9,12 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>xredis-spring-boot-autoconfigure</artifactId>
+    <artifactId>xredis-resources-spring-boot-autoconfigure</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.igeeksky.xredis</groupId>
-            <artifactId>xredis-resources-spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure-processor</artifactId>
-            <version>${spring.boot.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <version>${spring.boot.version}</version>
-            <optional>true</optional>
+            <artifactId>xredis-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

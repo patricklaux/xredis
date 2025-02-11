@@ -1,10 +1,10 @@
 package com.igeeksky.xredis.autoconfigure;
 
 
-import com.igeeksky.redis.api.RedisOperatorFactory;
-import com.igeeksky.redis.props.LettuceCluster;
-import com.igeeksky.redis.props.LettuceSentinel;
-import com.igeeksky.redis.props.LettuceStandalone;
+import com.igeeksky.xredis.api.RedisOperatorFactory;
+import com.igeeksky.xredis.props.LettuceCluster;
+import com.igeeksky.xredis.props.LettuceSentinel;
+import com.igeeksky.xredis.props.LettuceStandalone;
 import com.igeeksky.xtool.core.json.SimpleJSON;
 
 /**
@@ -31,11 +31,6 @@ public class LettuceConfig {
 
     /**
      * {@link RedisOperatorFactory} 唯一标识
-     * <p>
-     * 默认值：lettuce
-     * <p>
-     * 如果仅一套 Redis 配置，保持默认即可。<br>
-     * 如果有多套 Redis 配置，可依次配置为 lettuce1, lettuce2 …… 或你所喜欢的任意名称，保持唯一即可。
      *
      * @return {@code String} – {@link RedisOperatorFactory} 唯一标识
      */

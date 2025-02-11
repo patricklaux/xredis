@@ -14,13 +14,13 @@
 - [X] 【测试】 Lettuce 配置测试
 - [X] 【开发】 Lettuce unixSocket
 - [X] 【开发】 Redis Lua 脚本执行失败重加载机制（RedisNoScriptException 异常处理）
-- [X] 【开发】 RedisCommandInterface
+- [X] 【开发】 RedisSyncOperator, RedisAsyncOperator, RedisReactiveOperator
+- [X] 【开发】 MavenCentral：注册、试发布组件
+- [X] 【开发】 StreamGenericContainer（合并多个 Stream 为一个 xread 命令调用）
+- [X] 【开发】 closeAsync，shutdown 释放资源
 
 ### 待完成任务
 
-- [ ] 【开发】 StreamContainer blockingTask
-- [ ] 【开发】 注册 MavenCentral
-- [ ] 【思考】 closeAsync 释放资源
-- [ ] 【文档】 Guide，Reference
+- [ ] 【文档】 Reference
 - [ ] 【开发】 补充代码注释
-- [ ] 【开发】 Lettuce ConnectionPool
+- [ ] 【开发】 RedisPooledOperator
