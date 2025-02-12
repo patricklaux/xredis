@@ -8,7 +8,7 @@ import java.util.List;
  * Lettuce 哨兵配置
  *
  * @author Patrick.Lau
- * @since 0.0.4 2023-09-26
+ * @since 1.0.0
  */
 public final class LettuceSentinel extends LettuceGeneric {
 
@@ -44,7 +44,15 @@ public final class LettuceSentinel extends LettuceGeneric {
     }
 
     /**
-     * 设置 读节点选择策略（不区分大小写）
+     * 读节点选择策略（不区分大小写）
+     * <p>
+     * upstream：仅主连接 <br>
+     * upstreamPreferred：尽可能采用主连接 <br>
+     * replica：仅副本集 <br>
+     * replicaPreferred：尽可能采用副本集 <br>
+     * lowestLatency：低延迟节点，因为延迟指标是快速变化的，因此需配置为动态拓扑发现的方式以动态测量所有节点的延迟 <br>
+     * any：任意节点 <br>
+     * anyReplica：任意副本节点
      *
      * @param readFrom 读节点选择策略
      * @see io.lettuce.core.ReadFrom
@@ -63,7 +71,7 @@ public final class LettuceSentinel extends LettuceGeneric {
     }
 
     /**
-     * 设置 哨兵主节点名称
+     * 哨兵主节点名称
      *
      * @param masterId 哨兵主节点名称
      */
@@ -81,7 +89,7 @@ public final class LettuceSentinel extends LettuceGeneric {
     }
 
     /**
-     * 设置 哨兵节点列表
+     * 哨兵节点列表
      *
      * @param nodes 哨兵节点列表
      */
@@ -99,7 +107,7 @@ public final class LettuceSentinel extends LettuceGeneric {
     }
 
     /**
-     * 设置 哨兵用户名
+     * 哨兵用户名
      *
      * @param sentinelUsername 哨兵用户名
      */
@@ -117,7 +125,7 @@ public final class LettuceSentinel extends LettuceGeneric {
     }
 
     /**
-     * 设置 哨兵密码
+     * 哨兵密码
      *
      * @param sentinelPassword 哨兵密码
      */
@@ -138,7 +146,9 @@ public final class LettuceSentinel extends LettuceGeneric {
     }
 
     /**
-     * 设置 客户端选项
+     * 客户端选项
+     * <p>
+     * 用以控制某些特定的客户端行为，如：是否自动重连、连接超时等
      *
      * @param clientOptions 客户端选项
      */

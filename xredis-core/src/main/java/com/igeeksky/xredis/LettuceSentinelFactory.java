@@ -67,6 +67,38 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
     }
 
     @Override
+    public <K, V> LettucePipeline<K, V> pipeline(RedisCodec<K, V> codec) {
+        StatefulRedisMasterReplicaConnection<K, V> batchConnection = connect(codec, false);
+        if (jsonParser != null) {
+            return new LettucePipeline<>(batchConnection, codec, jsonParser);
+        }
+        return new LettucePipeline<>(batchConnection, codec);
+    }
+
+    @Override
+    public <K, V> LettuceSyncOperator<K, V> redisSyncOperator(RedisCodec<K, V> codec) {
+        return new LettuceSyncOperator<>(connect(codec, true));
+    }
+
+    @Override
+    public <K, V> LettuceAsyncOperator<K, V> redisAsyncOperator(RedisCodec<K, V> codec) {
+        StatefulRedisMasterReplicaConnection<K, V> connection = connect(codec, true);
+        if (jsonParser != null) {
+            return new LettuceAsyncOperator<>(connection, codec, jsonParser);
+        }
+        return new LettuceAsyncOperator<>(connection, codec);
+    }
+
+    @Override
+    public <K, V> LettuceReactiveOperator<K, V> redisReactiveOperator(RedisCodec<K, V> codec) {
+        StatefulRedisMasterReplicaConnection<K, V> connection = connect(codec, true);
+        if (jsonParser != null) {
+            return new LettuceReactiveOperator<>(connection, codec, jsonParser);
+        }
+        return new LettuceReactiveOperator<>(connection, codec);
+    }
+
+    @Override
     public <K, V> LettuceOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
         StatefulRedisMasterReplicaConnection<K, V> connection = connect(codec, true);
         StatefulRedisMasterReplicaConnection<K, V> batchConnection = connect(codec, false);
@@ -83,7 +115,9 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
     }
 
     @Override
-    public <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, long interval, XReadOptions options, ScheduledExecutorService scheduler) {
+    public <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, long interval,
+                                                                      XReadOptions options,
+                                                                      ScheduledExecutorService scheduler) {
         return new StreamGenericContainer<>(redisOperator(codec), interval, options, executor, scheduler);
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
  * lettuce 配置辅助类
  *
  * @author Patrick.Lau
- * @since 1.0.0 2024/12/22
+ * @since 1.0.0
  */
 public final class LettuceConfigHelper {
 
@@ -117,7 +117,7 @@ public final class LettuceConfigHelper {
      */
     private static void setGeneric(String id, LettuceGeneric original, LettuceGenericConfig config) {
         id = StringUtils.trimToNull(id);
-        Assert.notNull(id, "lettuce:connections:id must not be null or empty");
+        Assert.notNull(id, "lettuce:id must not be null or empty");
 
         config.setId(id);
 
@@ -170,10 +170,10 @@ public final class LettuceConfigHelper {
     }
 
     /**
-     * 节点字符串转 RedisNode 集合
+     * 节点字符串转 RedisNode 列表
      *
      * @param sources 节点字符串集合
-     * @return {@link List < RedisNode >} – RedisNode 集合
+     * @return {@code List<RedisNode>} – RedisNode 列表
      */
     private static List<RedisNode> convertNodes(List<String> sources) {
         List<RedisNode> nodes = new ArrayList<>();

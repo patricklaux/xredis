@@ -11,16 +11,16 @@ Xredis 是基于 Lettuce 实现的 Redis 客户端，用于简化 Redis 数据�
 Xredis 是对 Lettuce 非常薄的一个封装，最大限度地保留了 Lettuce 的原 API。
 
 1. 统一 standalone、sentinel 和 cluster 的 API，统一通过 RedisOperator 操作数据。
-2. 提供了 RedisSyncOperator 、RedisAsyncOperator 和 RedisReactiveOperator  接口，可以根据业务场景灵活使用各种编程范式。
+2. 提供了 RedisSyncOperator 、RedisAsyncOperator 和 RedisReactiveOperator  接口，可以根据业务场景灵活切换编程范式。
 3. 提供了 Pipeline 接口，支持批提交命令。
 4. 提供了 StreamContainer，简化 stream 的订阅发布。
-5. 提供了 RedisOperatorProxy，简化大批量数据操作。
+5. 提供了 RedisOperatorProxy，简化批数据处理。
 
 ## 3. 运行环境
 
 SpringBoot：3.3.0+
 
-Lettuce：6.5.0.RELEASE+
+Lettuce：6.5.0+
 
 JDK：21+
 
@@ -42,7 +42,11 @@ JDK：21+
 ### 4.2. 第二步：编写配置
 
 ```yaml
-
+xredis:
+  lettuce: # Lettuce 客户端配置
+    id: lettuce # RedisOperatorFactory 唯一标识
+    standalone: # 单机模式 或 副本集模式
+      node: 127.0.0.1:6379 # Redis 节点
 ```
 
 ### 4.3. 第三步：调用方法

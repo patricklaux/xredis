@@ -1,7 +1,7 @@
 package com.igeeksky.xredis;
 
 import com.igeeksky.xredis.api.RedisOperatorFactory;
-import com.igeeksky.xredis.cluster.LettuceClusterOperator;
+import com.igeeksky.xredis.cluster.*;
 import com.igeeksky.xredis.config.LettuceClusterConfig;
 import com.igeeksky.xredis.config.RedisNode;
 import com.igeeksky.xredis.stream.XReadOptions;
@@ -67,6 +67,38 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
         connection.setReadFrom(config.getReadFrom());
         connection.setAutoFlushCommands(autoFlush);
         return connection;
+    }
+
+    @Override
+    public <K, V> LettuceClusterPipeline<K, V> pipeline(RedisCodec<K, V> codec) {
+        StatefulRedisClusterConnection<K, V> batchConnection = connect(codec, false);
+        if (jsonParser != null) {
+            return new LettuceClusterPipeline<>(batchConnection, codec, jsonParser);
+        }
+        return new LettuceClusterPipeline<>(batchConnection, codec);
+    }
+
+    @Override
+    public <K, V> LettuceClusterSyncOperator<K, V> redisSyncOperator(RedisCodec<K, V> codec) {
+        return new LettuceClusterSyncOperator<>(connect(codec, true));
+    }
+
+    @Override
+    public <K, V> LettuceClusterAsyncOperator<K, V> redisAsyncOperator(RedisCodec<K, V> codec) {
+        StatefulRedisClusterConnection<K, V> connection = connect(codec, true);
+        if (jsonParser != null) {
+            return new LettuceClusterAsyncOperator<>(connection, codec, jsonParser);
+        }
+        return new LettuceClusterAsyncOperator<>(connection, codec);
+    }
+
+    @Override
+    public <K, V> LettuceClusterReactiveOperator<K, V> redisReactiveOperator(RedisCodec<K, V> codec) {
+        StatefulRedisClusterConnection<K, V> connection = connect(codec, true);
+        if (jsonParser != null) {
+            return new LettuceClusterReactiveOperator<>(connection, codec, jsonParser);
+        }
+        return new LettuceClusterReactiveOperator<>(connection, codec);
     }
 
     @Override

@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Lettuce 集群同步方法
+ * 同步操作接口实现（集群模式）
  *
  * @author Patrick.Lau
  * @since 1.0.0

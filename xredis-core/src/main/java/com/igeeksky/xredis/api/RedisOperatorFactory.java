@@ -20,6 +20,38 @@ import java.util.concurrent.ScheduledExecutorService;
 public interface RedisOperatorFactory {
 
     /**
+     * 创建新的 Redis 批操作客户端
+     *
+     * @param codec RedisCodec
+     * @return {@link Pipeline} – Redis 客户端
+     */
+    <K, V> Pipeline<K, V> pipeline(RedisCodec<K, V> codec);
+
+    /**
+     * 创建新的 Redis 同步操作客户端
+     *
+     * @param codec RedisCodec
+     * @return {@link RedisSyncOperator} – Redis 同步操作客户端
+     */
+    <K, V> RedisSyncOperator<K, V> redisSyncOperator(RedisCodec<K, V> codec);
+
+    /**
+     * 创建新的 Redis 异步操作客户端
+     *
+     * @param codec RedisCodec
+     * @return {@link RedisAsyncOperator} – Redis 异步操作客户端
+     */
+    <K, V> RedisAsyncOperator<K, V> redisAsyncOperator(RedisCodec<K, V> codec);
+
+    /**
+     * 创建新的 Redis 响应式操作客户端
+     *
+     * @param codec RedisCodec
+     * @return {@link RedisReactiveOperator} – Redis 响应式操作客户端
+     */
+    <K, V> RedisReactiveOperator<K, V> redisReactiveOperator(RedisCodec<K, V> codec);
+
+    /**
      * 创建新的 Redis 客户端
      *
      * @param codec RedisCodec

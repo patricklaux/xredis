@@ -4,7 +4,7 @@ package com.igeeksky.xredis.props;
  * Lettuce 通用配置
  *
  * @author Patrick.Lau
- * @since 0.0.4 2023-10-06
+ * @since 1.0.0
  */
 public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, LettuceCluster {
 
@@ -20,7 +20,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     private Long shutdownQuietPeriod;
 
     /**
-     * 默认构造函数
+     * 默认构造器
      */
     public LettuceGeneric() {
     }
@@ -35,7 +35,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：Redis 用户名
+     * Redis 用户名
      *
      * @param username 用户名
      */
@@ -53,7 +53,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：Redis 密码
+     * Redis 密码
      *
      * @param password 密码
      */
@@ -73,7 +73,9 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：Redis 数据库索引
+     * Redis 数据库索引
+     * <p>
+     * 默认值：0
      *
      * @param database 数据库索引
      */
@@ -91,7 +93,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：Redis 客户端名称
+     * Redis 客户端名称
      *
      * @param clientName 客户端名称
      */
@@ -111,7 +113,9 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：是否启用 SSL
+     * 是否启用 SSL
+     * <p>
+     * 默认值：false
      *
      * @param ssl 是否启用 SSL
      */
@@ -131,7 +135,9 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：是否启用 TLS
+     * 是否启用 TLS
+     * <p>
+     * 默认值：false
      *
      * @param startTls 是否启用 TLS
      */
@@ -154,7 +160,11 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：SSL 验证模式
+     * SSL 验证模式
+     * <p>
+     * 默认值：FULL
+     * <p>
+     * 可选值：FULL、NONE、CA
      *
      * @param sslVerifyMode SSL 验证模式
      * @see io.lettuce.core.SslVerifyMode
@@ -178,7 +188,12 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：同步执行命令等待完成的最大时长
+     * 同步执行命令等待完成的最大时长
+     * <p>
+     * 默认值：60000  单位：毫秒
+     * <p>
+     * 如需执行类似于 mset、mget、hmget、hmset……等批处理命令，
+     * 且单次操作的数据量大，则需结合网络情况，配置更大的值。
      *
      * @param timeout 同步执行命令等待完成的最大时长
      */
@@ -186,9 +201,8 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
         this.timeout = timeout;
     }
 
-
     /**
-     * 获取：客户端关闭超时，单位：毫秒
+     * 客户端关闭超时，单位：毫秒
      * <p>
      * 默认为 2000 ms
      *
@@ -199,7 +213,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：客户端关闭超时，单位：毫秒
+     * 客户端关闭超时，单位：毫秒
      * <p>
      * 默认为 2000 ms
      *
@@ -210,7 +224,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 获取：客户端优雅关闭静默期，单位：毫秒
+     * 客户端优雅关闭静默期，单位：毫秒
      * <p>
      * 默认为 100 ms
      * <p>
@@ -225,11 +239,15 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 设置：客户端关闭静默时间，单位：毫秒
+     * 客户端优雅关闭静默期，单位：毫秒
      * <p>
      * 默认为 100 ms
+     * <p>
+     * 必须：大于等于 0 且 小于 shutdownTimeout
      *
      * @param shutdownQuietPeriod 客户端关闭安静时间，单位：毫秒
+     * @see <a href="https://redis.github.io/lettuce/advanced-usage/#shutdown">ClientResources-shutdown</a>
+     * @see <a href="https://www.javadoc.io/static/io.lettuce/lettuce-core/6.5.3.RELEASE/io/lettuce/core/AbstractRedisClient.html#shutdown">RedisClient-shutdown</a>
      */
     public void setShutdownQuietPeriod(Long shutdownQuietPeriod) {
         this.shutdownQuietPeriod = shutdownQuietPeriod;

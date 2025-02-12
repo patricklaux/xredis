@@ -8,6 +8,8 @@ import io.lettuce.core.json.JsonParser;
 import reactor.core.publisher.Mono;
 
 /**
+ * 异步操作接口实现（集群模式）
+ *
  * @author Patrick.Lau
  * @since 1.0.0
  */
