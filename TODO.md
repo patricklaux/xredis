@@ -18,9 +18,11 @@
 - [X] 【开发】 MavenCentral：注册、试发布组件
 - [X] 【开发】 StreamGenericContainer（合并多个 Stream 为一个 xread 命令调用）
 - [X] 【开发】 closeAsync，shutdown 释放资源
+- [X] 【开发】 补充代码注释
+- [X] 【开发】 RedisAsyncOperator, RedisReactiveOperator：evalRedisScript
 
 ### 待完成任务
 
 - [ ] 【文档】 Reference
-- [ ] 【开发】 补充代码注释
+- [ ] 【开发】 RedisOperatorFactory：executor shutdown 释放资源
 - [ ] 【开发】 RedisPooledOperator

@@ -126,16 +126,32 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
 
     @Override
     public void shutdown() {
-        long quietPeriod = config.getShutdownQuietPeriod();
         long timeout = config.getShutdownTimeout();
+        long quietPeriod = config.getShutdownQuietPeriod();
+        try {
+            boolean ignored = executor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+            executor.shutdown();
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+        }
         client.shutdown(quietPeriod, timeout, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public CompletableFuture<Void> shutdownAsync() {
-        long quietPeriod = config.getShutdownQuietPeriod();
         long timeout = config.getShutdownTimeout();
-        return client.shutdownAsync(quietPeriod, timeout, TimeUnit.MILLISECONDS);
+        long quietPeriod = config.getShutdownQuietPeriod();
+        return CompletableFuture.completedFuture(Boolean.TRUE)
+                .thenApply(ignored -> {
+                    boolean terminated = false;
+                    try {
+                        terminated = executor.awaitTermination(timeout - quietPeriod, TimeUnit.MILLISECONDS);
+                        executor.shutdown();
+                    } catch (InterruptedException e) {
+                        executor.shutdownNow();
+                    }
+                    return terminated;
+                }).thenCompose(ignored -> client.shutdownAsync(quietPeriod, timeout, TimeUnit.MILLISECONDS));
     }
 
 }

@@ -14,7 +14,7 @@ import io.lettuce.core.api.sync.*;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked, unused")
 public interface RedisSyncOperator<K, V> extends RedisMode,
         BaseRedisCommands<K, V>, RedisAclCommands<K, V>, RedisFunctionCommands<K, V>,
         RedisGeoCommands<K, V>, RedisHashCommands<K, V>, RedisHLLCommands<K, V>,
@@ -97,10 +97,11 @@ public interface RedisSyncOperator<K, V> extends RedisMode,
      *
      * @param script 脚本对象。
      */
-    default void scriptLoad(RedisScript script) {
+    default String scriptLoad(RedisScript script) {
         String sha1 = this.scriptLoad(script.getScript());
         Assert.notNull(sha1, "script sha1 digest load failed.");
         script.setSha1(sha1);
+        return sha1;
     }
 
     /**
