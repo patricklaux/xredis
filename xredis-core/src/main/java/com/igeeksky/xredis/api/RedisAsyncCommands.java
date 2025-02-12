@@ -105,6 +105,7 @@ public interface RedisAsyncCommands<K, V> extends RedisMode,
      * 将脚本加载到 Redis 服务器，并将 SHA1 摘要设置到 RedisScript 对象
      *
      * @param script 脚本对象。
+     * @return {@code CompletableFuture<String>} – SHA1 摘要
      */
     default CompletableFuture<String> scriptLoad(RedisScript script) {
         return this.scriptLoad(script.getScript())

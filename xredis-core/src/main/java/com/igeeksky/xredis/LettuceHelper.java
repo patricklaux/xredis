@@ -4,7 +4,9 @@ package com.igeeksky.xredis;
 import com.igeeksky.xredis.config.LettuceGenericConfig;
 import com.igeeksky.xredis.config.LettuceSentinelConfig;
 import com.igeeksky.xredis.config.RedisNode;
+import com.igeeksky.xtool.core.concurrent.VirtualThreadFactory;
 import com.igeeksky.xtool.core.lang.StringUtils;
+import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisCredentialsProvider;
 import io.lettuce.core.RedisURI;
@@ -12,6 +14,10 @@ import io.lettuce.core.RedisURI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Lettuce 辅助工具类
@@ -20,6 +26,9 @@ import java.util.List;
  * @since 1.0.0
  */
 public final class LettuceHelper {
+
+    private static final ExecutorService EXECUTOR =
+            Executors.newThreadPerTaskExecutor(new VirtualThreadFactory("stream-thread-"));
 
     /**
      * 私有构造器
@@ -115,6 +124,65 @@ public final class LettuceHelper {
         }
 
         return builder;
+    }
+
+
+    /**
+     * 获取虚拟线程池
+     *
+     * @return {@linkplain ExecutorService} – 虚拟线程池
+     */
+    public static ExecutorService getVirtualThreadPerTaskExecutor() {
+        return EXECUTOR;
+    }
+
+    /**
+     * 关闭 Redis 客户端
+     *
+     * @param quietPeriod 客户端优雅关闭静默期，单位：毫秒
+     * @param timeout     客户端关闭超时，单位：毫秒
+     * @param executor    虚拟线程池
+     * @param client      Redis 客户端
+     */
+    public static void shutdown(long quietPeriod, long timeout,
+                                ExecutorService executor, AbstractRedisClient client) {
+        try {
+            try {
+                boolean ignored = executor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+                executor.shutdown();
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+            }
+        } catch (Exception ignored) {
+        }
+        client.shutdown(quietPeriod, timeout, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 关闭 Redis 客户端
+     *
+     * @param quietPeriod 客户端优雅关闭静默期，单位：毫秒
+     * @param timeout     客户端关闭超时，单位：毫秒
+     * @param executor    虚拟线程池
+     * @param client      Redis 客户端
+     * @return {@code CompletableFuture<Void>}
+     */
+    public static CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout,
+                                                        ExecutorService executor, AbstractRedisClient client) {
+        return CompletableFuture.completedFuture(Boolean.TRUE)
+                .thenApply(bool -> {
+                    boolean terminated = false;
+                    try {
+                        try {
+                            terminated = executor.awaitTermination(timeout - quietPeriod, TimeUnit.MILLISECONDS);
+                            executor.shutdown();
+                        } catch (InterruptedException e) {
+                            executor.shutdownNow();
+                        }
+                    } catch (Exception ignored) {
+                    }
+                    return terminated;
+                }).thenCompose(ignored -> client.shutdownAsync(quietPeriod, timeout, TimeUnit.MILLISECONDS));
     }
 
 }

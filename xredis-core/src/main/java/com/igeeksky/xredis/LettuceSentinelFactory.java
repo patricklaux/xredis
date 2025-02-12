@@ -18,7 +18,6 @@ import reactor.core.publisher.Mono;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Lettuce Sentinel 客户端工厂
@@ -46,7 +45,7 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
         this.uri = redisUri(config);
         this.client = redisClient(options, res);
         this.jsonParser = options.getJsonParser();
-        this.executor = newVirtualThreadPerTaskExecutor();
+        this.executor = LettuceHelper.getVirtualThreadPerTaskExecutor();
     }
 
     private static RedisURI redisUri(LettuceSentinelConfig config) {
@@ -126,30 +125,14 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
     public void shutdown() {
         long timeout = config.getShutdownTimeout();
         long quietPeriod = config.getShutdownQuietPeriod();
-        try {
-            boolean ignored = executor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-            executor.shutdown();
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-        }
-        client.shutdown(quietPeriod, timeout, TimeUnit.MILLISECONDS);
+        LettuceHelper.shutdown(quietPeriod, timeout, executor, client);
     }
 
     @Override
     public CompletableFuture<Void> shutdownAsync() {
         long timeout = config.getShutdownTimeout();
         long quietPeriod = config.getShutdownQuietPeriod();
-        return CompletableFuture.completedFuture(Boolean.TRUE)
-                .thenApply(ignored -> {
-                    boolean terminated = false;
-                    try {
-                        terminated = executor.awaitTermination(timeout - quietPeriod, TimeUnit.MILLISECONDS);
-                        executor.shutdown();
-                    } catch (InterruptedException e) {
-                        executor.shutdownNow();
-                    }
-                    return terminated;
-                }).thenCompose(ignored -> client.shutdownAsync(quietPeriod, timeout, TimeUnit.MILLISECONDS));
+        return LettuceHelper.shutdownAsync(quietPeriod, timeout, executor, client);
     }
 
 }

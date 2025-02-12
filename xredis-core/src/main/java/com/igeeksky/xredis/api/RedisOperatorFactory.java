@@ -3,12 +3,9 @@ package com.igeeksky.xredis.api;
 import com.igeeksky.xredis.stream.XReadOptions;
 import com.igeeksky.xredis.stream.container.StreamContainer;
 import com.igeeksky.xredis.stream.container.StreamGenericContainer;
-import com.igeeksky.xtool.core.concurrent.VirtualThreadFactory;
 import io.lettuce.core.codec.RedisCodec;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
@@ -98,15 +95,6 @@ public interface RedisOperatorFactory {
     <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, long interval,
                                                                XReadOptions options, ScheduledExecutorService scheduler);
 
-
-    /**
-     * 创建新的虚拟线程池
-     *
-     * @return {@linkplain ExecutorService} – 虚拟线程池
-     */
-    default ExecutorService newVirtualThreadPerTaskExecutor() {
-        return Executors.newThreadPerTaskExecutor(new VirtualThreadFactory("stream-thread-"));
-    }
 
     /**
      * 关闭 Redis 客户端工厂

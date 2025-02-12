@@ -95,7 +95,8 @@ public interface RedisSyncOperator<K, V> extends RedisMode,
     /**
      * 将脚本加载到 Redis 服务器，并将 SHA1 摘要设置到 RedisScript 对象
      *
-     * @param script 脚本对象。
+     * @param script 脚本对象
+     * @return {@link String} – SHA1 摘要
      */
     default String scriptLoad(RedisScript script) {
         String sha1 = this.scriptLoad(script.getScript());

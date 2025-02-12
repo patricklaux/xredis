@@ -168,7 +168,7 @@ public sealed class LettuceGenericConfig permits LettuceStandaloneConfig, Lettuc
     }
 
     /**
-     * 获取：客户端关闭超时，单位：毫秒
+     * 客户端关闭超时，单位：毫秒
      * <p>
      * 默认为 2000 ms
      *
@@ -179,7 +179,7 @@ public sealed class LettuceGenericConfig permits LettuceStandaloneConfig, Lettuc
     }
 
     /**
-     * 设置：客户端关闭超时，单位：毫秒
+     * 客户端关闭超时，单位：毫秒
      * <p>
      * 默认为 2000 ms
      *
@@ -205,11 +205,11 @@ public sealed class LettuceGenericConfig permits LettuceStandaloneConfig, Lettuc
     }
 
     /**
-     * 设置：客户端关闭静默时间，单位：毫秒
+     * 客户端优雅关闭静默期，单位：毫秒
      * <p>
      * 默认为 100 ms
      *
-     * @param shutdownQuietPeriod 客户端关闭安静时间，单位：毫秒
+     * @param shutdownQuietPeriod 客户端优雅关闭静默期，单位：毫秒
      */
     public void setShutdownQuietPeriod(long shutdownQuietPeriod) {
         this.shutdownQuietPeriod = shutdownQuietPeriod;
