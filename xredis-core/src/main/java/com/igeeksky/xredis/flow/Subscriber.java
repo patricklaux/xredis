@@ -3,6 +3,7 @@ package com.igeeksky.xredis.flow;
 /**
  * 订阅者
  *
+ * @param <E> 数据类型
  * @author Patrick.Lau
  * @since 1.0.0
  */

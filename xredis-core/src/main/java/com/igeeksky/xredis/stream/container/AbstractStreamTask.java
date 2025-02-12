@@ -14,6 +14,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 流任务抽象类
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -21,7 +23,16 @@ public abstract class AbstractStreamTask<K, V> implements StreamTask<K, V> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractStreamTask.class);
 
+    /**
+     * 流信息列表
+     */
     protected final Queue<StreamInfo<K, V>> streams = new ConcurrentLinkedQueue<>();
+
+    /**
+     * 构造函数
+     */
+    public AbstractStreamTask() {
+    }
 
     /**
      * 消费信息

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
  * Redis Lua 脚本
  *
  * @author Patrick.Lau
- * @since 1.0.0 2024/7/13
+ * @since 1.0.0
  */
 public class RedisScript {
 
@@ -47,6 +47,7 @@ public class RedisScript {
      * 构造函数
      *
      * @param script Lua 脚本
+     * @param type   脚本返回类型
      */
     public RedisScript(String script, ScriptOutputType type) {
         Assert.notNull(type, "type must not be null");

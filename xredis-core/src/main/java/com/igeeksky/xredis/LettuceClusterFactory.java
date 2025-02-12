@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * Lettuce 集群客户端工厂
  *
  * @author Patrick.Lau
- * @since 0.0.4 2023-10-01
+ * @since 1.0.0
  */
 public final class LettuceClusterFactory implements RedisOperatorFactory {
 

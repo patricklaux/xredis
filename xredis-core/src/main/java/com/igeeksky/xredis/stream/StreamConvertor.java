@@ -11,6 +11,12 @@ import io.lettuce.core.XAddArgs;
 public class StreamConvertor {
 
     /**
+     * 私有构造器
+     */
+    private StreamConvertor() {
+    }
+
+    /**
      * 转换
      *
      * @param options 流消息发布选项

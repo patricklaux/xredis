@@ -3,6 +3,7 @@ package com.igeeksky.xredis.api;
 import com.igeeksky.xredis.RedisScript;
 import com.igeeksky.xtool.core.lang.ArrayUtils;
 import com.igeeksky.xtool.core.lang.Assert;
+import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.sync.*;
 
 /**
@@ -102,5 +103,24 @@ public interface RedisSyncOperator<K, V> extends RedisMode,
         Assert.notNull(sha1, "script sha1 digest load failed.");
         script.setSha1(sha1);
     }
+
+    /**
+     * 禁止修改 autoFlush
+     * <p>
+     * 调用此方法将抛出异常。
+     *
+     * @param autoFlush state of autoFlush.
+     */
+    default void setAutoFlushCommands(boolean autoFlush) {
+        throw new UnsupportedOperationException("RedisOperator doesn't support change auto flush mode, it must be true." +
+                "If you want to batch submit commands, please use pipeline.");
+    }
+
+    /**
+     * 获取当前 Redis 连接
+     *
+     * @return {@link StatefulConnection} 连接
+     */
+    StatefulConnection<K, V> getConnection();
 
 }

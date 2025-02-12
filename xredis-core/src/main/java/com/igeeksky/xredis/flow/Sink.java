@@ -5,6 +5,7 @@ import java.time.Duration;
 /**
  * 数据池
  *
+ * @param <E> 数据类型
  * @author Patrick.Lau
  * @since 1.0.0
  */

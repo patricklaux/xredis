@@ -22,11 +22,29 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * 客户端选项转换辅助类
+ *
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public class ClientOptionsHelper {
+public abstract class ClientOptionsHelper {
 
+    /**
+     * 私有构造器，仅提供静态方法
+     */
+    private ClientOptionsHelper() {
+    }
+
+    /**
+     * 转换客户端选项
+     * <p>
+     * {@code com.igeeksky.xredis.props.Lettuce.ClientOptions} 配置转换成 {@code io.lettuce.core.ClientOptions}
+     *
+     * @param id            客户端ID
+     * @param clientOptions 客户端配置选项
+     * @param customizers   客户端自定义选项
+     * @return 客户端选项
+     */
     public static ClientOptions clientOptions(String id, Lettuce.ClientOptions clientOptions,
                                               ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
 
@@ -39,6 +57,16 @@ public class ClientOptionsHelper {
         return builder.build();
     }
 
+    /**
+     * 转换集群客户端选项
+     * <p>
+     * {@code com.igeeksky.xredis.props.Lettuce.ClusterClientOptions} 配置转换成 {@code io.lettuce.core.ClusterClientOptions}
+     *
+     * @param id            客户端ID
+     * @param clientOptions 客户端配置选项
+     * @param customizers   客户端自定义选项
+     * @return 客户端选项
+     */
     public static ClusterClientOptions clusterClientOptions(String id, Lettuce.ClusterClientOptions clientOptions,
                                                             ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
 

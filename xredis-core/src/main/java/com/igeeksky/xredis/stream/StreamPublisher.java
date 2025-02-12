@@ -11,6 +11,9 @@ import java.util.concurrent.CompletableFuture;
 /**
  * 流消息发布者
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
+ * @param <T> 原消息类型
  * @author Patrick.Lau
  * @since 0.0.4 2023-09-12
  */
@@ -22,6 +25,8 @@ public class StreamPublisher<K, V, T> {
     private final RedisAsyncOperator<K, V> async;
 
     /**
+     * 构造器
+     *
      * @param stream  流名称
      * @param options 流消息添加选项
      * @param codec   流消息编解码器

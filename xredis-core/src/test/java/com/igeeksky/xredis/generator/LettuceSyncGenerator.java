@@ -20,12 +20,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * 生成 LettuceSyncOperator 及 LettuceClusterSyncOperator
+ * 自动代码生成器
+ * <p>
+ * 用于生成 LettuceSyncOperator 及 LettuceClusterSyncOperator
  *
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public class LettuceSyncGeneratorTest {
+public class LettuceSyncGenerator {
 
     private static final String GROUP_ID = "io.lettuce";
     private static final String VERSION = "6.5.2.RELEASE";

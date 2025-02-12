@@ -13,6 +13,8 @@ import java.util.List;
 /**
  * 阻塞读取流任务
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */

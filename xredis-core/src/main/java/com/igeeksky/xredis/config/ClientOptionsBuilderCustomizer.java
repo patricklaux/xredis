@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.config;
 
 
+import com.igeeksky.xredis.api.RedisOperatorFactory;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SslOptions;
 import io.lettuce.core.TimeoutOptions;
@@ -20,28 +21,36 @@ import io.lettuce.core.cluster.ClusterClientOptions;
 public interface ClientOptionsBuilderCustomizer {
 
     /**
-     * @param id      LettuceConnectionFactory 的 beanId
+     * 对指定 id 的 {@link RedisOperatorFactory} 修改对应的超时配置
+     *
+     * @param id      {@link RedisOperatorFactory} 唯一标识
      * @param builder 过期时间配置，可以实现不同命令有不同的超时设置，一般情况下默认即可
      */
     default void customizeTimeout(String id, TimeoutOptions.Builder builder) {
     }
 
     /**
-     * @param id      LettuceConnectionFactory 的 beanId
+     * 对指定 id 的 {@link RedisOperatorFactory} 修改对应的 Ssl 配置
+     *
+     * @param id      {@link RedisOperatorFactory} 唯一标识
      * @param builder ssl 配置
      */
     default void customizeSsl(String id, SslOptions.Builder builder) {
     }
 
     /**
-     * @param id      LettuceConnectionFactory 的 beanId
+     * 对指定 id 的 {@link RedisOperatorFactory} 修改对应的客户端选项
+     *
+     * @param id      {@link RedisOperatorFactory} 唯一标识
      * @param builder 单机、主从、哨兵客户端配置
      */
     default void customizeClient(String id, ClientOptions.Builder builder) {
     }
 
     /**
-     * @param id      LettuceConnectionFactory 的 beanId
+     * 对指定 id 的 {@link RedisOperatorFactory} 修改对应的集群客户端选项
+     *
+     * @param id      {@link RedisOperatorFactory} 唯一标识
      * @param builder 集群客户端配置
      */
     default void customizeClusterClient(String id, ClusterClientOptions.Builder builder) {

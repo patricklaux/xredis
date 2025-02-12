@@ -24,6 +24,8 @@ import java.util.concurrent.*;
 /**
  * 循环监听 Stream 消息
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -48,6 +50,7 @@ public class StreamContainer<K, V> implements AsyncCloseable {
      * 创建一个新的 StreamContainer 实例
      *
      * @param operator  RedisOperator
+     * @param executor  虚拟线程执行器
      * @param scheduler 调度器
      * @param interval  两次拉取消息任务的间隔时间，单位毫秒（必须大于 0）
      */
@@ -111,6 +114,7 @@ public class StreamContainer<K, V> implements AsyncCloseable {
      *
      * @param offset  偏移量
      * @param options 读选项
+     * @return {@link Flow} 数据流
      */
     public Flow<StreamMessage<K, V>> subscribe(StreamOffset<K> offset, XReadOptions options) {
         Assert.notNull(offset, "offset must not be null");
@@ -130,6 +134,7 @@ public class StreamContainer<K, V> implements AsyncCloseable {
      * @param offset   偏移量
      * @param options  读选项
      * @param consumer 消费者
+     * @return {@link Flow} 数据流
      */
     public Flow<StreamMessage<K, V>> subscribe(StreamOffset<K> offset, XReadOptions options, Consumer<K> consumer) {
         Assert.notNull(offset, "offset must not be null");

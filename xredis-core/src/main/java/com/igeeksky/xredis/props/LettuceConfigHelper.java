@@ -29,6 +29,8 @@ public final class LettuceConfigHelper {
     /**
      * 创建 lettuce 单机模式 或 副本集模式 配置
      *
+     * @param id         {@link RedisOperatorFactory} 唯一标识
+     * @param standalone 配置项
      * @return {@link LettuceStandaloneConfig} – lettuce 单机模式 或 副本集模式 配置
      */
     public static LettuceStandaloneConfig createConfig(String id, LettuceStandalone standalone) {
@@ -54,6 +56,8 @@ public final class LettuceConfigHelper {
     /**
      * 创建 lettuce 哨兵模式配置
      *
+     * @param id       {@link RedisOperatorFactory} 唯一标识
+     * @param sentinel 哨兵模式配置
      * @return {@link LettuceSentinelConfig} – lettuce 哨兵模式配置
      */
     public static LettuceSentinelConfig createConfig(String id, LettuceSentinel sentinel) {
@@ -90,6 +94,8 @@ public final class LettuceConfigHelper {
     /**
      * 创建 lettuce 集群模式配置
      *
+     * @param id      {@link RedisOperatorFactory} 唯一标识
+     * @param cluster 集群模式配置
      * @return {@link LettuceClusterConfig} – lettuce 集群模式配置
      */
     public static LettuceClusterConfig createConfig(String id, LettuceCluster cluster) {

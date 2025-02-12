@@ -8,6 +8,10 @@ import io.lettuce.core.json.JsonParser;
 import reactor.core.publisher.Mono;
 
 /**
+ * Pipeline 实现类（非集群）
+ *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -15,11 +19,24 @@ public class LettucePipeline<K, V> extends RedisAsyncCommandsImpl<K, V> implemen
 
     private final StatefulRedisConnection<K, V> connection;
 
+    /**
+     * Standalone or Sentinel
+     *
+     * @param connection 批量提交命令连接（autoFlush = false）
+     * @param codec      编解码器
+     */
     public LettucePipeline(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec) {
         super(connection, codec);
         this.connection = connection;
     }
 
+    /**
+     * Standalone or Sentinel
+     *
+     * @param connection 批量提交命令连接（autoFlush = false）
+     * @param codec      编解码器
+     * @param parser     JSON 解析器
+     */
     public LettucePipeline(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec, Mono<JsonParser> parser) {
         super(connection, codec, parser);
         this.connection = connection;

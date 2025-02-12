@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 为了避免读取多个流时频繁堵塞，导致无法及时读取消息，
  * 这里采用公共参数，将多个流合并到一个 xread 命令进行读取，以减少网络请求次数及可能的堵塞时长。
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -46,6 +48,12 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
 
     private final ConcurrentHashMap<Tuple1<K>, StreamInfo<K, V>> streams = new ConcurrentHashMap<>();
 
+    /**
+     * 构造器
+     *
+     * @param operator RedisOperator
+     * @param options  流读取选项
+     */
     public StreamGenericTask(RedisOperator<K, V> operator, XReadOptions options) {
         this.operator = operator;
         this.readArgs = options.to();

@@ -5,8 +5,11 @@ import java.util.Map;
 /**
  * Redis 流消息编解码器
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
+ * @param <T> 原消息类型
  * @author Patrick.Lau
- * @since 1.0.0 2024/8/30
+ * @since 1.0.0
  */
 public interface StreamCodec<K, V, T> {
 

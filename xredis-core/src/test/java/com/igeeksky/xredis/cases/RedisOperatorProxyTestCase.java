@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * RedisOperatorProxy 测试用例
+ *
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -27,11 +29,19 @@ public class RedisOperatorProxyTestCase {
     private final RedisOperatorProxy operatorProxy;
     private final RedisOperator<byte[], byte[]> redisOperator;
 
+    /**
+     * 构造方法
+     *
+     * @param redisOperator RedisOperator
+     */
     public RedisOperatorProxyTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
         this.operatorProxy = new RedisOperatorProxy(10000, redisOperator);
     }
 
+    /**
+     * 测试非性能测试的所有方法
+     */
     public void testAll() {
         hset();
         hmset();

@@ -22,6 +22,8 @@ public interface RedisOperatorFactory {
     /**
      * 创建新的 Redis 批操作客户端
      *
+     * @param <K>   键类型
+     * @param <V>   值类型
      * @param codec RedisCodec
      * @return {@link Pipeline} – Redis 客户端
      */
@@ -30,6 +32,8 @@ public interface RedisOperatorFactory {
     /**
      * 创建新的 Redis 同步操作客户端
      *
+     * @param <K>   键类型
+     * @param <V>   值类型
      * @param codec RedisCodec
      * @return {@link RedisSyncOperator} – Redis 同步操作客户端
      */
@@ -38,6 +42,8 @@ public interface RedisOperatorFactory {
     /**
      * 创建新的 Redis 异步操作客户端
      *
+     * @param <K>   键类型
+     * @param <V>   值类型
      * @param codec RedisCodec
      * @return {@link RedisAsyncOperator} – Redis 异步操作客户端
      */
@@ -46,6 +52,8 @@ public interface RedisOperatorFactory {
     /**
      * 创建新的 Redis 响应式操作客户端
      *
+     * @param <K>   键类型
+     * @param <V>   值类型
      * @param codec RedisCodec
      * @return {@link RedisReactiveOperator} – Redis 响应式操作客户端
      */
@@ -54,6 +62,8 @@ public interface RedisOperatorFactory {
     /**
      * 创建新的 Redis 客户端
      *
+     * @param <K>   键类型
+     * @param <V>   值类型
      * @param codec RedisCodec
      * @return {@linkplain RedisOperator} – Redis 客户端
      */
@@ -89,6 +99,11 @@ public interface RedisOperatorFactory {
                                                                XReadOptions options, ScheduledExecutorService scheduler);
 
 
+    /**
+     * 创建新的虚拟线程池
+     *
+     * @return {@linkplain ExecutorService} – 虚拟线程池
+     */
     default ExecutorService newVirtualThreadPerTaskExecutor() {
         return Executors.newThreadPerTaskExecutor(new VirtualThreadFactory("stream-thread-"));
     }
@@ -100,6 +115,8 @@ public interface RedisOperatorFactory {
 
     /**
      * 关闭 Redis 客户端工厂（异步）
+     *
+     * @return {@linkplain CompletableFuture} – 关闭结果
      */
     CompletableFuture<Void> shutdownAsync();
 

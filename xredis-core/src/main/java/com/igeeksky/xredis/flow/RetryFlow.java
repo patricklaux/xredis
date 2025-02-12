@@ -5,6 +5,7 @@ import java.time.Duration;
 /**
  * 可重试的无限流
  *
+ * @param <E> 消息类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -14,6 +15,8 @@ public class RetryFlow<E> implements Flow<E> {
 
     /**
      * 构造函数
+     *
+     * @param sink 数据池
      */
     public RetryFlow(Sink<E> sink) {
         this.sink = sink;

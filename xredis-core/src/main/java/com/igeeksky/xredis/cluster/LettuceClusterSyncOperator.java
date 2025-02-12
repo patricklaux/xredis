@@ -37,6 +37,8 @@ import java.util.function.Predicate;
 /**
  * 同步操作接口实现（集群模式）
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -45,6 +47,11 @@ public class LettuceClusterSyncOperator<K, V> implements RedisSyncOperator<K, V>
     private final RedisAdvancedClusterCommands<K, V> redisCommands;
     private final StatefulRedisClusterConnection<K, V> connection;
 
+    /**
+     * cluster operator constructor
+     *
+     * @param connection 批量提交命令连接（autoFlush = true）
+     */
     public LettuceClusterSyncOperator(StatefulRedisClusterConnection<K, V> connection) {
         this.connection = connection;
         this.redisCommands = connection.sync();

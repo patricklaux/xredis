@@ -17,6 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * 可重试的 Sink
  *
+ * @param <E> 数据类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -43,11 +44,12 @@ public class RetrySink<E> implements Sink<E>, Runnable {
      * 构造函数
      *
      * @param executor 虚拟线程池
+     * @param count    单次拉取消息的最大数量，缓冲区大小为 {@code count * 2}
      */
     public RetrySink(ExecutorService executor, int count) {
         this.count = count;
         this.executor = executor;
-        this.subscription = new DefaultSubscription(this);
+        this.subscription = new DefaultSubscription<>(this);
     }
 
     @Override

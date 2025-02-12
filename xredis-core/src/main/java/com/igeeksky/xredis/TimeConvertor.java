@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * 用于将 RedisServer 返回的时间转换为 {@code long} 类型时间
  *
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */

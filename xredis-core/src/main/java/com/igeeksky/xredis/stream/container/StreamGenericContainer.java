@@ -26,6 +26,8 @@ import java.util.concurrent.*;
  * <p>
  * 使用公共的 XReadArgs 参数，将所有流合并到一个 xread 命令进行读取，以减少命令阻塞。
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -116,6 +118,7 @@ public class StreamGenericContainer<K, V> implements AsyncCloseable {
      * 如果已经订阅，再次订阅之前需先调用 {@link Flow#cancel()}（或调用 {@link Disposable#dispose()}}），否则会抛出异常。
      *
      * @param offset 偏移量
+     * @return {@link Flow} 数据流
      */
     public Flow<StreamMessage<K, V>> subscribe(StreamOffset<K> offset) {
         Assert.notNull(offset, "offset must not be null");

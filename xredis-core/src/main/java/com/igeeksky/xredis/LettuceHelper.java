@@ -17,7 +17,7 @@ import java.util.List;
  * Lettuce 辅助工具类
  *
  * @author Patrick.Lau
- * @since 0.0.4 2023-10-03
+ * @since 1.0.0
  */
 public final class LettuceHelper {
 

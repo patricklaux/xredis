@@ -14,6 +14,8 @@ import java.util.List;
 /**
  * 无阻塞读取流任务
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -21,6 +23,11 @@ public class StreamNonBlockingTask<K, V> extends AbstractStreamTask<K, V> {
 
     private final RedisOperator<K, V> operator;
 
+    /**
+     * 无阻塞读取流任务
+     *
+     * @param operator RedisOperator
+     */
     public StreamNonBlockingTask(RedisOperator<K, V> operator) {
         super();
         this.operator = operator;
