@@ -151,7 +151,7 @@ class LettuceOperatorTest {
 
     @Test
     void pipelineSetAndGet() throws ExecutionException, InterruptedException {
-        redisOperator.sync().flushdb(FlushMode.SYNC);
+        redisOperator.sync().flushdb();
 
         int size = 100000;
         List<RedisFuture<String>> futures = new ArrayList<>(size);
@@ -298,6 +298,12 @@ class LettuceOperatorTest {
 
     @Test
     void autoFlush() {
+        Assertions.assertThrowsExactly(UnsupportedOperationException.class,
+                () -> redisOperator.sync().setAutoFlushCommands(false));
+
+        Assertions.assertThrowsExactly(UnsupportedOperationException.class,
+                () -> redisOperator.sync().setAutoFlushCommands(true));
+
         Assertions.assertThrowsExactly(UnsupportedOperationException.class,
                 () -> redisOperator.async().setAutoFlushCommands(false));
 

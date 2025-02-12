@@ -14,6 +14,7 @@ import io.lettuce.core.api.sync.*;
  * @author Patrick.Lau
  * @since 1.0.0
  */
+@SuppressWarnings("unchecked")
 public interface RedisSyncOperator<K, V> extends RedisMode,
         BaseRedisCommands<K, V>, RedisAclCommands<K, V>, RedisFunctionCommands<K, V>,
         RedisGeoCommands<K, V>, RedisHashCommands<K, V>, RedisHLLCommands<K, V>,
@@ -48,7 +49,6 @@ public interface RedisSyncOperator<K, V> extends RedisMode,
      * @param args   脚本参数列表
      * @return 脚本执行结果
      */
-    @SuppressWarnings("unchecked")
     default <T> T evalReadOnly(RedisScript script, K[] keys, V... args) {
         if (ArrayUtils.isEmpty(args)) {
             return this.evalReadOnly(script.getScript(), script.getType(), keys);
@@ -66,7 +66,6 @@ public interface RedisSyncOperator<K, V> extends RedisMode,
      * @param args   脚本参数列表
      * @return 脚本执行结果
      */
-    @SuppressWarnings("unchecked")
     default <T> T evalsha(RedisScript script, K[] keys, V... args) {
         if (ArrayUtils.isEmpty(args)) {
             return this.evalsha(script.getSha1(), script.getType(), keys);
