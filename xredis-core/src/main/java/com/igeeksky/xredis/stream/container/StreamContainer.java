@@ -10,7 +10,6 @@ import com.igeeksky.xredis.stream.StreamCodec;
 import com.igeeksky.xredis.stream.StreamPublisher;
 import com.igeeksky.xredis.stream.XAddOptions;
 import com.igeeksky.xredis.stream.XReadOptions;
-import com.igeeksky.xtool.core.concurrent.VirtualThreadFactory;
 import com.igeeksky.xtool.core.lang.Assert;
 import io.lettuce.core.Consumer;
 import io.lettuce.core.RedisFuture;

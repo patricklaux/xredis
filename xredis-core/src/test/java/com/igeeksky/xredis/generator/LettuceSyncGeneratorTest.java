@@ -27,7 +27,7 @@ import java.util.zip.ZipInputStream;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public class LettuceSyncGenerator {
+public class LettuceSyncGeneratorTest {
 
     private static final String GROUP_ID = "io.lettuce";
     private static final String VERSION = "6.5.2.RELEASE";
