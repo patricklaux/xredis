@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.autoconfigure;
 
-import com.igeeksky.xredis.RedisConfigException;
 import com.igeeksky.xredis.api.RedisOperatorFactory;
+import com.igeeksky.xredis.common.RedisConfigException;
 import com.igeeksky.xredis.props.LettuceCluster;
 import com.igeeksky.xredis.props.LettuceSentinel;
 import com.igeeksky.xredis.props.LettuceStandalone;
@@ -29,6 +29,12 @@ public class XredisProperties {
 
     @NestedConfigurationProperty
     private LettuceCluster cluster;
+
+    /**
+     * 默认构造器
+     */
+    public XredisProperties() {
+    }
 
     /**
      * {@link RedisOperatorFactory} 唯一标识

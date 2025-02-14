@@ -1,8 +1,8 @@
 package com.igeeksky.xredis.stream;
 
 
-import com.igeeksky.xredis.RedisOperationException;
 import com.igeeksky.xredis.api.RedisAsyncOperator;
+import com.igeeksky.xredis.common.RedisOperationException;
 import io.lettuce.core.XAddArgs;
 
 import java.util.Map;

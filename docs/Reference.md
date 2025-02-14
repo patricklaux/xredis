@@ -1,4 +1,4 @@
-## Xcache  Reference Guide
+## Xredis  Reference Guide
 
 Author: Patrick.Lau		Version: 1.0.0
 
@@ -6,17 +6,17 @@ Author: Patrick.Lau		Version: 1.0.0
 
 ### 1.1. 文档版本
 
-此文档最新版本位于 https://github.com/patricklaux/xcache/blob/main/docs/Reference.md，如您有任何改进，非常欢迎您提交 pr。
+此文档最新版本位于 https://github.com/patricklaux/xredis/blob/main/docs/Reference.md，如您有任何改进，非常欢迎您提交 pr。
 
 ### 1.2. 获取帮助
 
-https://github.com/patricklaux/xcache/discussions
+https://github.com/patricklaux/xredis/discussions
 
-如您希望了解如何使用 xcache，或在使用中遇到问题无法解决，欢迎在此提问。
+如您希望了解如何使用 xredis，或在使用中遇到问题无法解决，欢迎在此提问。
 
 ### 1.3. 建议反馈
 
-https://github.com/patricklaux/xcache/issues
+https://github.com/patricklaux/xredis/issues
 
 如您发现功能缺陷，或有任何开发建议，欢迎在此提交。
 
@@ -24,7 +24,7 @@ https://github.com/patricklaux/xcache/issues
 
 ### 1.4. 项目测试
 
-https://github.com/patricklaux/xcache/tree/main/xcache-test
+https://github.com/patricklaux/xredis/tree/main/xredis-test
 
 如您希望扩展实现，又或者对某处代码逻辑有疑问，您可以参考此测试项目，并对相关实现进行调试。
 
@@ -34,7 +34,7 @@ https://github.com/patricklaux/xcache/tree/main/xcache-test
 
 ### 2.1. 简介
 
-Xcache 是易于扩展、功能强大且配置灵活的 Java 多级缓存框架。
+xredis 是易于扩展、功能强大且配置灵活的 Java 多级缓存框架。
 
 ### 2.2. 架构
 
@@ -60,23 +60,23 @@ JDK：21+
 
 ## 3. 项目示例
 
-以下代码片段来自于 [xcache-samples](https://github.com/patricklaux/xcache-samples)，如需获取更详细信息，您可以克隆示例项目到本地进行调试。
+以下代码片段来自于 [xredis-samples](https://github.com/patricklaux/xredis-samples)，如需获取更详细信息，您可以克隆示例项目到本地进行调试。
 
 ```bash
-git clone https://github.com/patricklaux/xcache-samples.git
+git clone https://github.com/patricklaux/xredis-samples.git
 ```
 
 ### 3.0. Maven bom
 
-Xcache 支持 bom 方式统一管理版本，可在 pom.xml 文件中添加如下配置片段，后续真正引入组件依赖时可省略版本号。
+xredis 支持 bom 方式统一管理版本，可在 pom.xml 文件中添加如下配置片段，后续真正引入组件依赖时可省略版本号。
 
 ```xml
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.igeeksky.xcache</groupId>
-            <artifactId>xcache-bom</artifactId>
-            <version>${xcache.version}</version>
+            <groupId>com.igeeksky.xredis</groupId>
+            <artifactId>xredis-bom</artifactId>
+            <version>${xredis.version}</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -86,19 +86,19 @@ Xcache 支持 bom 方式统一管理版本，可在 pom.xml 文件中添加如�
 
 ### 3.1. 调用缓存方法
 
-详见 ``xcache-samples-method`` 子项目。
+详见 ``xredis-samples-method`` 子项目。
 
 #### 3.1.1 第一步：引入依赖
 
-如直接通过调用方法操作缓存，仅需引入 ``xcache-spring-boot-starter`` 模块。
+如直接通过调用方法操作缓存，仅需引入 ``xredis-spring-boot-starter`` 模块。
 
 主要组件：Caffeine（内嵌缓存），Lettuce（Redis 客户端），Jackson（序列化）
 
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.igeeksky.xcache</groupId>
-        <artifactId>xcache-spring-boot-starter</artifactId>
+        <groupId>com.igeeksky.xredis</groupId>
+        <artifactId>xredis-spring-boot-starter</artifactId>
     </dependency>
     <!-- ... other ... -->
 </dependencies>
@@ -107,7 +107,7 @@ Xcache 支持 bom 方式统一管理版本，可在 pom.xml 文件中添加如�
 #### 3.1.2. 第二步：编写配置
 
 ```yaml
-xcache: #【1】Xcache 配置的根节点
+xredis: #【1】xredis 配置的根节点
   group: shop #【2】分组名称（必填），主要用于区分不同的应用
   template: #【3】公共模板配置（必填），列表类型，可配置一至多个
     - id: t0 #【4】模板ID（必填）
@@ -124,7 +124,7 @@ xcache: #【1】Xcache 配置的根节点
 
   为了避免填写重复配置，可创建一个公共配置模板【3】，缓存个性配置【9】中则只需填写与该模板的差异部分。
 
-- Xcache 提供了丰富的配置项，绝大多数都有默认值，因此可以省略而无需填写。
+- xredis 提供了丰富的配置项，绝大多数都有默认值，因此可以省略而无需填写。
 
 
 #### 3.1.3. 第三步：调用方法
@@ -286,23 +286,23 @@ public class UserCacheService {
 
 鉴于配置项较多，因此写了一个单独章节。欲详细了解，请见 [4.缓存配置](#4. 缓存配置)。
 
-### 3.2. 使用 Xcache 注解
+### 3.2. 使用 xredis 注解
 
-详见 ``xcache-samples-annotation`` 子项目。
+详见 ``xredis-samples-annotation`` 子项目。
 
 #### 3.2.1. 第一步：引入依赖
 
-使用  Xcache 注解，除了需引入 ``xcache-spring-boot-starter``，还需引入 ``xcache-spring-aop``。
+使用  xredis 注解，除了需引入 ``xredis-spring-boot-starter``，还需引入 ``xredis-spring-aop``。
 
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.igeeksky.xcache</groupId>
-        <artifactId>xcache-spring-boot-starter</artifactId>
+        <groupId>com.igeeksky.xredis</groupId>
+        <artifactId>xredis-spring-boot-starter</artifactId>
     </dependency>
     <dependency>
-        <groupId>com.igeeksky.xcache</groupId>
-        <artifactId>xcache-spring-aop</artifactId>
+        <groupId>com.igeeksky.xredis</groupId>
+        <artifactId>xredis-spring-aop</artifactId>
     </dependency>
     <!-- ... other ... -->
 </dependencies>
@@ -311,7 +311,7 @@ public class UserCacheService {
 #### 3.2.2. 第二步：编写配置
 
 ```yaml
-xcache: #【1】Xcache 配置的根节点
+xredis: #【1】xredis 配置的根节点
   group: shop #【2】分组名称（必填），主要用于区分不同的应用
   template: #【3】公共模板配置（必填），列表类型，可配置一至多个
     - id: t0 #【4】模板ID（必填）
@@ -338,13 +338,13 @@ xcache: #【1】Xcache 配置的根节点
 
 上一配置文件仅使用 Caffeine 作为一级缓存，这份配置文件则增加了 Redis 作为二级缓存。
 
-1. 首先，【16~21】增加 ``xcache.redis.lettuce`` 配置。
+1. 首先，【16~21】增加 ``xredis.redis.lettuce`` 配置。
 
    【18】创建一个 ``RedisOperatorFactory`` 类型的对象，这个对象的 id 设定为 “lettuce”。
 
    【19】这个 ``RedisOperatorFactory`` 对象用 Lettuce 作为客户端连接 Redis 哨兵节点。
 
-2. 其次，【13~15】增加了 ``xcache.redis.store`` 配置。
+2. 其次，【13~15】增加了 ``xredis.redis.store`` 配置。
 
    【14】创建一个 ``RedisStoreProvider`` 类型的对象，这个对象的 id 也设定为 “lettuce”。
 
@@ -377,16 +377,16 @@ xcache: #【1】Xcache 配置的根节点
 **启用缓存注解：@EnableCache** 
 
 ```java
-import com.igeeksky.xcache.aop.EnableCache;
+import com.igeeksky.xredis.aop.EnableCache;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Xcache 注解示例
+ * xredis 注解示例
  */
 // 启用缓存注解
-@EnableCache(basePackages = "com.igeeksky.xcache.samples")
-@SpringBootApplication(scanBasePackages = "com.igeeksky.xcache.samples")
+@EnableCache(basePackages = "com.igeeksky.xredis.samples")
+@SpringBootApplication(scanBasePackages = "com.igeeksky.xredis.samples")
 public class AnnotationApplication {
 
     public static void main(String[] args) {
@@ -399,8 +399,8 @@ public class AnnotationApplication {
 **代码示例** 
 
 ```java
-// 引入 Xcache 注解
-import com.igeeksky.xcache.annotation.*;
+// 引入 xredis 注解
+import com.igeeksky.xredis.annotation.*;
 // ………… 省略其它
 
 /**
@@ -442,7 +442,7 @@ public class UserCacheService {
      * @param id 用户ID
      * @return Optional<User> – 用户信息
      * 
-     * 如方法返回值类型为 Optional，Xcache 将自动采用 Optional.ofNullable(value) 包装返回值。
+     * 如方法返回值类型为 Optional，xredis 将自动采用 Optional.ofNullable(value) 包装返回值。
      */
     @Cacheable
     public Optional<User> getOptionalUser(Long id) {
@@ -461,7 +461,7 @@ public class UserCacheService {
      * @param id 用户ID
      * @return CompletableFuture<User> – 用户信息
      * 
-     * 如方法返回值类型为 CompletableFuture，Xcache 将采用 CompletableFuture.completedFuture() 包装返回值。
+     * 如方法返回值类型为 CompletableFuture，xredis 将采用 CompletableFuture.completedFuture() 包装返回值。
      */
     @Cacheable
     public CompletableFuture<User> getFutureUser(Long id) {
@@ -499,7 +499,7 @@ public class UserCacheService {
      * @param ids 用户ID集合
      * @return Optional<Map<Long, User>> – 用户信息集合
      * 
-     * 如方法返回值类型为 Optional，Xcache 将采用 Optional.ofNullable(value) 包装返回值。
+     * 如方法返回值类型为 Optional，xredis 将采用 Optional.ofNullable(value) 包装返回值。
      */
     @CacheableAll
     public Optional<Map<Long, User>> getOptionalUsers(Set<Long> ids) {
@@ -512,7 +512,7 @@ public class UserCacheService {
      * @param ids 用户ID集合
      * @return CompletableFuture<Map<Long, User>> – 用户信息集合
      * 
-     * 如方法返回值类型为 CompletableFuture，Xcache 将采用 CompletableFuture.completedFuture(value) 包装返回值。
+     * 如方法返回值类型为 CompletableFuture，xredis 将采用 CompletableFuture.completedFuture(value) 包装返回值。
      */
     @CacheableAll(keys = "#ids")
     public CompletableFuture<Map<Long, User>> getFutureUsers(Set<Long> ids) {
@@ -604,17 +604,17 @@ public class UserCacheService {
 
 #### 3.2.4. 小结
 
-此示例演示了如何使用 Xcache 缓存注解。
+此示例演示了如何使用 xredis 缓存注解。
 
 1. 公共参数
 
-   Xcache 的方法级缓存注解一共有 7 个：``@Cacheable``，``@CacheableAll``，``@CachePut``，``@CachePutAll``，``@CacheEvict``，``@CacheEvictAll``，``@CacheClear``。
+   xredis 的方法级缓存注解一共有 7 个：``@Cacheable``，``@CacheableAll``，``@CachePut``，``@CachePutAll``，``@CacheEvict``，``@CacheEvictAll``，``@CacheClear``。
 
    这些注解均有 5 个参数：name，keyType，keyParams，valueType，valueParams。
 
    如果一个类中有多个方法级缓存注解，则可以使用类级缓存注解 ``@CacheConfig`` 统一配置公共参数。
 
-2. 每个注解的具体参数配置和逻辑介绍详见 [5. Xcache 注解](#5. Xcache 注解)
+2. 每个注解的具体参数配置和逻辑介绍详见 [5. xredis 注解](#5. xredis 注解)
 
 3. 返回值类型
 
@@ -624,28 +624,28 @@ public class UserCacheService {
 
    如果是 ``CompletableFuture`` 类型，，缓存系统会自动用 ``CompletableFuture.completedFuture(value)``  包装缓存中获取到的值。
 
-   另，Spring cache 注解还支持 Reactor 的 ``Mono`` 和 ``Flux`` 类型，但 Xcache 注解暂无计划支持。因为 JDK 21 已有相对成熟的虚拟线程，再引入更多的抽象似乎并不是一个好主意。
+   另，Spring cache 注解还支持 Reactor 的 ``Mono`` 和 ``Flux`` 类型，但 xredis 注解暂无计划支持。因为 JDK 21 已有相对成熟的虚拟线程，再引入更多的抽象似乎并不是一个好主意。
    
 
 ### 3.3. 使用 Spring cache 注解
 
-详见 ``xcache-samples-spring-annotation`` 子项目。
+详见 ``xredis-samples-spring-annotation`` 子项目。
 
-如既想用 Spring cache 注解，又想要 Xcache 相对丰富的功能特性，那么，Xcache 提供了  Spring cache 适配模块。
+如既想用 Spring cache 注解，又想要 xredis 相对丰富的功能特性，那么，xredis 提供了  Spring cache 适配模块。
 
 #### 3.3.1. 第一步：引入依赖
 
-使用  Spring cache 注解，除了需引入 ``xcache-spring-boot-starter``，还需引入 ``xcache-spring-adapter-autoconfigure``。
+使用  Spring cache 注解，除了需引入 ``xredis-spring-boot-starter``，还需引入 ``xredis-spring-adapter-autoconfigure``。
 
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.igeeksky.xcache</groupId>
-        <artifactId>xcache-spring-boot-starter</artifactId>
+        <groupId>com.igeeksky.xredis</groupId>
+        <artifactId>xredis-spring-boot-starter</artifactId>
     </dependency>
     <dependency>
-        <groupId>com.igeeksky.xcache</groupId>
-        <artifactId>xcache-spring-adapter-autoconfigure</artifactId>
+        <groupId>com.igeeksky.xredis</groupId>
+        <artifactId>xredis-spring-adapter-autoconfigure</artifactId>
     </dependency>
     <!-- ... other ... -->
 </dependencies>
@@ -654,7 +654,7 @@ public class UserCacheService {
 #### 3.3.2. 第二步：编写配置
 
 ```yaml
-xcache: #【1】Xcache 配置的根节点
+xredis: #【1】xredis 配置的根节点
   group: shop #【2】分组名称（必填），主要用于区分不同的应用
   template: #【3】公共模板配置（必填），列表类型，可配置一至多个
     - id: t0 #【4】模板ID（必填）
@@ -690,7 +690,7 @@ xcache: #【1】Xcache 配置的根节点
 
 ```json
 {
-    "@class": "com.igeeksky.xcache.samples.User",
+    "@class": "com.igeeksky.xredis.samples.User",
     "id": 1,
     "name": "Jack1",
     "age": 18
@@ -714,7 +714,7 @@ import org.springframework.cache.annotation.EnableCaching;
  * Spring Cache 注解示例
  */
 @EnableCaching
-@SpringBootApplication(scanBasePackages = "com.igeeksky.xcache.samples")
+@SpringBootApplication(scanBasePackages = "com.igeeksky.xredis.samples")
 public class SpringAnnotationApplication {
 
     public static void main(String[] args) {
@@ -835,13 +835,13 @@ public class UserCacheService {
 
 #### 3.3.4. 小结
 
-此示例演示了如何引入适配依赖将 Xcache 作为 Spring cache 的接口实现，并通过 Spring cache 注解操作缓存。
+此示例演示了如何引入适配依赖将 xredis 作为 Spring cache 的接口实现，并通过 Spring cache 注解操作缓存。
 
 1. Spring Cache 没有 ``@CacheableAll``，``@CachePutAll``，``@CacheEvictAll`` 这三个批处理注解。
 
 2. Spring Cache 没有写 key 表达式时，不是使用方法的第一个参数作为键，而是使用所有参数生成 SimpleKey 对象作为键。
 
-3. 对已使用 Spring cache 注解的项目，只需引入 Xcache 相关依赖，几乎不用改动代码，就可将缓存实现替换成 Xcache。
+3. 对已使用 Spring cache 注解的项目，只需引入 xredis 相关依赖，几乎不用改动代码，就可将缓存实现替换成 xredis。
 
 
 ## 4. 缓存配置
@@ -916,7 +916,7 @@ Redis 配置部分，用于创建 Redis 相关的对象。
 
 这一章节主要介绍了大的配置类别，具体的细项配置可参见 [4.3.1. 完全配置](#4.3.1. 完全配置)。
 
-如果想继续了解 Xcache 有哪些主要的对象类型，哪些需要配置，哪些无需配置，请参见下一节：[4.2. 对象创建与使用](#4.2. 对象创建与使用)
+如果想继续了解 xredis 有哪些主要的对象类型，哪些需要配置，哪些无需配置，请参见下一节：[4.2. 对象创建与使用](#4.2. 对象创建与使用)
 
 ### 4.2. 对象创建
 
@@ -960,9 +960,9 @@ Cache 对象需要用到不同类型的对象来完成不同的功能。
 
 **A**：*有外部服务依赖的需要显式配置；无外部服务依赖的无需显式配置*。
 
-譬如，``CaffeineStoreProvider`` 不依赖于外部服务，由 Xcache 自动创建 id 为 "caffeine" 的对象实例。
+譬如，``CaffeineStoreProvider`` 不依赖于外部服务，由 xredis 自动创建 id 为 "caffeine" 的对象实例。
 
-譬如，``JacksonCodecProvider`` 不依赖于外部服务，由 Xcache 自动创建 id 为 "jackson" 的对象实例。
+譬如，``JacksonCodecProvider`` 不依赖于外部服务，由 xredis 自动创建 id 为 "jackson" 的对象实例。
 
 …………
 
@@ -974,9 +974,9 @@ Cache 对象需要用到不同类型的对象来完成不同的功能。
 
 另，无外部服务依赖的对象，一部分有可选配置，一部分无任何配置。不管有无可选配置，都会根据需要创建对象实例。当然，如果有可选配置，但又未配置，则使用默认参数。
 
-譬如，``LogCacheStatProvider``，有可选配置，可在 ``xcache.stat`` 中配置相关参数。
+譬如，``LogCacheStatProvider``，有可选配置，可在 ``xredis.stat`` 中配置相关参数。
 
-譬如，``ScheduledExecutorService``，有可选配置，可在 ``xcache.scheduler`` 中配置相关参数。
+譬如，``ScheduledExecutorService``，有可选配置，可在 ``xredis.scheduler`` 中配置相关参数。
 
 譬如，``JacksonCodecProvider``，则无任何配置。
 
@@ -986,7 +986,7 @@ Cache 对象需要用到不同类型的对象来完成不同的功能。
 
 **A**：*实现同一接口的对象的 id 不能重复*。
 
-Xcache 内部，每个接口类型使用一个 Map  作为对象容器，id 作为键，对象实例作为值。所以，不同接口的对象 id 可以重复，相同接口的对象 id 不能重复。
+xredis 内部，每个接口类型使用一个 Map  作为对象容器，id 作为键，对象实例作为值。所以，不同接口的对象 id 可以重复，相同接口的对象 id 不能重复。
 
 譬如， ``CaffeineStoreProvider`` 的 id 已经被预设为 "caffeine"，那么  ``RedisStoreProvider`` 就不能再设为 caffeine，因为这两个类都实现了 ``StoreProvider`` 接口。
 
@@ -1005,7 +1005,7 @@ Xcache 内部，每个接口类型使用一个 Map  作为对象容器，id 作�
 为了更好地说明如何通过配置创建和使用对象，这份配置删除了无关参数，仅保留对象创建和使用信息。
 
 ```yaml
-xcache: #【1】Xcache 配置的根节点
+xredis: #【1】xredis 配置的根节点
   group: shop #【2】分组名称 (必填)
   template: #【3】公共模板配置 (必填)
     - id: t0 #【4】模板ID (必填)
@@ -1042,11 +1042,11 @@ xcache: #【1】Xcache 配置的根节点
 
 1. 首先，创建这个对象类型的实例：
 
-   无外部服务依赖的由 Xcache 使用预设 id 进行创建；有外部服务依赖的则需由用户显式配置 id 和 必要参数才会创建。
+   无外部服务依赖的由 xredis 使用预设 id 进行创建；有外部服务依赖的则需由用户显式配置 id 和 必要参数才会创建。
 
 2. 其次，相关功能配置中填写该 id 指定使用该对象实例；
 
-3. 最后，Xcache 内部根据 id 找到该实例并执行相关功能。
+3. 最后，xredis 内部根据 id 找到该实例并执行相关功能。
 
 ### 4.3. 配置示例
 
@@ -1057,7 +1057,7 @@ xcache: #【1】Xcache 配置的根节点
 #### 4.3.1. 完全配置
 
 ```yaml
-xcache:
+xredis:
   group: shop # 分组名称 (必填)
   template: # 公共模板配置 (必填，仅需配置与默认配置不同的部分)，列表类型，可配置多个模板。
     - id: t0 # 模板ID (必填)，建议将其中一个模板的 id 配置为 t0。
@@ -1259,7 +1259,7 @@ xcache:
 #### 4.3.2. 极简配置
 
 ```yaml
-xcache:
+xredis:
   group: shop # 分组名称 (必填)
   template: # 公共模板配置 (必填)
     - id: t0 # 模板ID (必填)
@@ -1282,7 +1282,7 @@ xcache:
 
 ## 5. 缓存注解
 
-这里的缓存注解指的是 Xcache 定义的注解，非 Spring Cache 注解。
+这里的缓存注解指的是 xredis 定义的注解，非 Spring Cache 注解。
 
 ### 5.1. @Cacheable
 
@@ -1486,7 +1486,7 @@ xcache:
 
 ### 5.9. @EnableCache
 
-``@EnableCache`` 是类注解，用于启用 Xcache 缓存注解功能。
+``@EnableCache`` 是类注解，用于启用 xredis 缓存注解功能。
 
 | 属性         | 必填 |          默认值           | 作用                                                         |
 | :----------- | :--: | :-----------------------: | ------------------------------------------------------------ |
@@ -1574,7 +1574,7 @@ public User save(long id, User result) {
 
 ## 6. 缓存接口
 
-缓存核心接口位于 ``com.igeeksky.xcache.common.cache``：
+缓存核心接口位于 ``com.igeeksky.xredis.common.cache``：
 
 ### 6.1. 主要接口
 
@@ -1673,7 +1673,7 @@ public User save(long id, User result) {
 
 #### 解决方案
 
-Xcache 被设计为可缓存空值，``CacheValue`` 是缓存值的包装类。
+xredis 被设计为可缓存空值，``CacheValue`` 是缓存值的包装类。
 
 当使用缓存查询接口 ``CacheValue<V> getCacheValue(K key)`` 时，可通过 ``cacheValue`` 是否为 ``null`` 来判断是否还未缓存该数据。
 
@@ -1709,7 +1709,7 @@ if (cacheValue == null) {
 
 ## 7. 功能扩展
 
-Xcache 提供了一些功能扩展接口，用于支持不同的缓存模式和特定功能。
+xredis 提供了一些功能扩展接口，用于支持不同的缓存模式和特定功能。
 
 ### 7.1. 回源取值
 
@@ -2196,10 +2196,10 @@ Write-behind 又称为 Wright-back，其主要特点是缓存与数据源直接�
 
 Refresh-Ahead，即预刷新，一般会使用独立的线程（进程）在缓存数据过期之前从数据源加载数据并存入缓存。
 
-Xcache 支持 Refresh-Ahead 策略，可以通过配置开启。
+xredis 支持 Refresh-Ahead 策略，可以通过配置开启。
 
 ```yaml
-xcache: #【2】
+xredis: #【2】
   group: shop #【2】分组名称 (必填)
   template: #【3】公共模板配置 (必填，仅需配置与默认配置不同的部分)，列表类型，可配置多个模板。
     - id: t0 #【4】模板ID (必填)，建议将其中一个模板的 id 配置为 t0。
@@ -2252,7 +2252,7 @@ xcache: #【2】
 
 ## 9. 模块简介
 
-为了让项目结构更加清晰，Xcache 拆分为多个子模块，以下是所有模块列表。
+为了让项目结构更加清晰，xredis 拆分为多个子模块，以下是所有模块列表。
 
 | 项目名称                                  | 类型 | 项目说明                                               |
 | :---------------------------------------- | :--: | :----------------------------------------------------- |

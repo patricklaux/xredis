@@ -1,7 +1,8 @@
 package com.igeeksky.xredis.cases;
 
-import com.igeeksky.xredis.RedisOperatorProxy;
+import com.igeeksky.xredis.LettuceOperatorProxy;
 import com.igeeksky.xredis.api.RedisOperator;
+import com.igeeksky.xredis.common.RedisOperatorProxy;
 import com.igeeksky.xtool.core.collection.Maps;
 import com.igeeksky.xtool.core.lang.RandomUtils;
 import com.igeeksky.xtool.core.lang.codec.StringCodec;
@@ -31,7 +32,7 @@ public class RedisOperatorTestCase {
      */
     public RedisOperatorTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new RedisOperatorProxy(10000, redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(10000, redisOperator);
     }
 
     public boolean isCluster() {
@@ -79,7 +80,7 @@ public class RedisOperatorTestCase {
         redisOperator.sync().mset(LettuceTestHelper.createKeyValues(limit, keysArray));
 
         // 读取 redis 数据
-        Map<String, String> map = LettuceTestHelper.fromKeyValues(redisOperator.sync().mget(keysArray));
+        Map<String, String> map = LettuceTestHelper.from(redisOperator.sync().mget(keysArray));
 
         // 验证读取数据是否正确
         LettuceTestHelper.validateValues(keys, map, size, limit);
@@ -111,7 +112,7 @@ public class RedisOperatorTestCase {
         redisOperator.sync().mset(LettuceTestHelper.createKeyValues(size, keyBytes));
 
         // 读取 redis 数据
-        Map<String, String> map = LettuceTestHelper.fromKeyValues(redisOperator.sync().mget(keyBytes));
+        Map<String, String> map = LettuceTestHelper.from(redisOperator.sync().mget(keyBytes));
 
         // 验证读取数据是否正确
         for (String key : keys) {
@@ -181,14 +182,14 @@ public class RedisOperatorTestCase {
         redisOperator.sync().hmset(key, keyValues);
 
         // 读取 redis 数据
-        Map<String, String> map = LettuceTestHelper.fromKeyValues(redisOperator.sync().hmget(key, fieldBytes));
+        Map<String, String> map = LettuceTestHelper.from(redisOperator.sync().hmget(key, fieldBytes));
 
         // 验证读取数据是否正确
         LettuceTestHelper.validateValues(fields, map, size, limit);
 
         redisOperator.sync().hdel(key, fieldBytes);
 
-        Map<String, String> resultMap = LettuceTestHelper.fromKeyValues(redisOperator.sync().hmget(key, fieldBytes));
+        Map<String, String> resultMap = LettuceTestHelper.from(redisOperator.sync().hmget(key, fieldBytes));
         for (int i = 0; i < size; i++) {
             Assertions.assertNull(resultMap.get(fields[i]));
         }

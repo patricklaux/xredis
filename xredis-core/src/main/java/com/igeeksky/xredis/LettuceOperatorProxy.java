@@ -2,16 +2,19 @@ package com.igeeksky.xredis;
 
 import com.igeeksky.xredis.api.Pipeline;
 import com.igeeksky.xredis.api.RedisOperator;
+import com.igeeksky.xredis.common.ExpiryKeyFieldValue;
+import com.igeeksky.xredis.common.RedisOperationException;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
+import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
 import com.igeeksky.xtool.core.collection.Maps;
-import io.lettuce.core.*;
+import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.output.KeyStreamingChannel;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -22,9 +25,7 @@ import java.util.concurrent.CompletionStage;
  * @since 1.0.0
  */
 @SuppressWarnings("unchecked")
-public class RedisOperatorProxy {
-
-    private static final String OK = "OK";
+public class LettuceOperatorProxy implements com.igeeksky.xredis.common.RedisOperatorProxy {
 
     private final int batchSize;
     private final RedisOperator<byte[], byte[]> redisOperator;
@@ -35,7 +36,7 @@ public class RedisOperatorProxy {
      * @param batchSize     命令提交数量阈值（如 batchSize 为 10000，写入 100 万数据会分 100 批次提交到 Redis）
      * @param redisOperator RedisOperator
      */
-    public RedisOperatorProxy(int batchSize, RedisOperator<byte[], byte[]> redisOperator) {
+    public LettuceOperatorProxy(int batchSize, RedisOperator<byte[], byte[]> redisOperator) {
         this.batchSize = batchSize;
         this.redisOperator = redisOperator;
     }
@@ -86,10 +87,9 @@ public class RedisOperatorProxy {
                 }
             }
         }
-        if (count > 0) {
-            pipeline.flushCommands();
-        }
+        pipeline.flushCommands();
         return combineStringFutures(CompletableFuture.completedFuture(OK), futures);
+        // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
     }
 
     /**
@@ -133,12 +133,17 @@ public class RedisOperatorProxy {
      * @param value        Hash 字段值
      * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
      */
-    public CompletableFuture<Void> hpset(byte[] key, long milliseconds, byte[] field, byte[] value) {
-        Pipeline<byte[], byte[]> pipeline = this.redisOperator.pipeline();
-        RedisFuture<Boolean> hset = pipeline.hset(key, field, value);
-        RedisFuture<List<Long>> hpexpire = pipeline.hpexpire(key, milliseconds, field);
-        pipeline.flushCommands();
-        return hset.toCompletableFuture().thenCombine(hpexpire, (status, result) -> null);
+    public CompletableFuture<Long> hpset(byte[] key, long milliseconds, byte[] field, byte[] value) {
+        // TODO Lettuce bug：Pipeline 命令并不一定按照顺序提交，有可能先 hpexpire 后 hset，导致 hpexpire 结果返回 -2
+        // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
+        RedisFuture<Boolean> hset = this.redisOperator.async().hset(key, field, value);
+        RedisFuture<List<Long>> hpexpire = this.redisOperator.async().hpexpire(key, milliseconds, field);
+        return hset.toCompletableFuture().thenCombine(hpexpire, (status, result) -> {
+            if (CollectionUtils.isEmpty(result)) {
+                throw new RedisOperationException("hpexpire failed.");
+            }
+            return result.getFirst();
+        });
     }
 
     /**
@@ -180,6 +185,7 @@ public class RedisOperatorProxy {
             future = future.thenCombine(stage, (v, ignored) -> v);
         }
         return future;
+        // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
     }
 
     /**
@@ -198,6 +204,52 @@ public class RedisOperatorProxy {
      * <p>
      * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并返回。
      *
+     * @param keyFields Redis-Hash 键及对应的字段集合
+     * @param totalSize Redis-Hash 键及对应的字段集合的总数量，用于创建返回结果集时指定容量
+     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     */
+    public CompletableFuture<List<KeyValue<byte[], byte[]>>> hmget(Map<byte[], List<byte[]>> keyFields, int totalSize) {
+        // int i = 0, count = 0;
+        // RedisFuture<List<KeyValue<byte[], byte[]>>>[] futures = new RedisFuture[keyFields.size()];
+        //
+        // Pipeline<byte[], byte[]> pipeline = this.redisOperator.pipeline();
+        // for (Map.Entry<byte[], List<byte[]>> entry : keyFields.entrySet()) {
+        //     byte[] key = entry.getKey();
+        //     List<byte[]> fields = entry.getValue();
+        //     if (CollectionUtils.isNotEmpty(fields)) {
+        //         byte[][] array = fields.toArray(new byte[0][]);
+        //         futures[i++] = pipeline.hmget(key, array);
+        //         if ((count += array.length) >= batchSize) {
+        //             pipeline.flushCommands();
+        //             count = 0;
+        //         }
+        //     }
+        // }
+        // pipeline.flushCommands();
+        // CompletableFuture<List<KeyValue<byte[], byte[]>>> future =
+        //         combineKeyValues(CompletableFuture.completedFuture(new ArrayList<>(totalSize)), futures);
+        // pipeline.flushCommands();
+        // return future;
+
+        // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
+
+        int i = 0;
+        CompletableFuture<List<KeyValue<byte[], byte[]>>>[] futures = new CompletableFuture[keyFields.size()];
+        for (Map.Entry<byte[], List<byte[]>> entry : keyFields.entrySet()) {
+            byte[] key = entry.getKey();
+            List<byte[]> fields = entry.getValue();
+            if (CollectionUtils.isNotEmpty(fields)) {
+                futures[i++] = this.hmget(key, fields.toArray(new byte[0][]));
+            }
+        }
+        return combineKeyValues(CompletableFuture.completedFuture(new ArrayList<>(totalSize)), futures);
+    }
+
+    /**
+     * 异步批量获取 Redis-Hash 键的值
+     * <p>
+     * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并返回。
+     *
      * @param key    Redis-Hash 的键
      * @param fields Redis-Hash 的字段列表
      * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
@@ -206,7 +258,8 @@ public class RedisOperatorProxy {
         int size = fields.length;
         // 当数据量低于阈值，直接查询（小于等于限定数量）
         if (size <= batchSize) {
-            return this.redisOperator.async().hmget(key, fields).toCompletableFuture();
+            return this.redisOperator.async().hmget(key, fields).toCompletableFuture()
+                    .thenApply(LettuceOperatorProxy::from);
         }
         // 当数据量超过阈值，分批查询
         CompletableFuture<List<KeyValue<byte[], byte[]>>> future = CompletableFuture.completedFuture(new ArrayList<>(size));
@@ -225,36 +278,6 @@ public class RedisOperatorProxy {
             future = combineKeyValues(future, this.redisOperator.async().hmget(key, subFields));
         }
         return future;
-    }
-
-    /**
-     * 异步批量获取 Redis-Hash 键的值
-     * <p>
-     * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并返回。
-     *
-     * @param keyFields Redis-Hash 键及对应的字段集合
-     * @param totalSize Redis-Hash 键及对应的字段集合的总数量，用于创建返回结果集时指定容量
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
-     */
-    public CompletableFuture<List<KeyValue<byte[], byte[]>>> hmget(Map<byte[], List<byte[]>> keyFields, int totalSize) {
-        int i = 0, count = 0;
-        RedisFuture<List<KeyValue<byte[], byte[]>>>[] futures = new RedisFuture[keyFields.size()];
-
-        Pipeline<byte[], byte[]> pipeline = this.redisOperator.pipeline();
-        for (Map.Entry<byte[], List<byte[]>> entry : keyFields.entrySet()) {
-            byte[] key = entry.getKey();
-            List<byte[]> fields = entry.getValue();
-            if (CollectionUtils.isNotEmpty(fields)) {
-                byte[][] array = fields.toArray(new byte[0][]);
-                futures[i++] = pipeline.hmget(key, array);
-                if ((count += array.length) >= batchSize) {
-                    pipeline.flushCommands();
-                    count = 0;
-                }
-            }
-        }
-        pipeline.flushCommands();
-        return combineKeyValues(CompletableFuture.completedFuture(new ArrayList<>(totalSize)), futures);
     }
 
     /**
@@ -282,10 +305,9 @@ public class RedisOperatorProxy {
                 }
             }
         }
-        if (count > 0) {
-            pipeline.flushCommands();
-        }
+        pipeline.flushCommands();
         return combineLongFuture(CompletableFuture.completedFuture(0L), futures);
+        // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
     }
 
     /**
@@ -387,7 +409,7 @@ public class RedisOperatorProxy {
 
         // 当数据量低于阈值，直接查询（小于等于限定数量）
         if (size <= batchSize) {
-            return this.redisOperator.async().mget(keys).toCompletableFuture();
+            return this.redisOperator.async().mget(keys).toCompletableFuture().thenApply(LettuceOperatorProxy::from);
         }
 
         // 当数据量超过阈值，分批查询
@@ -451,7 +473,9 @@ public class RedisOperatorProxy {
                 j = 0;
             }
         }
+        pipeline.flushCommands();
         return combineStringFutures(future, futures);
+        // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
     }
 
     /**
@@ -565,19 +589,24 @@ public class RedisOperatorProxy {
                                                                                CompletionStage<List<KeyValue<byte[], byte[]>>>[] stages) {
         for (CompletionStage<List<KeyValue<byte[], byte[]>>> stage : stages) {
             if (stage != null) {
-                future = combineKeyValues(future, stage);
+                future = future.thenCombine(stage, (results, keyValues) -> {
+                    if (CollectionUtils.isNotEmpty(keyValues)) {
+                        results.addAll(keyValues);
+                    }
+                    return results;
+                });
             }
         }
         return future;
     }
 
     private CompletableFuture<List<KeyValue<byte[], byte[]>>> combineKeyValues(CompletableFuture<List<KeyValue<byte[], byte[]>>> future,
-                                                                               CompletionStage<List<KeyValue<byte[], byte[]>>> stage) {
-        return future.thenCombine(stage, (list, result) -> {
-            if (CollectionUtils.isNotEmpty(result)) {
-                list.addAll(result);
+                                                                               CompletionStage<List<io.lettuce.core.KeyValue<byte[], byte[]>>> stage) {
+        return future.thenCombine(stage, (results, keyValues) -> {
+            if (CollectionUtils.isNotEmpty(keyValues)) {
+                results.addAll(from(keyValues));
             }
-            return list;
+            return results;
         });
     }
 
@@ -619,6 +648,19 @@ public class RedisOperatorProxy {
             }
             return original;
         });
+    }
+
+    private static List<KeyValue<byte[], byte[]>> from(List<io.lettuce.core.KeyValue<byte[], byte[]>> keyValues) {
+        if (CollectionUtils.isEmpty(keyValues)) {
+            return Collections.emptyList();
+        }
+        List<KeyValue<byte[], byte[]>> results = new ArrayList<>(keyValues.size());
+        keyValues.forEach(keyValue -> {
+            if (keyValue != null && keyValue.hasValue()) {
+                results.add(KeyValue.create(keyValue.getKey(), keyValue.getValue()));
+            }
+        });
+        return results;
     }
 
 }

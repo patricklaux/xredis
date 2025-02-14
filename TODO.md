@@ -20,9 +20,9 @@
 - [X] 【开发】 closeAsync，shutdown 释放资源
 - [X] 【开发】 补充代码注释
 - [X] 【开发】 RedisAsyncOperator, RedisReactiveOperator：evalRedisScript
+- [X] 【开发】 RedisOperatorFactory：executor shutdown 释放资源
 
 ### 待完成任务
 
 - [ ] 【文档】 Reference
-- [ ] 【开发】 RedisOperatorFactory：executor shutdown 释放资源
 - [ ] 【开发】 RedisPooledOperator

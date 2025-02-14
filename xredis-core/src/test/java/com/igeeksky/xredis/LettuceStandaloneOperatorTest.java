@@ -35,6 +35,7 @@ class LettuceStandaloneOperatorTest {
     }
 
     @Test
+    @Disabled
     void testAll() {
         redisTestCase.testAll();
         redisProxyTestCase.testAll();
@@ -48,6 +49,11 @@ class LettuceStandaloneOperatorTest {
     @Test
     void hset() {
         redisProxyTestCase.hset();
+    }
+
+    @Test
+    void hmset2() {
+        redisProxyTestCase.hmset2();
     }
 
     @Test

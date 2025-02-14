@@ -35,6 +35,7 @@ class LettuceClusterOperatorTest {
     }
 
     @Test
+    @Disabled
     void testAll() {
         redisTestCase.testAll();
         redisProxyTestCase.testAll();
@@ -43,6 +44,85 @@ class LettuceClusterOperatorTest {
     @Test
     void isCluster() {
         Assertions.assertTrue(redisTestCase.isCluster());
+    }
+
+    @Test
+    void hset() {
+        redisProxyTestCase.hset();
+    }
+
+    @Test
+    void hmset2() {
+        for (int i = 0; i < 10; i++) {
+            redisProxyTestCase.hmset2();
+        }
+    }
+
+    @Test
+    void hget() {
+        redisProxyTestCase.hget();
+    }
+
+    @Test
+    void hdel() {
+        redisProxyTestCase.hdel();
+    }
+
+    @Test
+    void hdel2() {
+        redisProxyTestCase.hdel2();
+    }
+
+    @Test
+    void hmget() {
+        redisProxyTestCase.hmget();
+    }
+
+    @Test
+    void hmget2() {
+        for (int i = 0; i < 10; i++) {
+            redisProxyTestCase.hmget2();
+        }
+    }
+
+
+    @Test
+    void psetex() {
+        redisProxyTestCase.psetex();
+    }
+
+    @Test
+    void keys2() {
+        redisProxyTestCase.keys2();
+    }
+
+    /**
+     * 特殊测试
+     * <p>
+     * Redis Hash 字段设置值 及 过期时间
+     * <p>
+     * 注意：Redis 版本需大于 7.4.0
+     */
+    @Test
+    @Disabled
+    void hpset() {
+        redisProxyTestCase.hpset();
+    }
+
+    /**
+     * 特殊测试
+     * <p>
+     * Redis Hash 字段设置值 及 过期时间（RedisServer 版本需大于 7.4.0）
+     */
+    @Test
+    @Disabled
+    void hmpset() {
+        redisProxyTestCase.hmpset();
+    }
+
+    @Test
+    void clear() {
+        redisProxyTestCase.clear("test-*");
     }
 
     /**

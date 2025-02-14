@@ -4,6 +4,7 @@ import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
 import com.igeeksky.xtool.core.tuple.Tuple2;
 import com.igeeksky.xtool.core.tuple.Tuples;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -27,6 +28,7 @@ import java.util.zip.ZipInputStream;
  * @author Patrick.Lau
  * @since 1.0.0
  */
+@Disabled
 public class LettuceSyncGeneratorTest {
 
     private static final String GROUP_ID = "io.lettuce";
@@ -41,6 +43,7 @@ public class LettuceSyncGeneratorTest {
     private static final String COMMENT_REG = "/\\*.*?\\*/";
 
     @Test
+    @Disabled
     void generateSync() {
         String[] files = new String[]{
                 "BaseRedisCommands.java",
@@ -101,6 +104,7 @@ public class LettuceSyncGeneratorTest {
     }
 
     @Test
+    @Disabled
     void generateClusterSync() {
         String[] files = new String[]{
                 "BaseRedisCommands.java",

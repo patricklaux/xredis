@@ -1,4 +1,4 @@
-package com.igeeksky.xredis;
+package com.igeeksky.xredis.common;
 
 import com.igeeksky.xtool.core.lang.Assert;
 

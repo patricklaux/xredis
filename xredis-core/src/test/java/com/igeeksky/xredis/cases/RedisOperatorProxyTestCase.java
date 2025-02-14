@@ -1,13 +1,13 @@
 package com.igeeksky.xredis.cases;
 
-import com.igeeksky.xredis.ExpiryKeyFieldValue;
-import com.igeeksky.xredis.RedisOperatorProxy;
+import com.igeeksky.xredis.LettuceOperatorProxy;
 import com.igeeksky.xredis.api.RedisOperator;
+import com.igeeksky.xredis.common.ExpiryKeyFieldValue;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
+import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.Maps;
 import com.igeeksky.xtool.core.lang.RandomUtils;
 import com.igeeksky.xtool.core.lang.codec.StringCodec;
-import io.lettuce.core.KeyValue;
 import org.junit.jupiter.api.Assertions;
 
 import java.nio.charset.StandardCharsets;
@@ -26,7 +26,7 @@ public class RedisOperatorProxyTestCase {
 
     private final StringCodec codec = StringCodec.getInstance(StandardCharsets.UTF_8);
 
-    private final RedisOperatorProxy operatorProxy;
+    private final LettuceOperatorProxy operatorProxy;
     private final RedisOperator<byte[], byte[]> redisOperator;
 
     /**
@@ -36,7 +36,7 @@ public class RedisOperatorProxyTestCase {
      */
     public RedisOperatorProxyTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new RedisOperatorProxy(10000, redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(10000, redisOperator);
     }
 
     /**
@@ -131,7 +131,7 @@ public class RedisOperatorProxyTestCase {
 
     }
 
-    void hmset2() {
+    public void hmset2() {
         int length = 100;
         String prefix = "test-hmset:";
         this.hmset_hmget_hdel_2(98, length, prefix);
@@ -159,7 +159,7 @@ public class RedisOperatorProxyTestCase {
         int total = size * length;
         Map<byte[], Map<byte[], byte[]>> keyFieldValues = LettuceTestHelper.createKeyFieldValues(size, length, prefix);
 
-        byte[][] keys = keyFieldValues.keySet().toArray(new byte[size][]);
+        byte[][] keys = keyFieldValues.keySet().toArray(new byte[0][]);
 
         List<String> fields = new ArrayList<>(total);
         Map<byte[], List<byte[]>> keyFields = new HashMap<>();
@@ -200,23 +200,23 @@ public class RedisOperatorProxyTestCase {
         for (int i = 0; i < size; i++) {
             byte[] key = codec.encode(keys[i]);
             operatorProxy.hpset(key, 100000, key, key).join();
-        }
-
-        for (int i = 0; i < size; i++) {
-            byte[] key = keysArray[i];
-            operatorProxy.hpset(key, 100000, key, key).join();
+            if (i == (size - 1)) {
+                System.out.println(keys[i]);
+            }
         }
 
         for (int i = 0; i < size; i++) {
             byte[] key = keysArray[i];
             List<Long> hpttl = redisOperator.sync().hpttl(key, key);
-            Assertions.assertTrue(hpttl.getFirst() > 50000);
+            Long first = hpttl.getFirst();
+            System.out.println(codec.decode(key) + ": " + first);
+            Assertions.assertTrue(first > 50000);
         }
 
     }
 
     public void hmpset() {
-        this.hmpset_hmget_hdel(64, 100, "test-hmpset:");
+        this.hmpset_hmget_hdel(100, 10000, "test-hmpset:");
     }
 
     public void hmpset_hmget_hdel(int size, int length, String prefix) {
@@ -372,7 +372,7 @@ public class RedisOperatorProxyTestCase {
         Assertions.assertEquals(0, clear2);
     }
 
-    void clear(String prefix) {
+    public void clear(String prefix) {
         long start = System.currentTimeMillis();
         System.out.printf("clear: [%d] \n", operatorProxy.clear(codec.encode(prefix + "*")));
         System.out.println("clear cost: " + (System.currentTimeMillis() - start));

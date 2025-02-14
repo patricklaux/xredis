@@ -2,6 +2,7 @@ package com.igeeksky.xredis;
 
 
 import com.igeeksky.xredis.api.RedisOperatorFactory;
+import com.igeeksky.xredis.common.RedisConfigException;
 import com.igeeksky.xredis.config.LettuceStandaloneConfig;
 import com.igeeksky.xredis.config.RedisNode;
 import com.igeeksky.xredis.stream.XReadOptions;

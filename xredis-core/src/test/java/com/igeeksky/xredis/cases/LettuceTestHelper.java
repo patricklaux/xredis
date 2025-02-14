@@ -11,12 +11,13 @@ import com.igeeksky.xredis.props.LettuceCluster;
 import com.igeeksky.xredis.props.LettuceConfigHelper;
 import com.igeeksky.xredis.props.LettuceSentinel;
 import com.igeeksky.xredis.props.LettuceStandalone;
+import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.Maps;
 import com.igeeksky.xtool.core.lang.RandomUtils;
 import com.igeeksky.xtool.core.lang.codec.StringCodec;
 import io.lettuce.core.ClientOptions;
-import io.lettuce.core.KeyValue;
 import io.lettuce.core.cluster.ClusterClientOptions;
+import io.lettuce.core.protocol.ProtocolVersion;
 import io.lettuce.core.resource.ClientResources;
 import org.junit.jupiter.api.Assertions;
 
@@ -42,9 +43,9 @@ public class LettuceTestHelper {
      */
     public static LettuceStandaloneFactory createStandaloneFactory() {
         LettuceStandalone standalone = new LettuceStandalone();
-        standalone.setNode("127.0.0.1:6379");
-        standalone.setNodes(List.of("127.0.0.1:6380"));
-        standalone.setReadFrom("upstreamPreferred");
+        standalone.setNode("192.168.50.157:6379");
+        standalone.setNodes(List.of("192.168.50.157:6378"));
+        standalone.setReadFrom("upstream");
 
         LettuceStandaloneConfig standaloneConfig = LettuceConfigHelper.createConfig("test", standalone);
         ClientOptions options = ClientOptions.builder().build();
@@ -60,8 +61,8 @@ public class LettuceTestHelper {
      */
     public static LettuceSentinelFactory createSentinelFactory() {
         LettuceSentinel sentinel = new LettuceSentinel();
-        sentinel.setNodes(List.of("127.0.0.1:26379", "127.0.0.1:26380", "127.0.0.1:26381"));
-        sentinel.setReadFrom("upstreamPreferred");
+        sentinel.setNodes(List.of("192.168.50.157:26377", "192.168.50.157:26378", "192.168.50.157:26379"));
+        sentinel.setReadFrom("upstream");
         sentinel.setMasterId("mymaster");
 
         ClientOptions options = ClientOptions.builder().build();
@@ -78,11 +79,11 @@ public class LettuceTestHelper {
      */
     public static LettuceClusterFactory createClusterConnectionFactory() {
         LettuceCluster cluster = new LettuceCluster();
-        cluster.setNodes(List.of("127.0.0.1:7001", "127.0.0.1:7002", "127.0.0.1:7003"));
+        cluster.setNodes(List.of("192.168.50.157:7001", "192.168.50.157:7002", "192.168.50.157:7003"));
         cluster.setReadFrom("upstreamPreferred");
 
         ClientResources resources = ClientResources.builder().build();
-        ClusterClientOptions options = ClusterClientOptions.builder().build();
+        ClusterClientOptions options = ClusterClientOptions.builder().protocolVersion(ProtocolVersion.RESP2).build();
         LettuceClusterConfig config = LettuceConfigHelper.createConfig("test", cluster);
 
         return new LettuceClusterFactory(config, options, resources);
@@ -109,13 +110,27 @@ public class LettuceTestHelper {
      * @param keyValues keyValue 列表
      * @return map
      */
+    public static Map<String, String> from(List<io.lettuce.core.KeyValue<byte[], byte[]>> keyValues) {
+        Map<String, String> map = Maps.newHashMap(keyValues.size());
+        keyValues.forEach(keyValue -> {
+            if (keyValue != null && keyValue.hasValue()) {
+                map.put(codec.decode(keyValue.getKey()), codec.decode(keyValue.getValue()));
+            }
+        });
+        return map;
+    }
+
+    /**
+     * 将传入的 {@code List<KeyValue>} 转换为 {@code Map<String, String>}
+     *
+     * @param keyValues keyValue 列表
+     * @return map
+     */
     public static Map<String, String> fromKeyValues(List<KeyValue<byte[], byte[]>> keyValues) {
         Map<String, String> map = Maps.newHashMap(keyValues.size());
         keyValues.forEach(keyValue -> {
-            if (keyValue.hasValue()) {
-                String field = codec.decode(keyValue.getKey());
-                String value = codec.decode(keyValue.getValue());
-                map.put(field, value);
+            if (keyValue != null && keyValue.hasValue()) {
+                map.put(codec.decode(keyValue.getKey()), codec.decode(keyValue.getValue()));
             }
         });
         return map;
@@ -181,7 +196,7 @@ public class LettuceTestHelper {
     public static Map<byte[], Map<byte[], byte[]>> createKeyFieldValues(int size, int length, String prefix) {
         Map<byte[], Map<byte[], byte[]>> keyFieldValues = new HashMap<>();
         for (int i = 0; i < size; i++) {
-            String key = prefix + i + RandomUtils.nextString(5);
+            String key = prefix + i + RandomUtils.nextString(18);
             HashMap<byte[], byte[]> fieldValues = Maps.newHashMap(length);
             for (int j = 0; j < length; j++) {
                 byte[] field = codec.encode(prefix + ":" + i + ":" + j + RandomUtils.nextString(5));

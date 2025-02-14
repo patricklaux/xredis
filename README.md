@@ -8,7 +8,7 @@ Xredis 是基于 Lettuce 实现的 Redis 客户端，用于简化 Redis 数据�
 
 ## 2. 特性
 
-Xredis 是对 Lettuce 非常薄的一个封装，最大限度地保留了 Lettuce 的原 API。
+Xredis 是对 Lettuce 的一个薄封装，最大限度地保留了 Lettuce 的原 API。
 
 1. 统一 standalone、sentinel 和 cluster 的 API，统一通过 RedisOperator 操作数据。
 2. 提供了 RedisSyncOperator 、RedisAsyncOperator 和 RedisReactiveOperator  接口，可以根据业务场景灵活切换编程范式。

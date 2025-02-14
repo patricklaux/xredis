@@ -1,17 +1,17 @@
-package com.igeeksky.xredis;
+package com.igeeksky.xredis.common;
 
 /**
- * Redis 配置异常
+ * Redis 操作异常
  *
  * @author Patrick.Lau
  * @since 0.0.4 2023-09-17
  */
-public class RedisConfigException extends RuntimeException {
+public class RedisOperationException extends RuntimeException {
 
     /**
      * 无参构造
      */
-    public RedisConfigException() {
+    public RedisOperationException() {
         super();
     }
 
@@ -20,7 +20,7 @@ public class RedisConfigException extends RuntimeException {
      *
      * @param message 异常信息
      */
-    public RedisConfigException(String message) {
+    public RedisOperationException(String message) {
         super(message);
     }
 
@@ -30,7 +30,7 @@ public class RedisConfigException extends RuntimeException {
      * @param message 异常信息
      * @param cause   异常
      */
-    public RedisConfigException(String message, Throwable cause) {
+    public RedisOperationException(String message, Throwable cause) {
         super(message, cause);
     }
 
