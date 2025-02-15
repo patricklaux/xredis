@@ -83,7 +83,7 @@ public class RedisOperatorTestCase {
         Map<String, String> map = LettuceTestHelper.from(redisOperator.sync().mget(keysArray));
 
         // 验证读取数据是否正确
-        LettuceTestHelper.validateValues(keys, map, size, limit);
+        LettuceTestHelper.validateValues(keys, map, limit);
 
         redisOperator.sync().del(keysArray);
     }
@@ -185,7 +185,7 @@ public class RedisOperatorTestCase {
         Map<String, String> map = LettuceTestHelper.from(redisOperator.sync().hmget(key, fieldBytes));
 
         // 验证读取数据是否正确
-        LettuceTestHelper.validateValues(fields, map, size, limit);
+        LettuceTestHelper.validateValues(fields, map, limit);
 
         redisOperator.sync().hdel(key, fieldBytes);
 

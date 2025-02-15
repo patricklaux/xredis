@@ -2,7 +2,6 @@ package com.igeeksky.xredis.cases;
 
 import com.igeeksky.xredis.LettuceOperatorProxy;
 import com.igeeksky.xredis.api.RedisOperator;
-import com.igeeksky.xredis.common.ExpiryKeyFieldValue;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.Maps;
@@ -58,8 +57,6 @@ public class RedisOperatorProxyTestCase {
         get();
         mget();
         del();
-        keys();
-        keys2();
         clear();
         version();
     }
@@ -118,7 +115,7 @@ public class RedisOperatorProxyTestCase {
         Assertions.assertEquals(size, keyValues.size());
 
         Map<String, String> map = LettuceTestHelper.fromKeyValues(keyValues);
-        LettuceTestHelper.validateValues(fields, map, size, size);
+        LettuceTestHelper.validateValues(fields, map, size);
 
         operatorProxy.del(key).join();
     }
@@ -175,7 +172,7 @@ public class RedisOperatorProxyTestCase {
         long time1 = System.currentTimeMillis();
         System.out.println("hmset cost: " + (time1 - start));
 
-        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields, total).join();
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields).join();
         Assertions.assertEquals(total, keyValues.size());
         long time2 = System.currentTimeMillis();
         System.out.println("hmget cost: " + (time2 - time1));
@@ -185,7 +182,7 @@ public class RedisOperatorProxyTestCase {
         System.out.println("hdel cost: " + (end - time2));
 
         Map<String, String> result = LettuceTestHelper.fromKeyValues(keyValues);
-        LettuceTestHelper.validateValues(fields.toArray(new String[0]), result, total, total);
+        LettuceTestHelper.validateValues(fields, result, total);
         operatorProxy.del(keys).join();
     }
 
@@ -216,34 +213,44 @@ public class RedisOperatorProxyTestCase {
     }
 
     public void hmpset() {
-        this.hmpset_hmget_hdel(100, 10000, "test-hmpset:");
+        this.hmpset_hmget_hdel(1, 9998, "test-hmpset:");
+        this.hmpset_hmget_hdel(2, 9999, "test-hmpset:");
+        this.hmpset_hmget_hdel(3, 10000, "test-hmpset:");
+        this.hmpset_hmget_hdel(4, 10001, "test-hmpset:");
+        this.hmpset_hmget_hdel(5, 10002, "test-hmpset:");
+        this.hmpset_hmget_hdel(1, 19998, "test-hmpset:");
+        this.hmpset_hmget_hdel(2, 19999, "test-hmpset:");
+        this.hmpset_hmget_hdel(3, 20000, "test-hmpset:");
+        this.hmpset_hmget_hdel(4, 20001, "test-hmpset:");
+        this.hmpset_hmget_hdel(5, 20002, "test-hmpset:");
     }
 
     public void hmpset_hmget_hdel(int size, int length, String prefix) {
         int total = size * length;
-        Map<byte[], Map<byte[], byte[]>> keyFieldValues = LettuceTestHelper.createKeyFieldValues(size, length, prefix);
+        Map<byte[], List<KeyValue<byte[], byte[]>>> keyFieldValues = LettuceTestHelper.createKeyFieldValueList(size, length, prefix);
 
         byte[][] keys = keyFieldValues.keySet().toArray(new byte[size][]);
 
         List<String> fields = new ArrayList<>(total);
-        List<ExpiryKeyFieldValue> expiryKeyFieldValues = new ArrayList<>(total);
         Map<byte[], List<byte[]>> keyFields = new HashMap<>();
-        keyFieldValues.forEach((k, map) -> {
-            keyFields.put(k, new ArrayList<>(map.keySet()));
-            map.forEach((field, value) -> {
-                fields.add(codec.decode(field));
-                expiryKeyFieldValues.add(ExpiryKeyFieldValue.create(k, field, value, 100000));
-            });
+
+        keyFieldValues.forEach((k, fieldsValues) -> {
+            keyFields.put(k, fieldsValues.stream().map(KeyValue::getKey).toList());
+            fieldsValues.forEach(kv -> fields.add(codec.decode(kv.getKey())));
         });
 
         operatorProxy.del(keys).join();
 
         long start = System.currentTimeMillis();
-        operatorProxy.hmpset(expiryKeyFieldValues).join();
+        List<Long> states = operatorProxy.hmpset(keyFieldValues, 1000000).join();
+        Assertions.assertEquals(total, states.size());
+        for (Long state : states) {
+            Assertions.assertEquals(1, state);
+        }
         long time1 = System.currentTimeMillis();
         System.out.println("hmpset cost: " + (time1 - start));
 
-        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields, total).join();
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields).join();
         Assertions.assertEquals(total, keyValues.size());
         long time2 = System.currentTimeMillis();
         System.out.println("hmget cost: " + (time2 - time1));
@@ -253,38 +260,64 @@ public class RedisOperatorProxyTestCase {
         System.out.println("hdel cost: " + (end - time2));
 
         Map<String, String> result = LettuceTestHelper.fromKeyValues(keyValues);
-        LettuceTestHelper.validateValues(fields.toArray(new String[0]), result, total, total);
+        LettuceTestHelper.validateValues(fields, result, total);
+    }
+
+    public void hmpset_random() {
+        this.hmpset_hmget_hdel_random(1, 9998, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(2, 9999, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(3, 10000, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(4, 10001, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(5, 10002, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(1, 19998, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(2, 19999, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(3, 20000, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(4, 20001, "test-hmpset:");
+        this.hmpset_hmget_hdel_random(5, 20002, "test-hmpset:");
+    }
+
+    public void hmpset_hmget_hdel_random(int size, int length, String prefix) {
+        int total = size * length;
+        Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> keyFieldValues = LettuceTestHelper.createExpireKeyFieldValueList(size, length, prefix);
+
+        byte[][] keys = keyFieldValues.keySet().toArray(new byte[size][]);
+
+        List<String> fields = new ArrayList<>(total);
+        Map<byte[], List<byte[]>> keyFields = new HashMap<>();
+
+        keyFieldValues.forEach((k, fieldsValues) -> {
+            keyFields.put(k, fieldsValues.stream().map(KeyValue::getKey).toList());
+            fieldsValues.forEach(kv -> fields.add(codec.decode(kv.getKey())));
+        });
+
+        operatorProxy.del(keys).join();
+
+        long start = System.currentTimeMillis();
+        List<Long> states = operatorProxy.hmpset(keyFieldValues).join();
+        Assertions.assertEquals(total, states.size());
+        for (Long state : states) {
+            Assertions.assertEquals(1, state);
+        }
+
+        long time1 = System.currentTimeMillis();
+        System.out.println("hmpset cost: " + (time1 - start));
+
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields).join();
+        Assertions.assertEquals(total, keyValues.size());
+        long time2 = System.currentTimeMillis();
+        System.out.println("hmget cost: " + (time2 - time1));
+
+        Assertions.assertEquals(total, operatorProxy.hdel(keyFields).join());
+        long end = System.currentTimeMillis();
+        System.out.println("hdel cost: " + (end - time2));
+
+        Map<String, String> result = LettuceTestHelper.fromKeyValues(keyValues);
+        LettuceTestHelper.validateValues(fields, result, total);
+
         operatorProxy.del(keys).join();
     }
 
     void del() {
-    }
-
-    void keys() {
-    }
-
-    public void keys2() {
-        int size = 10;
-        String prefix = "test-keys:";
-        String[] keys = LettuceTestHelper.createKeys(size, prefix);
-        byte[][] keysArray = LettuceTestHelper.toKeysArray(size, keys);
-
-        this.clear(prefix);
-
-        for (byte[] key : keysArray) {
-            operatorProxy.set(key, key).join();
-        }
-
-        operatorProxy.keys(k -> {
-                            String key = codec.decode(k);
-                            System.out.println(key);
-                            Assertions.assertTrue(key.startsWith(prefix));
-                        },
-                        codec.encode(prefix + "*"))
-                .thenAccept(count -> Assertions.assertEquals(size, count))
-                .thenCompose(v -> operatorProxy.del(keysArray))
-                .join();
-
     }
 
     void get() {
@@ -331,7 +364,7 @@ public class RedisOperatorProxyTestCase {
         String[] keys = LettuceTestHelper.createKeys(size, prefix);
         byte[][] keyBytes = LettuceTestHelper.toKeysArray(size, keys);
 
-        // 删除 redis 中的 key-value
+        // 删除 redis 中的已有数据
         operatorProxy.del(keyBytes).join();
 
         List<ExpiryKeyValue<byte[], byte[]>> keyValues = new ArrayList<>(size);
@@ -350,13 +383,8 @@ public class RedisOperatorProxyTestCase {
             Assertions.assertEquals(key, map.get(key));
         }
 
-        List<byte[]> matchKeys = operatorProxy.keys(codec.encode(prefix + "*")).join();
-        Assertions.assertEquals(keys.length, matchKeys.size());
-
+        // 删除数据，还原测试环境
         operatorProxy.del(keyBytes).join();
-
-        matchKeys = operatorProxy.keys(codec.encode(prefix + "*")).join();
-        Assertions.assertEquals(0, matchKeys.size());
     }
 
     void clear() {

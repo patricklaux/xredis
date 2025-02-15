@@ -11,6 +11,7 @@ import com.igeeksky.xredis.props.LettuceCluster;
 import com.igeeksky.xredis.props.LettuceConfigHelper;
 import com.igeeksky.xredis.props.LettuceSentinel;
 import com.igeeksky.xredis.props.LettuceStandalone;
+import com.igeeksky.xtool.core.ExpiryKeyValue;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.Maps;
 import com.igeeksky.xtool.core.lang.RandomUtils;
@@ -22,6 +23,7 @@ import io.lettuce.core.resource.ClientResources;
 import org.junit.jupiter.api.Assertions;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -141,17 +143,36 @@ public class LettuceTestHelper {
      *
      * @param keys  key 数组
      * @param map   map
-     * @param size  key 数组长度
      * @param limit 验证长度
      */
-    public static void validateValues(String[] keys, Map<String, String> map, int size, int limit) {
-        for (int i = 0; i < size; i++) {
-            String key = keys[i];
+    public static void validateValues(String[] keys, Map<String, String> map, int limit) {
+        int i = 0;
+        for (String key : keys) {
             if (i < limit) {
                 Assertions.assertEquals(key, map.get(key));
             } else {
                 Assertions.assertNull(map.get(key));
             }
+            i++;
+        }
+    }
+
+    /**
+     * 验证传入的 {@code Map<String, String>} 是否与传入的 {@code String[]} 完全匹配
+     *
+     * @param keys  key 数组
+     * @param map   map
+     * @param limit 验证长度
+     */
+    public static void validateValues(List<String> keys, Map<String, String> map, int limit) {
+        int i = 0;
+        for (String key : keys) {
+            if (i < limit) {
+                Assertions.assertEquals(key, map.get(key));
+            } else {
+                Assertions.assertNull(map.get(key));
+            }
+            i++;
         }
     }
 
@@ -201,6 +222,51 @@ public class LettuceTestHelper {
             for (int j = 0; j < length; j++) {
                 byte[] field = codec.encode(prefix + ":" + i + ":" + j + RandomUtils.nextString(5));
                 fieldValues.put(field, field);
+            }
+            keyFieldValues.put(codec.encode(key), fieldValues);
+        }
+        return keyFieldValues;
+    }
+
+    /**
+     * 创建 键-字段-值 集合
+     *
+     * @param size   键数量
+     * @param length 字段数量
+     * @param prefix 前缀
+     * @return key 键-字段-值 集合
+     */
+    public static Map<byte[], List<KeyValue<byte[], byte[]>>> createKeyFieldValueList(int size, int length, String prefix) {
+        Map<byte[], List<KeyValue<byte[], byte[]>>> keyFieldValues = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = prefix + i + RandomUtils.nextString(18);
+            List<KeyValue<byte[], byte[]>> fieldValues = new ArrayList<>(length);
+            for (int j = 0; j < length; j++) {
+                byte[] field = codec.encode(prefix + ":" + i + ":" + j + RandomUtils.nextString(5));
+                fieldValues.add(KeyValue.create(field, field));
+            }
+            keyFieldValues.put(codec.encode(key), fieldValues);
+        }
+        return keyFieldValues;
+    }
+
+
+    /**
+     * 创建 键-字段-值 集合
+     *
+     * @param size   键数量
+     * @param length 字段数量
+     * @param prefix 前缀
+     * @return key 键-字段-值 集合
+     */
+    public static Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> createExpireKeyFieldValueList(int size, int length, String prefix) {
+        Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> keyFieldValues = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = prefix + i + RandomUtils.nextString(18);
+            List<ExpiryKeyValue<byte[], byte[]>> fieldValues = new ArrayList<>(length);
+            for (int j = 0; j < length; j++) {
+                byte[] field = codec.encode(prefix + ":" + i + ":" + j + RandomUtils.nextString(5));
+                fieldValues.add(ExpiryKeyValue.create(field, field, RandomUtils.nextLong(100000000, 1000000000)));
             }
             keyFieldValues.put(codec.encode(key), fieldValues);
         }

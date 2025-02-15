@@ -1,8 +1,7 @@
-package com.igeeksky.xredis;
+package com.igeeksky.xredis.common;
 
 import com.igeeksky.xtool.core.lang.Assert;
 import com.igeeksky.xtool.core.security.DigestUtils;
-import io.lettuce.core.ScriptOutputType;
 
 import java.nio.charset.StandardCharsets;
 
@@ -17,7 +16,7 @@ public class RedisScript {
     /**
      * 脚本返回类型
      */
-    private final ScriptOutputType type;
+    private final ResultType type;
 
     /**
      * Lua 脚本内容序列化数据
@@ -40,7 +39,7 @@ public class RedisScript {
      * @param script Lua 脚本
      */
     public RedisScript(String script) {
-        this(script, ScriptOutputType.VALUE);
+        this(script, ResultType.VALUE);
     }
 
     /**
@@ -49,7 +48,7 @@ public class RedisScript {
      * @param script Lua 脚本
      * @param type   脚本返回类型
      */
-    public RedisScript(String script, ScriptOutputType type) {
+    public RedisScript(String script, ResultType type) {
         Assert.notNull(type, "type must not be null");
         Assert.notNull(script, "script must not be null");
         this.script = script;
@@ -61,9 +60,9 @@ public class RedisScript {
     /**
      * 获取脚本返回类型
      *
-     * @return {@link ScriptOutputType} – 脚本返回类型
+     * @return {@link ResultType} – 脚本返回类型
      */
-    public ScriptOutputType getType() {
+    public ResultType getResultType() {
         return type;
     }
 

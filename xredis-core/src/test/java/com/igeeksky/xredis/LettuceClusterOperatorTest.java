@@ -91,11 +91,6 @@ class LettuceClusterOperatorTest {
         redisProxyTestCase.psetex();
     }
 
-    @Test
-    void keys2() {
-        redisProxyTestCase.keys2();
-    }
-
     /**
      * 特殊测试
      * <p>

@@ -87,11 +87,6 @@ class LettuceStandaloneOperatorTest {
         redisProxyTestCase.psetex();
     }
 
-    @Test
-    void keys2() {
-        redisProxyTestCase.keys2();
-    }
-
     /**
      * 特殊测试
      * <p>
@@ -114,6 +109,17 @@ class LettuceStandaloneOperatorTest {
     @Disabled
     void hmpset() {
         redisProxyTestCase.hmpset();
+    }
+
+    /**
+     * 特殊测试
+     * <p>
+     * Redis Hash 字段设置值 及 过期时间（RedisServer 版本需大于 7.4.0）
+     */
+    @Test
+    @Disabled
+    void hmpset_random() {
+        redisProxyTestCase.hmpset_random();
     }
 
     /**
