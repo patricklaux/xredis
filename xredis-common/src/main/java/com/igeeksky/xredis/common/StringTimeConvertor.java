@@ -1,4 +1,4 @@
-package com.igeeksky.xredis;
+package com.igeeksky.xredis.common;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

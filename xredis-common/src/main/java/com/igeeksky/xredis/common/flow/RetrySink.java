@@ -1,4 +1,4 @@
-package com.igeeksky.xredis.flow;
+package com.igeeksky.xredis.common.flow;
 
 import com.igeeksky.xtool.core.concurrent.Futures;
 import com.igeeksky.xtool.core.lang.Assert;

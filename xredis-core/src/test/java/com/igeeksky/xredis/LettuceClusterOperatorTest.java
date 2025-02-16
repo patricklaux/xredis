@@ -54,7 +54,7 @@ class LettuceClusterOperatorTest {
 
     @Test
     void psetex2() {
-        redisProxyTestCase.psetex2();
+        redisProxyTestCase.psetex_random();
     }
 
 

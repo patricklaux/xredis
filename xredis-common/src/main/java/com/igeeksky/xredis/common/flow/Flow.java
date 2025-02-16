@@ -1,4 +1,4 @@
-package com.igeeksky.xredis.flow;
+package com.igeeksky.xredis.common.flow;
 
 /**
  * 数据流

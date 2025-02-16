@@ -16,9 +16,25 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface RedisOperatorProxy {
 
+    /**
+     * Redis 命令成功响应状态值
+     */
     String OK = "OK";
 
+    /**
+     * 判断当前 Redis 连接是否为集群模式
+     *
+     * @return {@code true} 表示集群模式，{@code false} 表示非集群模式
+     */
     boolean isCluster();
+
+    /**
+     * 获取 Redis 版本信息
+     *
+     * @return 版本信息
+     */
+    String version();
+
 
     // -------------------------- key command start --------------------------
 
@@ -80,7 +96,7 @@ public interface RedisOperatorProxy {
      * 如单次获取的数据量超过 batchSize，则分批次查询数据，然后再合并返回。
      *
      * @param keys 键列表
-     * @return 返回一个 {@code CompletableFuture<List<V>>} 对象，表示异步操作的结果
+     * @return {@code CompletableFuture<List<KeyValue<byte[], byte[]>>>} – 键值对列表
      */
     CompletableFuture<List<KeyValue<byte[], byte[]>>> mget(byte[][] keys);
 
@@ -90,24 +106,35 @@ public interface RedisOperatorProxy {
      * @param key          键
      * @param milliseconds 过期时间（毫秒）
      * @param value        值
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> psetex(byte[] key, long milliseconds, byte[] value);
 
     /**
      * 异步设置 Redis-String 键的值，并设置过期时间
+     * <p>
+     * 每个键有独立的过期时间
      *
      * @param keyValues （键-值-过期时间）列表
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> psetex(List<ExpiryKeyValue<byte[], byte[]>> keyValues);
+
+    /**
+     * 异步设置 Redis-String 键的值，并设置过期时间
+     * <p>
+     * 所有键有相同的过期时间
+     *
+     * @param keyValues    键值对列表
+     * @param milliseconds 过期时间（毫秒）
+     * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
+     */
+    CompletableFuture<String> psetex(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds);
 
     // -------------------------- string command end -------------------------
 
 
     // -------------------------- hash command start -------------------------
-
-    CompletableFuture<String> psetex(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds);
 
     /**
      * 异步将指定的值设置到指定的哈希字段中
@@ -153,16 +180,56 @@ public interface RedisOperatorProxy {
      * @param milliseconds 过期时间（毫秒）
      * @param field        Hash 字段
      * @param value        Hash 字段值
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @return {@code CompletableFuture<Long>} – 设置结果，值表示的状态见 {@code HPEXPIRE} 命令
      */
     CompletableFuture<Long> hpset(byte[] key, long milliseconds, byte[] field, byte[] value);
 
+    /**
+     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * <p>
+     * 所有字段有相同的过期时间
+     *
+     * @param key          Redis-Hash 的键
+     * @param fieldsValues {@code 字段-值} 列表
+     * @param milliseconds 过期时间（毫秒）
+     * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
     CompletableFuture<List<Long>> hmpset(byte[] key, long milliseconds, List<KeyValue<byte[], byte[]>> fieldsValues);
 
+    /**
+     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * <p>
+     * 每个字段有独立的过期时间
+     *
+     * @param key                Redis-Hash 的键
+     * @param expiryFieldsValues {@code 字段-值-过期时间（毫秒）} 列表
+     * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
     CompletableFuture<List<Long>> hmpset(byte[] key, List<ExpiryKeyValue<byte[], byte[]>> expiryFieldsValues);
 
+    /**
+     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * <p>
+     * 每个字段有独立的过期时间
+     *
+     * @param expiryKeysFieldsValues {@code 键：字段-值-过期时间（毫秒）} 列表
+     * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
     CompletableFuture<List<Long>> hmpset(Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> expiryKeysFieldsValues);
 
+    /**
+     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * <p>
+     * 所有字段有相同的过期时间
+     *
+     * @param keysFieldsValues {@code 键：字段-值} 列表
+     * @param milliseconds     过期时间（毫秒）
+     * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
     CompletableFuture<List<Long>> hmpset(Map<byte[], List<KeyValue<byte[], byte[]>>> keysFieldsValues, long milliseconds);
 
     /**
@@ -221,7 +288,7 @@ public interface RedisOperatorProxy {
     // -------------------------- script command start -----------------------
 
     /**
-     * 使用指定的键和参数执行 Lua 脚本。
+     * 使用指定的键集和参数执行 Script
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
@@ -229,10 +296,10 @@ public interface RedisOperatorProxy {
      * @param args   脚本参数列表
      * @return 脚本执行结果
      */
-    <T> T eval(RedisScript script, byte[][] keys, byte[]... args);
+    <T> CompletableFuture<T> eval(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 使用指定的键和参数执行只读的 Lua 脚本。
+     * 使用指定的键集和参数执行只读的 Script
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
@@ -240,10 +307,22 @@ public interface RedisOperatorProxy {
      * @param args   脚本参数列表
      * @return 脚本执行结果
      */
-    <T> T evalReadOnly(RedisScript script, byte[][] keys, byte[]... args);
+    <T> CompletableFuture<T> evalReadOnly(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 使用指定的键和参数执行只读的 Lua 脚本。
+     * 使用指定的键集和参数执行 Script
+     * <p>
+     * 可能问题： <p>
+     * 1. RedisServer 可能未加载此脚本；<br>
+     * 2. RedisServer 的 SHA1 摘要 与 RedisScript 对象的 SHA1 摘要不一致。
+     * <p>
+     * 因此，如果出现 {@code RedisNoScriptException} 异常，实现类需：
+     * 1.先执行 {@link #scriptLoad(RedisScript)} 方法；<br>
+     * 2.再转而执行 {@link #eval(RedisScript, byte[][], byte[]...)} 方法。
+     * <p>
+     * 总之，尽可能确保：<br>
+     * 1. 数据操作成功；<br>
+     * 2. RedisScript 对象的 SHA1 摘要与 RedisServer 的 SHA1 摘要一致，下一次再用同一 RedisScript 对象调用此方法时，不再出现异常。
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
@@ -251,10 +330,22 @@ public interface RedisOperatorProxy {
      * @param args   脚本参数列表
      * @return 脚本执行结果
      */
-    <T> T evalsha(RedisScript script, byte[][] keys, byte[]... args);
+    <T> CompletableFuture<T> evalsha(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 使用指定的键和参数执行只读的 Lua 脚本。
+     * 使用指定的键集和参数执行只读的 Script
+     * <p>
+     * 可能问题： <p>
+     * 1. RedisServer 可能未加载此脚本；<br>
+     * 2. RedisServer 的 SHA1 摘要 与 RedisScript 对象的 SHA1 摘要不一致。
+     * <p>
+     * 因此，如果出现 {@code RedisNoScriptException} 异常，实现类需：
+     * 1.先执行 {@link #scriptLoad(RedisScript)} 方法；<br>
+     * 2.再转而执行 {@link #evalReadOnly(RedisScript, byte[][], byte[]...)} 方法。
+     * <p>
+     * 总之，尽可能确保：<br>
+     * 1. 数据操作成功；<br>
+     * 2. RedisScript 对象的 SHA1 摘要与 RedisServer 的 SHA1 摘要一致，下一次再用同一 RedisScript 对象调用此方法时，不再出现异常。
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
@@ -262,23 +353,18 @@ public interface RedisOperatorProxy {
      * @param args   脚本参数列表
      * @return 脚本执行结果
      */
-    <T> T evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args);
+    <T> CompletableFuture<T> evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 将脚本加载到 Redis 服务器，并将 SHA1 摘要设置到 RedisScript 对象
+     * 加载 Script
+     * <p>
+     * 1.Script 加载到 Redis 服务器；<br>
+     * 2.RedisServer 返回的 SHA1 摘要设置到 RedisScript 对象。
      *
      * @param script 脚本对象
      * @return {@link String} – SHA1 摘要
      */
-    String scriptLoad(RedisScript script);
+    CompletableFuture<String> scriptLoad(RedisScript script);
 
     // -------------------------- script command end -------------------------
-
-    /**
-     * 获取 Redis 版本信息
-     *
-     * @return 版本信息
-     */
-    String version();
-
 }

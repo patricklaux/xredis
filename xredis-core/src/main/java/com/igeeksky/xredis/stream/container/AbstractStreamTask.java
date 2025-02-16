@@ -1,6 +1,6 @@
 package com.igeeksky.xredis.stream.container;
 
-import com.igeeksky.xredis.flow.RetrySink;
+import com.igeeksky.xredis.common.flow.RetrySink;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.StreamMessage;
 import org.slf4j.Logger;

@@ -13,7 +13,10 @@ import com.igeeksky.xtool.core.lang.codec.StringCodec;
 import io.lettuce.core.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
@@ -26,7 +29,6 @@ import java.util.function.Function;
  */
 public class LettuceOperatorProxy implements RedisOperatorProxy {
 
-    // private static Logger log = LoggerFactory.getLogger(LettuceOperatorProxy.class);
     private static final StringCodec CODEC = StringCodec.getInstance(StandardCharsets.UTF_8);
 
     private final int batchSize;
@@ -43,15 +45,6 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         Assert.notNull(redisOperator, "redisOperator must not be null");
         this.batchSize = batchSize;
         this.redisOperator = redisOperator;
-        this.loadScript();
-    }
-
-    private void loadScript() {
-        this.scriptLoad(RedisExpireScript.PSETEX);
-        this.scriptLoad(RedisExpireScript.PSETEX_RANDOM);
-        this.scriptLoad(RedisExpireScript.HSET_HPEXPIRE);
-        this.scriptLoad(RedisExpireScript.HMSET_HPEXPIRE);
-        this.scriptLoad(RedisExpireScript.HMSET_HPEXPIRE_RANDOM);
     }
 
     @Override
@@ -59,10 +52,9 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         return redisOperator.isCluster();
     }
 
-
     public CompletableFuture<Long> del(byte[]... keys) {
-        int size = keys.length;
         RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = keys.length;
         // 当数据量低于阈值，直接删除（小于等于限定数量）
         if (size <= batchSize) {
             return async.del(keys).toCompletableFuture();
@@ -109,8 +101,8 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<String> mset(Map<byte[], byte[]> keyValues) {
-        int size = keyValues.size();
         RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = keyValues.size();
         // 当数据量低于阈值，直接存储（小于等于限定数量）
         if (size <= batchSize) {
             return async.mset(keyValues).toCompletableFuture();
@@ -121,15 +113,15 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<List<KeyValue<byte[], byte[]>>> mget(byte[][] keys) {
-        int size = keys.length;
         RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = keys.length;
         // 当数据量低于阈值，直接查询（小于等于限定数量）
         if (size <= batchSize) {
-            return async.mget(keys).toCompletableFuture().thenApply(LettuceOperatorProxy::from);
+            return async.mget(keys).toCompletableFuture().thenApply(LettuceConvertor::from);
         }
         // 当数据量超过阈值，分批查询
         CompletableFuture<List<KeyValue<byte[], byte[]>>> future = CompletableFuture.completedFuture(new ArrayList<>(size));
-        return combineListKeyValues(future, this.splitApply(keys, async::mget));
+        return combineLettuceKeyValues(future, this.splitApply(keys, async::mget));
     }
 
     @Override
@@ -140,7 +132,6 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     @Override
     public CompletableFuture<String> psetex(List<ExpiryKeyValue<byte[], byte[]>> keyValues) {
         if (this.isCluster()) {
-            // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
             RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
             List<CompletionStage<String>> futures = new ArrayList<>(keyValues.size());
             for (ExpiryKeyValue<byte[], byte[]> kv : keyValues) {
@@ -148,8 +139,9 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             }
             return combineStringFutures(CompletableFuture.completedFuture(OK), futures);
         }
-        ScriptOutputType type = ScriptOutputType.STATUS;
-        String sha1 = RedisExpireScript.PSETEX_RANDOM.getSha1();
+
+        RedisScript script = RedisExpireScript.PSETEX_RANDOM;
+
         int size = keyValues.size();
         if (size <= batchSize) {
             byte[][] keys = new byte[size][];
@@ -160,8 +152,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                 args[j++] = CODEC.encode(Long.toString(kv.getTtl()));
                 args[j++] = kv.getValue();
             }
-            RedisFuture<String> redisFuture = this.redisOperator.async().evalsha(sha1, type, keys, args);
-            return redisFuture.toCompletableFuture();
+            return this.evalsha(script, keys, args);
         }
 
         int i = 0, j = 0, k = 0, capacity = batchSize;
@@ -174,7 +165,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             args[j++] = kv.getValue();
             k++;
             if (i == capacity) {
-                futures.add(this.redisOperator.async().evalsha(sha1, type, keys, args));
+                futures.add(this.evalsha(script, keys, args));
                 int remain = size - k;
                 if (remain > 0 && remain < capacity) {
                     capacity = remain;
@@ -192,7 +183,6 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     public CompletableFuture<String> psetex(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds) {
         if (this.isCluster()) {
             RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
-            // TODO Lettuce bug：Pipeline 刷新时可能会遗漏命令，导致等待超时异常，待 Lettuce 后续修复再改用 Pipeline
             CompletableFuture<String> future = CompletableFuture.completedFuture(OK);
             List<CompletionStage<String>> futures = new ArrayList<>(keyValues.size());
             for (KeyValue<byte[], byte[]> kv : keyValues) {
@@ -200,8 +190,9 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             }
             return combineStringFutures(future, futures);
         }
-        ScriptOutputType type = ScriptOutputType.STATUS;
-        String sha1 = RedisExpireScript.PSETEX.getSha1();
+
+        RedisScript script = RedisExpireScript.PSETEX;
+
         byte[] ttl = CODEC.encode(Long.toString(milliseconds));
         int size = keyValues.size();
         if (size <= batchSize) {
@@ -213,8 +204,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                 keys[i] = kv.getKey();
                 args[i + 1] = kv.getValue();
             }
-            RedisFuture<String> redisFuture = this.redisOperator.async().evalsha(sha1, type, keys, args);
-            return redisFuture.toCompletableFuture();
+            return this.evalsha(script, keys, args);
         }
 
         int i = 0, j = 0, capacity = batchSize;
@@ -228,7 +218,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             i++;
             j++;
             if (i == capacity) {
-                futures.add(this.redisOperator.async().evalsha(sha1, type, keys, args));
+                futures.add(this.evalsha(script, keys, args));
                 int remain = size - j;
                 if (remain > 0 && remain < capacity) {
                     capacity = remain;
@@ -263,8 +253,8 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<String> hmset(byte[] key, Map<byte[], byte[]> fieldValues) {
-        int size = fieldValues.size();
         RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = fieldValues.size();
         // 当数据量低于阈值，直接保存
         if (size <= batchSize) {
             return async.hmset(key, fieldValues).toCompletableFuture();
@@ -276,11 +266,9 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<Long> hpset(byte[] key, long milliseconds, byte[] field, byte[] value) {
-        String sha1 = RedisExpireScript.HSET_HPEXPIRE.getSha1();
         byte[][] keys = {key};
         byte[][] args = new byte[][]{CODEC.encode(Long.toString(milliseconds)), field, value};
-        RedisFuture<Long> future = this.redisOperator.async().evalsha(sha1, ScriptOutputType.INTEGER, keys, args);
-        return future.toCompletableFuture();
+        return this.evalsha(RedisExpireScript.HSET_HPEXPIRE, keys, args);
     }
 
     @Override
@@ -300,11 +288,10 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<List<Long>> hmpset(byte[] key, long milliseconds, List<KeyValue<byte[], byte[]>> fieldsValues) {
+        RedisScript script = RedisExpireScript.HMSET_HPEXPIRE;
+
         byte[][] keys = {key};
         byte[] ttl = CODEC.encode(Long.toString(milliseconds));
-        ScriptOutputType type = ScriptOutputType.MULTI;
-        String sha1 = RedisExpireScript.HMSET_HPEXPIRE.getSha1();
-
         int size = fieldsValues.size();
         // 当数据量低于阈值，直接保存
         if (size <= batchSize) {
@@ -315,8 +302,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                 args[i++] = fieldValue.getKey();
                 args[i++] = fieldValue.getValue();
             }
-            RedisFuture<List<Long>> future = this.redisOperator.async().evalsha(sha1, type, keys, args);
-            return future.toCompletableFuture();
+            return this.evalsha(script, keys, args);
         }
 
         // 当数据量超过阈值，分批保存
@@ -329,7 +315,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             args[i++] = fieldValue.getValue();
             j++;
             if (i == capacity) {
-                futures.add(this.redisOperator.async().evalsha(sha1, type, keys, args));
+                futures.add(this.evalsha(script, keys, args));
                 i = 1;
                 int remain = size - j;
                 if (remain > 0 && remain < capacity) {
@@ -359,10 +345,9 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<List<Long>> hmpset(byte[] key, List<ExpiryKeyValue<byte[], byte[]>> expiryFieldsValues) {
-        byte[][] keys = {key};
-        ScriptOutputType type = ScriptOutputType.MULTI;
-        String sha1 = RedisExpireScript.HMSET_HPEXPIRE_RANDOM.getSha1();
+        RedisScript script = RedisExpireScript.HMSET_HPEXPIRE_RANDOM;
 
+        byte[][] keys = {key};
         int size = expiryFieldsValues.size();
         // 当数据量低于阈值，直接保存
         if (size <= batchSize) {
@@ -373,8 +358,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                 args[i++] = expiryKeyValue.getKey();
                 args[i++] = expiryKeyValue.getValue();
             }
-            RedisFuture<List<Long>> future = this.redisOperator.async().evalsha(sha1, type, keys, args);
-            return future.toCompletableFuture();
+            return this.evalsha(script, keys, args);
         }
         // 当数据量超过阈值，分批保存
         List<CompletionStage<List<Long>>> futures = new ArrayList<>(size / batchSize + 1);
@@ -386,7 +370,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             args[i++] = expiryKeyValue.getValue();
             j++;
             if (i == capacity) {
-                futures.add(this.redisOperator.async().evalsha(sha1, type, keys, args));
+                futures.add(this.evalsha(script, keys, args));
                 i = 0;
                 int remain = size - j;
                 if (remain > 0 && remain < capacity) {
@@ -420,16 +404,16 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<List<KeyValue<byte[], byte[]>>> hmget(byte[] key, byte[]... fields) {
-        int size = fields.length;
         RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = fields.length;
         // 当数据量低于阈值，直接查询（小于等于限定数量）
         if (size <= batchSize) {
             return async.hmget(key, fields).toCompletableFuture()
-                    .thenApply(LettuceOperatorProxy::from);
+                    .thenApply(LettuceConvertor::from);
         }
         // 当数据量超过阈值，分批查询
         CompletableFuture<List<KeyValue<byte[], byte[]>>> future = CompletableFuture.completedFuture(new ArrayList<>(size));
-        return combineListKeyValues(future, this.splitApply(fields, subFields -> async.hmget(key, subFields)));
+        return combineLettuceKeyValues(future, this.splitApply(fields, subFields -> async.hmget(key, subFields)));
     }
 
     @Override
@@ -446,8 +430,8 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<Long> hdel(byte[] key, byte[]... fields) {
-        int size = fields.length;
         RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = fields.length;
         // 当数据量低于阈值，直接删除（小于等于限定数量）
         if (size <= batchSize) {
             return async.hdel(key, fields).toCompletableFuture();
@@ -457,54 +441,82 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         return combineLongFutures(future, this.splitApply(fields, subFields -> async.hdel(key, subFields)));
     }
 
-
     @Override
-    public <T> T eval(RedisScript script, byte[][] keys, byte[]... args) {
+    public <T> CompletableFuture<T> eval(RedisScript script, byte[][] keys, byte[]... args) {
         ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
+        RedisFuture<T> future;
         if (ArrayUtils.isEmpty(args)) {
-            return this.redisOperator.sync().eval(script.getScriptBytes(), scriptOutputType, keys);
-        }
-        return this.redisOperator.sync().eval(script.getScriptBytes(), scriptOutputType, keys, args);
-    }
-
-    @Override
-    public <T> T evalReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
-        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
-        if (ArrayUtils.isEmpty(args)) {
-            return this.redisOperator.sync().evalReadOnly(script.getScriptBytes(), scriptOutputType, keys);
-        }
-        return this.redisOperator.sync().evalReadOnly(script.getScriptBytes(), scriptOutputType, keys, args);
-    }
-
-    @Override
-    public <T> T evalsha(RedisScript script, byte[][] keys, byte[]... args) {
-        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
-        if (ArrayUtils.isEmpty(args)) {
-            return this.redisOperator.sync().evalsha(script.getSha1(), scriptOutputType, keys);
-        }
-        return this.redisOperator.sync().evalsha(script.getSha1(), scriptOutputType, keys, args);
-    }
-
-    @Override
-    public <T> T evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
-        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
-        if (ArrayUtils.isEmpty(args)) {
-            return this.redisOperator.sync().evalshaReadOnly(script.getSha1(), scriptOutputType, keys);
-        }
-        return this.redisOperator.sync().evalshaReadOnly(script.getSha1(), scriptOutputType, keys, args);
-    }
-
-    @Override
-    public String scriptLoad(RedisScript script) {
-        String sha1 = this.redisOperator.sync().scriptLoad(script.getScript());
-        if (sha1 != null) {
-            script.setSha1(sha1);
+            future = this.redisOperator.async().eval(script.getScriptBytes(), scriptOutputType, keys);
         } else {
-            throw new RedisOperationException("Failed to load script: " + script.getScript());
+            future = this.redisOperator.async().eval(script.getScriptBytes(), scriptOutputType, keys, args);
         }
-        return sha1;
+        return future.toCompletableFuture();
     }
 
+    @Override
+    public <T> CompletableFuture<T> evalReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
+        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
+        RedisFuture<T> future;
+        if (ArrayUtils.isEmpty(args)) {
+            future = this.redisOperator.async().evalReadOnly(script.getScriptBytes(), scriptOutputType, keys);
+        } else {
+            future = this.redisOperator.async().evalReadOnly(script.getScriptBytes(), scriptOutputType, keys, args);
+        }
+        return future.toCompletableFuture();
+    }
+
+    @Override
+    public <T> CompletableFuture<T> evalsha(RedisScript script, byte[][] keys, byte[]... args) {
+        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
+        RedisFuture<T> future;
+        if (ArrayUtils.isEmpty(args)) {
+            future = this.redisOperator.async().evalsha(script.getSha1(), scriptOutputType, keys);
+        } else {
+            future = this.redisOperator.async().evalsha(script.getSha1(), scriptOutputType, keys, args);
+        }
+        return future.toCompletableFuture()
+                .exceptionallyCompose(e -> {
+                    if (e instanceof RedisNoScriptException) {
+                        return this.scriptLoad(script)
+                                .thenCompose(ignored -> this.eval(script, keys, args));
+                    }
+                    return CompletableFuture.failedFuture(e);
+                });
+    }
+
+    @Override
+    public <T> CompletableFuture<T> evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
+        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
+        RedisFuture<T> future;
+        if (ArrayUtils.isEmpty(args)) {
+            future = this.redisOperator.async().evalshaReadOnly(script.getSha1(), scriptOutputType, keys);
+        } else {
+            future = this.redisOperator.async().evalshaReadOnly(script.getSha1(), scriptOutputType, keys, args);
+        }
+        return future.toCompletableFuture()
+                .exceptionallyCompose(e -> {
+                    if (e instanceof RedisNoScriptException) {
+                        return this.scriptLoad(script)
+                                .thenCompose(ignored -> this.evalReadOnly(script, keys, args));
+                    }
+                    return CompletableFuture.failedFuture(e);
+                });
+    }
+
+    @Override
+    public CompletableFuture<String> scriptLoad(RedisScript script) {
+        return this.redisOperator.async()
+                .scriptLoad(script.getScript())
+                .toCompletableFuture()
+                .thenApply(sha1 -> {
+                    if (sha1 != null) {
+                        script.setSha1(sha1);
+                    } else {
+                        throw new RedisOperationException("Failed to load script: " + script.getScript());
+                    }
+                    return sha1;
+                });
+    }
 
     @Override
     public String version() {
@@ -599,44 +611,34 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         return future;
     }
 
-    private static CompletableFuture<List<KeyValue<byte[], byte[]>>> combineListKeyValues(CompletableFuture<List<KeyValue<byte[], byte[]>>> future,
-                                                                                          List<CompletionStage<List<io.lettuce.core.KeyValue<byte[], byte[]>>>> stages) {
+    private static CompletableFuture<List<KeyValue<byte[], byte[]>>> combineLettuceKeyValues(CompletableFuture<List<KeyValue<byte[], byte[]>>> future,
+                                                                                             List<CompletionStage<List<io.lettuce.core.KeyValue<byte[], byte[]>>>> stages) {
         for (CompletionStage<List<io.lettuce.core.KeyValue<byte[], byte[]>>> stage : stages) {
             if (stage != null) {
-                future = combineKeyValues(future, stage);
+                future = future.thenCombine(stage, (results, keyValues) -> {
+                    if (CollectionUtils.isNotEmpty(keyValues)) {
+                        results.addAll(LettuceConvertor.from(keyValues));
+                    }
+                    return results;
+                });
             }
         }
         return future;
-    }
-
-    private static CompletableFuture<List<KeyValue<byte[], byte[]>>> combineKeyValues(CompletableFuture<List<KeyValue<byte[], byte[]>>> future,
-                                                                                      CompletionStage<List<io.lettuce.core.KeyValue<byte[], byte[]>>> stage) {
-        return future.thenCombine(stage, (results, keyValues) -> {
-            if (CollectionUtils.isNotEmpty(keyValues)) {
-                results.addAll(from(keyValues));
-            }
-            return results;
-        });
     }
 
     private static CompletableFuture<String> combineStringFutures(CompletableFuture<String> future,
                                                                   List<CompletionStage<String>> stages) {
         for (CompletionStage<String> stage : stages) {
             if (stage != null) {
-                future = combineStringFuture(future, stage);
+                future = future.thenCombine(stage, (original, result) -> {
+                    if (!Objects.equals(OK, result)) {
+                        return result;
+                    }
+                    return original;
+                });
             }
         }
         return future;
-    }
-
-    private static CompletableFuture<String> combineStringFuture(CompletableFuture<String> future,
-                                                                 CompletionStage<String> stage) {
-        return future.thenCombine(stage, (original, result) -> {
-            if (!Objects.equals(OK, result)) {
-                return result;
-            }
-            return original;
-        });
     }
 
     private static CompletableFuture<List<Long>> combineListLongFutures(CompletableFuture<List<Long>> future,
@@ -656,33 +658,15 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                                                               List<CompletionStage<Long>> stages) {
         for (CompletionStage<Long> stage : stages) {
             if (stage != null) {
-                future = combineLongFuture(future, stage);
+                future = future.thenCombine(stage, (cnt, result) -> {
+                    if (result != null) {
+                        return cnt + result;
+                    }
+                    return cnt;
+                });
             }
         }
         return future;
-    }
-
-    private static CompletableFuture<Long> combineLongFuture(CompletableFuture<Long> future,
-                                                             CompletionStage<Long> stage) {
-        return future.thenCombine(stage, (cnt, result) -> {
-            if (result != null) {
-                return cnt + result;
-            }
-            return cnt;
-        });
-    }
-
-    private static List<KeyValue<byte[], byte[]>> from(List<io.lettuce.core.KeyValue<byte[], byte[]>> keyValues) {
-        if (CollectionUtils.isEmpty(keyValues)) {
-            return Collections.emptyList();
-        }
-        List<KeyValue<byte[], byte[]>> results = new ArrayList<>(keyValues.size());
-        keyValues.forEach(keyValue -> {
-            if (keyValue != null && keyValue.hasValue()) {
-                results.add(KeyValue.create(keyValue.getKey(), keyValue.getValue()));
-            }
-        });
-        return results;
     }
 
 }

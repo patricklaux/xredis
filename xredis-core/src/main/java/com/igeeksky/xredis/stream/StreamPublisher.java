@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.stream;
 
 
+import com.igeeksky.xredis.LettuceConvertor;
 import com.igeeksky.xredis.api.RedisAsyncOperator;
 import com.igeeksky.xredis.common.RedisOperationException;
 import io.lettuce.core.XAddArgs;
@@ -36,7 +37,7 @@ public class StreamPublisher<K, V, T> {
         this.codec = codec;
         this.async = async;
         this.stream = stream;
-        this.args = StreamConvertor.to(options);
+        this.args = LettuceConvertor.to(options);
     }
 
     /**

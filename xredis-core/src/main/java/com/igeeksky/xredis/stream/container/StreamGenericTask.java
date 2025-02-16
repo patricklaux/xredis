@@ -2,7 +2,7 @@ package com.igeeksky.xredis.stream.container;
 
 import com.igeeksky.xredis.api.Pipeline;
 import com.igeeksky.xredis.api.RedisOperator;
-import com.igeeksky.xredis.flow.RetrySink;
+import com.igeeksky.xredis.common.flow.RetrySink;
 import com.igeeksky.xredis.stream.XReadOptions;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
 import com.igeeksky.xtool.core.collection.Maps;

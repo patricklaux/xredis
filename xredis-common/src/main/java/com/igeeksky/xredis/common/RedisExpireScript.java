@@ -1,13 +1,25 @@
 package com.igeeksky.xredis.common;
 
 /**
+ * 集中存放用于简化设置过期时间的 RedisScript
+ *
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public class RedisExpireScript {
+public abstract class RedisExpireScript {
+
+    /**
+     * 私有构造器
+     *
+     * @since 1.0.0
+     */
+    private RedisExpireScript() {
+    }
 
     /**
      * PSETEX
+     * <p>
+     * 注意事项：集群模式下，除非所有传入的 key 均在同一节点，才能使用此脚本！
      * <p>
      * 相同过期时间
      * <p>
@@ -33,6 +45,8 @@ public class RedisExpireScript {
 
     /**
      * PSETEX_RANDOM
+     * <p>
+     * 注意事项：集群模式下，除非所有传入的 key 均在同一节点，才能使用此脚本！
      * <p>
      * 随机过期时间
      * <p>

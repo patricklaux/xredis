@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * RedisOperatorProxy 测试用例
@@ -43,15 +44,12 @@ public class RedisOperatorProxyTestCase {
      * 测试非性能测试的所有方法
      */
     public void testAll() {
-        del();
-        clear();
-
         set();
         get();
         mset();
         mget();
         psetex();
-        psetex2();
+        psetex_random();
 
         hset();
         hmset();
@@ -69,39 +67,26 @@ public class RedisOperatorProxyTestCase {
         return operatorProxy.isCluster();
     }
 
-
-    void del() {
-    }
-
-
-    public void clear() {
-        String prefix = "pipeline-psetex:";
-        createPsetexPipelineRunnable(10, prefix).run();
-
-        long clear1 = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear1: [%d] \n", clear1);
-        Assertions.assertTrue(clear1 > 0);
-
-        long clear2 = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear1: [%d] \n", clear2);
-        Assertions.assertEquals(0, clear2);
-    }
-
-    public void clear(String prefix) {
+    public void clear(String prefix, int expectedSize) {
         long start = System.currentTimeMillis();
-        System.out.printf("clear: [%d] \n", operatorProxy.clear(codec.encode(prefix + "*")));
-        System.out.println("clear cost: " + (System.currentTimeMillis() - start));
+        long size = operatorProxy.clear(codec.encode(prefix + "*"));
+        long cost = System.currentTimeMillis() - start;
+        System.out.printf("clear-size: [%d] \n", size);
+        System.out.printf("clear-cost: [%d] \n", cost);
+        if (expectedSize >= 0) {
+            Assertions.assertEquals(expectedSize, size);
+        }
     }
 
     public void set() {
-        set_get("test-set:");
+        set_get_del("test-set:");
     }
 
     public void get() {
-        set_get("test-get:");
+        set_get_del("test-get:");
     }
 
-    private void set_get(String prefix) {
+    public void set_get_del(String prefix) {
         byte[] key = codec.encode(prefix + RandomUtils.nextString(5));
         byte[] val = codec.encode(prefix + RandomUtils.nextString(5));
         operatorProxy.del(key).join();
@@ -166,7 +151,7 @@ public class RedisOperatorProxyTestCase {
         operatorProxy.del(key).join();
     }
 
-    public void psetex2() {
+    public void psetex_random() {
         psetex_random(9998);
         psetex_random(9999);
         psetex_random(10000);
@@ -197,14 +182,14 @@ public class RedisOperatorProxyTestCase {
         operatorProxy.psetex(keyValues).join();
         System.out.println("size: [" + size + "]\t psetex-random-cost: [" + (System.currentTimeMillis() - start) + "]");
 
-        // // 读取 redis 数据
-        // Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
-        //
-        // // 验证读取数据是否正确
-        // LettuceTestHelper.validateValues(keys, map, size);
-        //
-        // // 删除数据，还原测试环境
-        // operatorProxy.del(keyBytes).join();
+        // 读取 redis 数据
+        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
+
+        // 验证读取数据是否正确
+        LettuceTestHelper.validateValues(keys, map, size);
+
+        // 删除数据，还原测试环境
+        operatorProxy.del(keyBytes).join();
     }
 
     public void psetex3() {
@@ -308,10 +293,10 @@ public class RedisOperatorProxyTestCase {
      */
     public void psetexPipelinePerformance1() {
         int size = 10000000;
-        String prefix = "pipeline-psetex:";
+        String prefix = "test-pipeline-psetex:";
         operatorProxy.clear(codec.encode(prefix + "*"));
 
-        createPsetexPipelineRunnable(size, prefix).run();
+        createPsetexRunnable(size, prefix).run();
 
         long clear = operatorProxy.clear(codec.encode(prefix + "*"));
         System.out.printf("clear: [%d] \n", clear);
@@ -319,28 +304,27 @@ public class RedisOperatorProxyTestCase {
     }
 
     /**
-     * 性能测试（1000万数据，2线程，单链接，pipeline 批量写入数据）
+     * 性能测试（1000万数据，2线程，单链接）
      */
     public void psetexPipelinePerformance2() {
         int size = 10000000;
-        String prefix = "pipeline-psetex:";
+        String prefix = "test-psetex:";
         operatorProxy.clear(codec.encode(prefix + "*"));
 
-        Runnable runnable = createPsetexPipelineRunnable(size / 2, prefix);
+        CountDownLatch latch = new CountDownLatch(2);
+        Runnable runnable = this.createPsetexRunnable(size / 2, prefix);
 
         for (int i = 0; i < 2; i++) {
             new Thread(runnable).start();
         }
 
         try {
-            Thread.sleep(40000);
+            latch.await();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear: [%d] \n", clear);
-        Assertions.assertEquals(clear, size);
+        this.clear(prefix, size);
     }
 
     /**
@@ -349,7 +333,7 @@ public class RedisOperatorProxyTestCase {
      * @param size 数据量
      * @return {@link Runnable} 线程任务
      */
-    private Runnable createPsetexPipelineRunnable(int size, String prefix) {
+    private Runnable createPsetexRunnable(int size, String prefix) {
         return () -> {
             long start = System.currentTimeMillis();
             int capacity = Math.min(50000, size);
@@ -430,10 +414,35 @@ public class RedisOperatorProxyTestCase {
         this.hmset_hmget_hdel_2(64, 100, "test-hdel:");
     }
 
+    public void hmset() {
+        hmset_hmget_del(100, "test-hmset:");
+    }
+
+    /**
+     * 批量写入数据，批量读取数据，批量删除数据
+     * <p>
+     * 测试： {@code CompletableFuture<String> hmset(Map<byte[], Map<byte[], byte[]>> keyFieldValues)}
+     */
     public void hmget() {
-        int size = 100;
-        byte[] key = codec.encode("test-hmget");
-        String[] fields = LettuceTestHelper.createKeys(size, "hmget-field:");
+        hmset_hmget_del(100, "test-hmget:");
+    }
+
+    /**
+     * 批量写入数据，批量读取数据
+     * <p>
+     * 测试：<p>
+     * {@code CompletableFuture<String> hmset(byte[] key, Map<byte[], byte[]> fieldValues)}
+     * <p>
+     * {@code CompletableFuture<List<KeyValue<byte[], byte[]>>> hmget(byte[] key, byte[]... fields)}
+     * <p>
+     * {@code  CompletableFuture<Long> del(byte[]... keys)}
+     *
+     * @param size   fields 数据量
+     * @param prefix 前缀
+     */
+    public void hmset_hmget_del(int size, String prefix) {
+        byte[] key = codec.encode(prefix);
+        String[] fields = LettuceTestHelper.createKeys(size, prefix + "-field:");
         byte[][] fieldsArray = LettuceTestHelper.toKeysArray(size, fields);
 
         operatorProxy.del(key).join();
@@ -446,14 +455,6 @@ public class RedisOperatorProxyTestCase {
         LettuceTestHelper.validateValues(fields, map, size);
 
         operatorProxy.del(key).join();
-    }
-
-    public void hmget2() {
-        this.hmset_hmget_hdel_2(64, 100, "test-hmget:");
-    }
-
-    public void hmset() {
-
     }
 
     public void hmset2() {
@@ -514,6 +515,9 @@ public class RedisOperatorProxyTestCase {
         operatorProxy.del(keys).join();
     }
 
+    public void hmget2() {
+        this.hmset_hmget_hdel_2(64, 100, "test-hmget:");
+    }
 
     public void hpset() {
         int size = 100;

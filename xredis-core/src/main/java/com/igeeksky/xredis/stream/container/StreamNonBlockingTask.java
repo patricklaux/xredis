@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.stream.container;
 
 import com.igeeksky.xredis.api.RedisOperator;
-import com.igeeksky.xredis.flow.RetrySink;
+import com.igeeksky.xredis.common.flow.RetrySink;
 import com.igeeksky.xtool.core.tuple.Tuple2;
 import com.igeeksky.xtool.core.tuple.Tuples;
 import io.lettuce.core.RedisFuture;
