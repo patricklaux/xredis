@@ -2,6 +2,7 @@ package com.igeeksky.xredis.cases;
 
 import com.igeeksky.xredis.LettuceOperatorProxy;
 import com.igeeksky.xredis.api.RedisOperator;
+import com.igeeksky.xredis.common.RedisOperatorProxy;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.Maps;
@@ -42,6 +43,16 @@ public class RedisOperatorProxyTestCase {
      * 测试非性能测试的所有方法
      */
     public void testAll() {
+        del();
+        clear();
+
+        set();
+        get();
+        mset();
+        mget();
+        psetex();
+        psetex2();
+
         hset();
         hmset();
         hmset2();
@@ -50,16 +61,331 @@ public class RedisOperatorProxyTestCase {
         hmget2();
         hdel();
         hdel2();
-        set();
-        mset();
-        psetex();
-        psetex2();
-        get();
-        mget();
-        del();
-        clear();
+
         version();
     }
+
+    public boolean isCluster() {
+        return operatorProxy.isCluster();
+    }
+
+
+    void del() {
+    }
+
+
+    public void clear() {
+        String prefix = "pipeline-psetex:";
+        createPsetexPipelineRunnable(10, prefix).run();
+
+        long clear1 = operatorProxy.clear(codec.encode(prefix + "*"));
+        System.out.printf("clear1: [%d] \n", clear1);
+        Assertions.assertTrue(clear1 > 0);
+
+        long clear2 = operatorProxy.clear(codec.encode(prefix + "*"));
+        System.out.printf("clear1: [%d] \n", clear2);
+        Assertions.assertEquals(0, clear2);
+    }
+
+    public void clear(String prefix) {
+        long start = System.currentTimeMillis();
+        System.out.printf("clear: [%d] \n", operatorProxy.clear(codec.encode(prefix + "*")));
+        System.out.println("clear cost: " + (System.currentTimeMillis() - start));
+    }
+
+    public void set() {
+        set_get("test-set:");
+    }
+
+    public void get() {
+        set_get("test-get:");
+    }
+
+    private void set_get(String prefix) {
+        byte[] key = codec.encode(prefix + RandomUtils.nextString(5));
+        byte[] val = codec.encode(prefix + RandomUtils.nextString(5));
+        operatorProxy.del(key).join();
+
+        String ok = operatorProxy.set(key, val).join();
+        Assertions.assertEquals(RedisOperatorProxy.OK, ok);
+
+        Assertions.assertArrayEquals(val, operatorProxy.get(key).join());
+
+        operatorProxy.del(key).join();
+    }
+
+    public void mset() {
+        mset_mget(9998, "test-mset:");
+        mset_mget(9999, "test-mset:");
+        mset_mget(10000, "test-mset:");
+        mset_mget(10001, "test-mset:");
+        mset_mget(10002, "test-mset:");
+        mset_mget(19998, "test-mset:");
+        mset_mget(19999, "test-mset:");
+        mset_mget(20000, "test-mset:");
+        mset_mget(20001, "test-mset:");
+        mset_mget(20002, "test-mset:");
+    }
+
+    public void mget() {
+        mset_mget(10, "test-mget:");
+    }
+
+    private void mset_mget(int size, String prefix) {
+        String[] keys = LettuceTestHelper.createKeys(size, prefix);
+        byte[][] keysArray = LettuceTestHelper.toKeysArray(keys.length, keys);
+        Map<byte[], byte[]> keyValues = LettuceTestHelper.createKeyValues(size, keysArray);
+
+        operatorProxy.del(keysArray).join();
+
+        String ok = operatorProxy.mset(keyValues).join();
+        Assertions.assertEquals(RedisOperatorProxy.OK, ok);
+
+        List<KeyValue<byte[], byte[]>> results = operatorProxy.mget(keysArray).join();
+        Assertions.assertEquals(size, results.size());
+
+        Map<String, String> results1 = LettuceTestHelper.fromKeyValues(results);
+        Assertions.assertEquals(size, results1.size());
+
+        LettuceTestHelper.validateValues(keys, results1, size);
+
+        operatorProxy.del(keysArray).join();
+    }
+
+    public void psetex() {
+        byte[] key = codec.encode("test-psetex");
+        byte[] value = codec.encode("test-psetex-value");
+        operatorProxy.del(key).join();
+        String ok = operatorProxy.psetex(key, RandomUtils.nextInt(1000000, 2000000), value).join();
+        Assertions.assertEquals("OK", ok);
+
+        Assertions.assertArrayEquals(value, operatorProxy.get(key).join());
+        Long pttl = redisOperator.async().pttl(key).toCompletableFuture().join();
+        Assertions.assertTrue(pttl > 900000);
+
+        operatorProxy.del(key).join();
+    }
+
+    public void psetex2() {
+        psetex_random(9998);
+        psetex_random(9999);
+        psetex_random(10000);
+        psetex_random(10001);
+        psetex_random(10002);
+        psetex_random(19998);
+        psetex_random(19999);
+        psetex_random(20000);
+        psetex_random(20001);
+        psetex_random(20002);
+    }
+
+    public void psetex_random(int size) {
+        String prefix = "test-psetex-random:";
+        String[] keys = LettuceTestHelper.createKeys(size, prefix);
+        byte[][] keyBytes = LettuceTestHelper.toKeysArray(size, keys);
+
+        // 删除 redis 中的已有数据
+        // operatorProxy.del(keyBytes).join();
+
+        List<ExpiryKeyValue<byte[], byte[]>> keyValues = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            keyValues.add(new ExpiryKeyValue<>(keyBytes[i], keyBytes[i], RandomUtils.nextInt(1000000, 2000000)));
+        }
+
+        // 保存 key-value 到 redis
+        long start = System.currentTimeMillis();
+        operatorProxy.psetex(keyValues).join();
+        System.out.println("size: [" + size + "]\t psetex-random-cost: [" + (System.currentTimeMillis() - start) + "]");
+
+        // // 读取 redis 数据
+        // Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
+        //
+        // // 验证读取数据是否正确
+        // LettuceTestHelper.validateValues(keys, map, size);
+        //
+        // // 删除数据，还原测试环境
+        // operatorProxy.del(keyBytes).join();
+    }
+
+    public void psetex3() {
+        psetex(9998);
+        psetex(9999);
+        psetex(10000);
+        psetex(10001);
+        psetex(10002);
+        psetex(19998);
+        psetex(19999);
+        psetex(20000);
+        psetex(20001);
+        psetex(20002);
+    }
+
+    public void psetex(int size) {
+        String prefix = "test-psetex:";
+        String[] keys = LettuceTestHelper.createKeys(size, prefix);
+        byte[][] keyBytes = LettuceTestHelper.toKeysArray(size, keys);
+
+        // 删除 redis 中的已有数据
+        operatorProxy.del(keyBytes).join();
+
+        List<KeyValue<byte[], byte[]>> keyValues = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            keyValues.add(new KeyValue<>(keyBytes[i], keyBytes[i]));
+        }
+
+        long start = System.currentTimeMillis();
+        // 保存 key-value 到 redis
+        operatorProxy.psetex(keyValues, 10000000).join();
+        System.out.println("size: [" + size + "]\t psetex-cost: [" + (System.currentTimeMillis() - start) + "]");
+
+        // 读取 redis 数据
+        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
+
+        // 验证读取数据是否正确
+        for (String key : keys) {
+            Assertions.assertEquals(key, map.get(key));
+        }
+
+        // 删除数据，还原测试环境
+        operatorProxy.del(keyBytes).join();
+    }
+
+    /**
+     * 获取版本信息
+     */
+    void version() {
+        String version = operatorProxy.version();
+        System.out.println(version);
+        Assertions.assertNotNull(version);
+
+        String[] array = version.split("\\.");
+        Assertions.assertTrue(array.length >= 3);
+        Assertions.assertTrue(Integer.parseInt(array[0]) >= 5);
+    }
+
+    /**
+     * 性能测试（1000万数据，单线程，批量保存 ）
+     */
+    public void msetPerformance1() {
+        int size = 10000000;
+        String prefix = "test-mset:";
+        operatorProxy.clear(codec.encode(prefix + "*"));
+
+        this.createMsetRunnable(size, prefix).run();
+
+        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
+        System.out.printf("clear: [%d] \n", clear);
+        Assertions.assertEquals(clear, size);
+    }
+
+    /**
+     * 性能测试（1000万数据，双线程，批量保存）
+     */
+    public void msetPerformance2() {
+        int size = 10000000;
+        String prefix = "test-mset:";
+        operatorProxy.clear(codec.encode(prefix + "*"));
+
+        Runnable runnable = this.createMsetRunnable(size / 2, prefix);
+
+        for (int i = 0; i < 2; i++) {
+            new Thread(runnable).start();
+        }
+
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
+        System.out.printf("clear: [%d] \n", clear);
+        Assertions.assertEquals(clear, size);
+    }
+
+    /**
+     * 性能测试（1000万数据，单线程，单链接，pipeline 批量写入数据）
+     */
+    public void psetexPipelinePerformance1() {
+        int size = 10000000;
+        String prefix = "pipeline-psetex:";
+        operatorProxy.clear(codec.encode(prefix + "*"));
+
+        createPsetexPipelineRunnable(size, prefix).run();
+
+        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
+        System.out.printf("clear: [%d] \n", clear);
+        Assertions.assertEquals(clear, size);
+    }
+
+    /**
+     * 性能测试（1000万数据，2线程，单链接，pipeline 批量写入数据）
+     */
+    public void psetexPipelinePerformance2() {
+        int size = 10000000;
+        String prefix = "pipeline-psetex:";
+        operatorProxy.clear(codec.encode(prefix + "*"));
+
+        Runnable runnable = createPsetexPipelineRunnable(size / 2, prefix);
+
+        for (int i = 0; i < 2; i++) {
+            new Thread(runnable).start();
+        }
+
+        try {
+            Thread.sleep(40000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
+        System.out.printf("clear: [%d] \n", clear);
+        Assertions.assertEquals(clear, size);
+    }
+
+    /**
+     * pipeline 批量写入数据
+     *
+     * @param size 数据量
+     * @return {@link Runnable} 线程任务
+     */
+    private Runnable createPsetexPipelineRunnable(int size, String prefix) {
+        return () -> {
+            long start = System.currentTimeMillis();
+            int capacity = Math.min(50000, size);
+            List<ExpiryKeyValue<byte[], byte[]>> keyValues = new ArrayList<>(capacity);
+            for (int i = 0; i < size; i++) {
+                byte[] temp = codec.encode(prefix + RandomUtils.nextString(18));
+                keyValues.add(new ExpiryKeyValue<>(temp, temp, RandomUtils.nextInt(2000000, 3000000)));
+                if (keyValues.size() == capacity) {
+                    operatorProxy.psetex(keyValues).join();
+                    keyValues.clear();
+                    capacity = Math.min(50000, size - i - 1);
+                }
+            }
+            long end = System.currentTimeMillis();
+            System.out.printf("size: [%d], psetex-time: [%d] \n", size, end - start);
+        };
+    }
+
+    private Runnable createMsetRunnable(int size, String prefix) {
+        return () -> {
+            long start = System.currentTimeMillis();
+            Map<byte[], byte[]> keyValues = Maps.newHashMap(50000);
+            for (int i = 0; i < size; ) {
+                i++;
+                byte[] temp = codec.encode(prefix + RandomUtils.nextString(18));
+                keyValues.put(temp, temp);
+                if (keyValues.size() == 50000 || i == size) {
+                    operatorProxy.mset(keyValues).join();
+                    keyValues.clear();
+                }
+            }
+            long end = System.currentTimeMillis();
+            System.out.println("mset-time:" + (end - start));
+        };
+    }
+
 
     public void hset() {
         byte[] key = codec.encode("test-hset");
@@ -82,6 +408,8 @@ public class RedisOperatorProxyTestCase {
         Assertions.assertNull(operatorProxy.hget(key, field).join());
         operatorProxy.hset(key, field, value).join();
         Assertions.assertArrayEquals(value, operatorProxy.hget(key, field).join());
+
+        operatorProxy.del(key).join();
     }
 
     public void hdel() {
@@ -315,231 +643,6 @@ public class RedisOperatorProxyTestCase {
         LettuceTestHelper.validateValues(fields, result, total);
 
         operatorProxy.del(keys).join();
-    }
-
-    void del() {
-    }
-
-    void get() {
-    }
-
-    void mget() {
-    }
-
-    void mset() {
-    }
-
-    void set() {
-    }
-
-    public void psetex() {
-        byte[] key = codec.encode("test-psetex");
-        byte[] value = codec.encode("test-psetex-value");
-        operatorProxy.del(key).join();
-        String ok = operatorProxy.psetex(key, RandomUtils.nextInt(1000000, 2000000), value).join();
-        Assertions.assertEquals("OK", ok);
-
-        Assertions.assertArrayEquals(value, operatorProxy.get(key).join());
-        Long pttl = redisOperator.async().pttl(key).toCompletableFuture().join();
-        Assertions.assertTrue(pttl > 900000);
-
-        operatorProxy.del(key).join();
-    }
-
-    void psetex2() {
-        psetex(9998);
-        psetex(9999);
-        psetex(10000);
-        psetex(10001);
-        psetex(10002);
-        psetex(19998);
-        psetex(19999);
-        psetex(20000);
-        psetex(20001);
-        psetex(20002);
-    }
-
-    private void psetex(int size) {
-        String prefix = "test-psetex:";
-        String[] keys = LettuceTestHelper.createKeys(size, prefix);
-        byte[][] keyBytes = LettuceTestHelper.toKeysArray(size, keys);
-
-        // 删除 redis 中的已有数据
-        operatorProxy.del(keyBytes).join();
-
-        List<ExpiryKeyValue<byte[], byte[]>> keyValues = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            keyValues.add(new ExpiryKeyValue<>(keyBytes[i], keyBytes[i], RandomUtils.nextInt(1000000, 2000000)));
-        }
-
-        // 保存 key-value 到 redis
-        operatorProxy.psetex(keyValues).join();
-
-        // 读取 redis 数据
-        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
-
-        // 验证读取数据是否正确
-        for (String key : keys) {
-            Assertions.assertEquals(key, map.get(key));
-        }
-
-        // 删除数据，还原测试环境
-        operatorProxy.del(keyBytes).join();
-    }
-
-    void clear() {
-        String prefix = "pipeline-psetex:";
-        createPsetexPipelineRunnable(10, prefix).run();
-
-        long clear1 = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear1: [%d] \n", clear1);
-        Assertions.assertTrue(clear1 > 0);
-
-        long clear2 = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear1: [%d] \n", clear2);
-        Assertions.assertEquals(0, clear2);
-    }
-
-    public void clear(String prefix) {
-        long start = System.currentTimeMillis();
-        System.out.printf("clear: [%d] \n", operatorProxy.clear(codec.encode(prefix + "*")));
-        System.out.println("clear cost: " + (System.currentTimeMillis() - start));
-    }
-
-    /**
-     * 获取版本信息
-     */
-    void version() {
-        String version = operatorProxy.version();
-        System.out.println(version);
-        Assertions.assertNotNull(version);
-
-        String[] array = version.split("\\.");
-        Assertions.assertTrue(array.length >= 3);
-        Assertions.assertTrue(Integer.parseInt(array[0]) >= 5);
-    }
-
-    /**
-     * 性能测试（1000万数据，单线程，批量保存 ）
-     */
-    public void msetPerformance1() {
-        int size = 10000000;
-        String prefix = "test-mset:";
-        operatorProxy.clear(codec.encode(prefix + "*"));
-
-        this.createMsetRunnable(size, prefix).run();
-
-        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear: [%d] \n", clear);
-        Assertions.assertEquals(clear, size);
-    }
-
-    /**
-     * 性能测试（1000万数据，双线程，批量保存）
-     */
-    public void msetPerformance2() {
-        int size = 10000000;
-        String prefix = "test-mset:";
-        operatorProxy.clear(codec.encode(prefix + "*"));
-
-        Runnable runnable = this.createMsetRunnable(size / 2, prefix);
-
-        for (int i = 0; i < 2; i++) {
-            new Thread(runnable).start();
-        }
-
-        try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear: [%d] \n", clear);
-        Assertions.assertEquals(clear, size);
-    }
-
-    /**
-     * 性能测试（1000万数据，单线程，单链接，pipeline 批量写入数据）
-     */
-    public void psetexPipelinePerformance1() {
-        int size = 10000000;
-        String prefix = "pipeline-psetex:";
-        operatorProxy.clear(codec.encode(prefix + "*"));
-
-        createPsetexPipelineRunnable(size, prefix).run();
-
-        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear: [%d] \n", clear);
-        Assertions.assertEquals(clear, size);
-    }
-
-    /**
-     * 性能测试（1000万数据，2线程，单链接，pipeline 批量写入数据）
-     */
-    public void psetexPipelinePerformance2() {
-        int size = 10000000;
-        String prefix = "pipeline-psetex:";
-        operatorProxy.clear(codec.encode(prefix + "*"));
-
-        Runnable runnable = createPsetexPipelineRunnable(size / 2, prefix);
-
-        for (int i = 0; i < 2; i++) {
-            new Thread(runnable).start();
-        }
-
-        try {
-            Thread.sleep(40000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        long clear = operatorProxy.clear(codec.encode(prefix + "*"));
-        System.out.printf("clear: [%d] \n", clear);
-        Assertions.assertEquals(clear, size);
-    }
-
-    /**
-     * pipeline 批量写入数据
-     *
-     * @param size 数据量
-     * @return {@link Runnable} 线程任务
-     */
-    private Runnable createPsetexPipelineRunnable(int size, String prefix) {
-        return () -> {
-            long start = System.currentTimeMillis();
-            int capacity = Math.min(50000, size);
-            List<ExpiryKeyValue<byte[], byte[]>> keyValues = new ArrayList<>(capacity);
-            for (int i = 0; i < size; i++) {
-                byte[] temp = codec.encode(prefix + RandomUtils.nextString(18));
-                keyValues.add(new ExpiryKeyValue<>(temp, temp, RandomUtils.nextInt(2000000, 3000000)));
-                if (keyValues.size() == capacity) {
-                    operatorProxy.psetex(keyValues).join();
-                    keyValues.clear();
-                    capacity = Math.min(10000, size - i - 1);
-                }
-            }
-            long end = System.currentTimeMillis();
-            System.out.printf("size: [%d], psetex-time: [%d] \n", size, end - start);
-        };
-    }
-
-    private Runnable createMsetRunnable(int size, String prefix) {
-        return () -> {
-            long start = System.currentTimeMillis();
-            Map<byte[], byte[]> keyValues = Maps.newHashMap(50000);
-            for (int i = 0; i < size; ) {
-                i++;
-                byte[] temp = codec.encode(prefix + RandomUtils.nextString(18));
-                keyValues.put(temp, temp);
-                if (keyValues.size() == 50000 || i == size) {
-                    operatorProxy.mset(keyValues).join();
-                    keyValues.clear();
-                }
-            }
-            long end = System.currentTimeMillis();
-            System.out.println("mset-time:" + (end - start));
-        };
     }
 
 }

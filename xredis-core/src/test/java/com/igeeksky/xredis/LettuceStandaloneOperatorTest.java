@@ -44,6 +44,70 @@ class LettuceStandaloneOperatorTest {
     @Test
     void isCluster() {
         Assertions.assertFalse(redisTestCase.isCluster());
+        Assertions.assertFalse(redisProxyTestCase.isCluster());
+    }
+
+    @Test
+    void psetex() {
+        redisProxyTestCase.psetex();
+    }
+
+    @Test
+    void psetex2() {
+        redisProxyTestCase.psetex2();
+    }
+
+    @Test
+    @Disabled
+    void psetex3() {
+        redisProxyTestCase.psetex3();
+    }
+
+    /**
+     * 性能测试
+     * <p>
+     * 1000 万数据，本地 Redis，单线程，Script 方式 <br>
+     * size: [10000000]	 psetex-cost: [35039]
+     */
+    @Test
+    @Disabled
+    void psetex_performance() {
+        redisProxyTestCase.psetex(10000000);
+    }
+
+    /**
+     * 性能测试
+     * <p>
+     * 1000 万数据，本地 Redis，单线程，Script 方式 <br>
+     * size: [10000000]	 psetex-random-cost: [45364]
+     * <p>
+     * 1000 万数据，本地 Redis，单线程，Async 方式 <br>
+     * size: [10000000]	 psetex-random-cost: [45644]
+     *
+     * <p>
+     * 本地测试，网络无瓶颈，Standalone 模式下，
+     * RedisServer 只能单线程处理命令，Script 和 Async 方式性能几乎完全一致。
+     * <br>
+     * Cluster 模式下，因为可以并行处理命令，Async 下处理，耗时仅 20765，反而比 Script 快一倍。
+     * <p>
+     * 网络 Redis，Script : size: [3000000]	 psetex-random-cost: [41876] <br>
+     * 网络 Redis，Async  : size: [3000000]	 psetex-random-cost: [49294]
+     */
+    @Test
+    @Disabled
+    void psetex_random() {
+        redisProxyTestCase.psetex_random(10000000);
+    }
+
+    @Test
+    void mset() {
+        redisProxyTestCase.mset();
+        // LockSupport.parkNanos(1000 * 1000 * 1000);
+    }
+
+    @Test
+    void mget() {
+        redisProxyTestCase.mget();
     }
 
     @Test
@@ -79,12 +143,6 @@ class LettuceStandaloneOperatorTest {
     @Test
     void hmget2() {
         redisProxyTestCase.hmget2();
-    }
-
-
-    @Test
-    void psetex() {
-        redisProxyTestCase.psetex();
     }
 
     /**
@@ -165,7 +223,8 @@ class LettuceStandaloneOperatorTest {
     /**
      * 性能测试
      * <p>
-     * 1000 万数据，本地redis，单线程批处理，性能测试时长约 64745 毫秒
+     * 1000 万数据，本地redis，单线程批处理，性能测试
+     * size: [10000000], psetex-time: [63363]
      */
     @Test
     @Disabled
@@ -193,7 +252,7 @@ class LettuceStandaloneOperatorTest {
     /**
      * 性能测试
      * <p>
-     * 1000 万数据，本地redis，单线程批处理，性能测试时长约 32221 毫秒
+     * 1000 万数据，本地redis，单线程批处理，性能测试时长约 20167 毫秒
      */
     @Test
     @Disabled
@@ -204,9 +263,9 @@ class LettuceStandaloneOperatorTest {
     /**
      * 性能测试
      * <p>
-     * 1000 万数据，本地redis，2线程批处理，性能测试时长约 16609 * 2 毫秒
+     * 1000 万数据，本地redis，2线程批处理，性能测试时长约 13448 + 13533 毫秒
      * <p>
-     * 1000 万数据，本地redis，单线程批处理，性能测试时长约 32221 毫秒
+     * 1000 万数据，本地redis，单线程批处理，性能测试时长约 20167 毫秒
      */
     @Test
     @Disabled
@@ -217,11 +276,11 @@ class LettuceStandaloneOperatorTest {
     /**
      * 性能测试
      * <p>
-     * 1000 万数据，本地 redis，单线程，单链接，Pipeline 批处理
+     * 1000 万数据，本地 redis，单线程，单链接，批处理
      * <p>
-     * hmset cost: 10895 <p>
-     * hmget cost: 3756 <p>
-     * hdel cost: 5402
+     * hmset cost: 6738 <p>
+     * hmget cost: 7421 <p>
+     * hdel cost: 4284
      */
     @Test
     @Disabled

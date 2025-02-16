@@ -44,6 +44,64 @@ class LettuceClusterOperatorTest {
     @Test
     void isCluster() {
         Assertions.assertTrue(redisTestCase.isCluster());
+        Assertions.assertTrue(redisProxyTestCase.isCluster());
+    }
+
+    @Test
+    void psetex() {
+        redisProxyTestCase.psetex();
+    }
+
+    @Test
+    void psetex2() {
+        redisProxyTestCase.psetex2();
+    }
+
+
+    /**
+     * 特殊测试
+     * <p>
+     * Redis Hash 字段设置值 及 过期时间（RedisServer 版本需大于 7.4.0）
+     */
+    @Test
+    @Disabled
+    void psetex3() {
+        redisProxyTestCase.psetex3();
+    }
+
+    /**
+     * 性能测试
+     * <p>
+     * 1000万数据，本地redis，单线程， Async 方式 <br>
+     * size: [10000000]	 psetex-cost: [21667]
+     */
+    @Test
+    @Disabled
+    void psetex_performance() {
+        redisProxyTestCase.psetex(10000000);
+    }
+
+    /**
+     * 性能测试
+     * <p>
+     * 1000万数据，本地redis，单线程，async 方式 <br>
+     * size: [10000000]	 psetex-random-cost: [20765]
+     */
+    @Test
+    @Disabled
+    void psetex_random(){
+        redisProxyTestCase.psetex_random(10000000);
+    }
+
+    @Test
+    void mset() {
+        redisProxyTestCase.mset();
+        // LockSupport.parkNanos(1000 * 1000 * 1000);
+    }
+
+    @Test
+    void mget() {
+        redisProxyTestCase.mget();
     }
 
     @Test
@@ -53,9 +111,7 @@ class LettuceClusterOperatorTest {
 
     @Test
     void hmset2() {
-        for (int i = 0; i < 10; i++) {
-            redisProxyTestCase.hmset2();
-        }
+        redisProxyTestCase.hmset2();
     }
 
     @Test
@@ -80,15 +136,7 @@ class LettuceClusterOperatorTest {
 
     @Test
     void hmget2() {
-        for (int i = 0; i < 10; i++) {
-            redisProxyTestCase.hmget2();
-        }
-    }
-
-
-    @Test
-    void psetex() {
-        redisProxyTestCase.psetex();
+        redisProxyTestCase.hmget2();
     }
 
     /**
@@ -115,9 +163,28 @@ class LettuceClusterOperatorTest {
         redisProxyTestCase.hmpset();
     }
 
+    /**
+     * 特殊测试
+     * <p>
+     * Redis Hash 字段设置值 及 过期时间（RedisServer 版本需大于 7.4.0）
+     */
     @Test
-    void clear() {
-        redisProxyTestCase.clear("test-*");
+    @Disabled
+    void hmpset_random() {
+        redisProxyTestCase.hmpset_random();
+    }
+
+    /**
+     * 特殊测试 和 性能测试
+     * <p>
+     * Redis Hash 字段设置值 及 过期时间（RedisServer 版本需大于 7.4.0）
+     * <p>
+     * 1000 万数据，本地 redis，单线程，单链接，Pipeline 批处理
+     */
+    @Test
+    @Disabled
+    void hmpset_hmget_hdel() {
+        redisProxyTestCase.hmpset_hmget_hdel(1000, 10000, "test-hmpset:");
     }
 
     /**
@@ -150,7 +217,17 @@ class LettuceClusterOperatorTest {
     /**
      * 性能测试
      * <p>
-     * 1000万数据，单线程，本地redis，单线程批处理，性能测试时长约 42288 毫秒
+     * 1000万数据，单线程，本地redis，单线程
+     * <p>
+     * 由于测试发现 Lettuce pipeline 可能会遗漏命令，
+     * 集群模式下，多个 key 可能位于不同节点，很难使用 script 批量执行，
+     * 因此只能用 async 方式进行性能测试，耗时约 71280 毫秒。
+     * <p>
+     * standalone 则采用 script 批量执行，耗时约为 63363 毫秒。
+     * <p>
+     * 两者相差仅 71280 - 63363 = 7917 毫秒，似乎 async 方式也是可以接受的。
+     * <p>
+     * size: [10000000], psetex-time: [71280]
      */
     @Test
     @Disabled

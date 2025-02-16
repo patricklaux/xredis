@@ -45,8 +45,16 @@ public class LettuceTestHelper {
      */
     public static LettuceStandaloneFactory createStandaloneFactory() {
         LettuceStandalone standalone = new LettuceStandalone();
-        standalone.setNode("192.168.50.157:6379");
-        standalone.setNodes(List.of("192.168.50.157:6378"));
+
+        standalone.setNode("39.108.108.43:6379");
+        standalone.setPassword("dfdflgrcerafdcvb13561209");
+
+        // standalone.setNode("192.168.50.157:6379");
+        // standalone.setNodes(List.of("192.168.50.157:6378"));
+
+        // standalone.setNode("127.0.0.1:6379");
+        // standalone.setNodes(List.of("127.0.0.1:6378"));
+
         standalone.setReadFrom("upstream");
 
         LettuceStandaloneConfig standaloneConfig = LettuceConfigHelper.createConfig("test", standalone);
@@ -81,11 +89,12 @@ public class LettuceTestHelper {
      */
     public static LettuceClusterFactory createClusterConnectionFactory() {
         LettuceCluster cluster = new LettuceCluster();
-        cluster.setNodes(List.of("192.168.50.157:7001", "192.168.50.157:7002", "192.168.50.157:7003"));
+        cluster.setNodes(List.of("192.168.50.157:7001", "192.168.50.157:7002", "192.168.50.157:7003",
+                "192.168.50.157:7004", "192.168.50.157:7005", "192.168.50.157:7006"));
         cluster.setReadFrom("upstreamPreferred");
 
         ClientResources resources = ClientResources.builder().build();
-        ClusterClientOptions options = ClusterClientOptions.builder().protocolVersion(ProtocolVersion.RESP2).build();
+        ClusterClientOptions options = ClusterClientOptions.builder().protocolVersion(ProtocolVersion.RESP3).build();
         LettuceClusterConfig config = LettuceConfigHelper.createConfig("test", cluster);
 
         return new LettuceClusterFactory(config, options, resources);
@@ -99,11 +108,11 @@ public class LettuceTestHelper {
      * @return keyBytes
      */
     public static byte[][] toKeysArray(int size, String[] keys) {
-        byte[][] keyBytes = new byte[size][];
+        byte[][] keysArray = new byte[size][];
         for (int i = 0; i < size; i++) {
-            keyBytes[i] = codec.encode(keys[i]);
+            keysArray[i] = codec.encode(keys[i]);
         }
-        return keyBytes;
+        return keysArray;
     }
 
     /**
