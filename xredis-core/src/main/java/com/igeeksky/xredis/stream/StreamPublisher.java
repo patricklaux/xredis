@@ -37,7 +37,7 @@ public class StreamPublisher<K, V, T> {
         this.codec = codec;
         this.async = async;
         this.stream = stream;
-        this.args = LettuceConvertor.to(options);
+        this.args = LettuceConvertor.toAddArgs(options);
     }
 
     /**

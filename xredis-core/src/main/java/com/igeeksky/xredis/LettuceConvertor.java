@@ -12,12 +12,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 流对象转换器
+ * Lettuce 对象转换器
  *
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public class LettuceConvertor {
+public abstract class LettuceConvertor {
 
     /**
      * 私有构造器
@@ -31,13 +31,13 @@ public class LettuceConvertor {
      * @param options 流消息读取选项
      * @return Lettuce {@link XReadArgs} 对象
      */
-    public static XReadArgs to(XReadOptions options) {
+    public static XReadArgs toReadArgs(XReadOptions options) {
         int count = options.count();
         long block = options.block();
         if (block >= 0) {
-            return XReadArgs.Builder.block(block).count(count);
+            return XReadArgs.Builder.block(block).count(count).noack(options.noack());
         } else {
-            return XReadArgs.Builder.count(count);
+            return XReadArgs.Builder.count(count).noack(options.noack());
         }
     }
 
@@ -47,7 +47,7 @@ public class LettuceConvertor {
      * @param options 流消息发布选项
      * @return Lettuce {@link XAddArgs} 对象
      */
-    public static XAddArgs to(XAddOptions options) {
+    public static XAddArgs toAddArgs(XAddOptions options) {
         if (options == null || !options.valid()) {
             return null;
         }
@@ -78,7 +78,7 @@ public class LettuceConvertor {
      * @param keyValues Lettuce {@link io.lettuce.core.KeyValue} 对象列表
      * @return {@link KeyValue} 对象列表
      */
-    public static List<KeyValue<byte[], byte[]>> from(List<io.lettuce.core.KeyValue<byte[], byte[]>> keyValues) {
+    public static List<KeyValue<byte[], byte[]>> fromKeyValues(List<io.lettuce.core.KeyValue<byte[], byte[]>> keyValues) {
         if (CollectionUtils.isEmpty(keyValues)) {
             return Collections.emptyList();
         }

@@ -117,7 +117,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         int size = keys.length;
         // 当数据量低于阈值，直接查询（小于等于限定数量）
         if (size <= batchSize) {
-            return async.mget(keys).toCompletableFuture().thenApply(LettuceConvertor::from);
+            return async.mget(keys).toCompletableFuture().thenApply(LettuceConvertor::fromKeyValues);
         }
         // 当数据量超过阈值，分批查询
         CompletableFuture<List<KeyValue<byte[], byte[]>>> future = CompletableFuture.completedFuture(new ArrayList<>(size));
@@ -409,7 +409,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         // 当数据量低于阈值，直接查询（小于等于限定数量）
         if (size <= batchSize) {
             return async.hmget(key, fields).toCompletableFuture()
-                    .thenApply(LettuceConvertor::from);
+                    .thenApply(LettuceConvertor::fromKeyValues);
         }
         // 当数据量超过阈值，分批查询
         CompletableFuture<List<KeyValue<byte[], byte[]>>> future = CompletableFuture.completedFuture(new ArrayList<>(size));
@@ -617,7 +617,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             if (stage != null) {
                 future = future.thenCombine(stage, (results, keyValues) -> {
                     if (CollectionUtils.isNotEmpty(keyValues)) {
-                        results.addAll(LettuceConvertor.from(keyValues));
+                        results.addAll(LettuceConvertor.fromKeyValues(keyValues));
                     }
                     return results;
                 });

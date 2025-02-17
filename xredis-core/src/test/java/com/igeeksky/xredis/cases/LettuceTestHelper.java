@@ -47,7 +47,7 @@ public class LettuceTestHelper {
         LettuceStandalone standalone = new LettuceStandalone();
 
         standalone.setNode("39.108.108.43:6379");
-        standalone.setPassword("dfdflgrcerafdcvb13561209");
+        standalone.setPassword("dfdssdewtynbg4357sd1256j");
 
         // standalone.setNode("192.168.50.157:6379");
         // standalone.setNodes(List.of("192.168.50.157:6378"));
