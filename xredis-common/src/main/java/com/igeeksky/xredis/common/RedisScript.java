@@ -1,5 +1,6 @@
 package com.igeeksky.xredis.common;
 
+import com.igeeksky.xtool.core.json.SimpleJSON;
 import com.igeeksky.xtool.core.lang.Assert;
 import com.igeeksky.xtool.core.security.DigestUtils;
 
@@ -16,7 +17,7 @@ public class RedisScript {
     /**
      * 脚本返回类型
      */
-    private final ResultType type;
+    private final ResultType resultType;
 
     /**
      * Lua 脚本内容序列化数据
@@ -46,15 +47,15 @@ public class RedisScript {
      * 构造函数
      *
      * @param script Lua 脚本
-     * @param type   脚本返回类型
+     * @param resultType   脚本返回类型
      */
-    public RedisScript(String script, ResultType type) {
-        Assert.notNull(type, "type must not be null");
+    public RedisScript(String script, ResultType resultType) {
+        Assert.notNull(resultType, "type must not be null");
         Assert.notNull(script, "script must not be null");
         this.script = script;
         this.scriptBytes = script.getBytes(StandardCharsets.UTF_8);
         this.sha1 = DigestUtils.sha1(script);
-        this.type = type;
+        this.resultType = resultType;
     }
 
     /**
@@ -63,7 +64,7 @@ public class RedisScript {
      * @return {@link ResultType} – 脚本返回类型
      */
     public ResultType getResultType() {
-        return type;
+        return resultType;
     }
 
     /**
@@ -100,6 +101,11 @@ public class RedisScript {
      */
     public String getSha1() {
         return this.sha1;
+    }
+
+    @Override
+    public String toString() {
+        return SimpleJSON.toJSONString(this);
     }
 
 }

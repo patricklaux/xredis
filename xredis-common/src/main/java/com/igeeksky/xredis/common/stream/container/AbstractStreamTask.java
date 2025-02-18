@@ -1,14 +1,14 @@
-package com.igeeksky.xredis.stream.container;
+package com.igeeksky.xredis.common.stream.container;
 
 import com.igeeksky.xredis.common.flow.RetrySink;
-import io.lettuce.core.RedisFuture;
-import io.lettuce.core.StreamMessage;
+import com.igeeksky.xredis.common.stream.XStreamMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -43,7 +43,7 @@ public abstract class AbstractStreamTask<K, V> implements StreamTask<K, V> {
             Iterator<? extends StreamInfo<K, V>> iterator = streams.iterator();
             while (iterator.hasNext()) {
                 StreamInfo<K, V> info = iterator.next();
-                RetrySink<StreamMessage<K, V>> sink = info.sink();
+                RetrySink<XStreamMessage<K, V>> sink = info.sink();
                 if (sink.isCancelled()) {
                     iterator.remove();
                     continue;
@@ -89,7 +89,7 @@ public abstract class AbstractStreamTask<K, V> implements StreamTask<K, V> {
      * @param future 拉取数据结果
      * @param info   流相关信息
      */
-    protected void dispatch(StreamInfo<K, V> info, RedisFuture<List<StreamMessage<K, V>>> future) {
+    protected void dispatch(StreamInfo<K, V> info, CompletableFuture<List<XStreamMessage<K, V>>> future) {
         future.toCompletableFuture()
                 .thenAccept(messages -> sendToSink(info, messages))
                 .exceptionally(t -> {

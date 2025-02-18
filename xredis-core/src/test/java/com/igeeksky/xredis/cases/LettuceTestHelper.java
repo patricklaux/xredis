@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.cases;
 
 
-import com.igeeksky.xredis.LettuceClusterFactory;
+import com.igeeksky.xredis.cluster.LettuceClusterFactory;
 import com.igeeksky.xredis.LettuceSentinelFactory;
 import com.igeeksky.xredis.LettuceStandaloneFactory;
 import com.igeeksky.xredis.config.LettuceClusterConfig;
@@ -45,9 +45,6 @@ public class LettuceTestHelper {
      */
     public static LettuceStandaloneFactory createStandaloneFactory() {
         LettuceStandalone standalone = new LettuceStandalone();
-
-        standalone.setNode("39.108.108.43:6379");
-        standalone.setPassword("dfdssdewtynbg4357sd1256j");
 
         // standalone.setNode("192.168.50.157:6379");
         // standalone.setNodes(List.of("192.168.50.157:6378"));

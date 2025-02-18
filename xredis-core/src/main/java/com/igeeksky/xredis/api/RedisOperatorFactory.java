@@ -1,8 +1,8 @@
 package com.igeeksky.xredis.api;
 
-import com.igeeksky.xredis.stream.XReadOptions;
-import com.igeeksky.xredis.stream.container.StreamContainer;
-import com.igeeksky.xredis.stream.container.StreamGenericContainer;
+import com.igeeksky.xredis.common.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.container.StreamContainer;
+import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
 import io.lettuce.core.codec.RedisCodec;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,36 +25,6 @@ public interface RedisOperatorFactory {
      * @return {@link Pipeline} – Redis 客户端
      */
     <K, V> Pipeline<K, V> pipeline(RedisCodec<K, V> codec);
-
-    /**
-     * 创建新的 Redis 同步操作客户端
-     *
-     * @param <K>   键类型
-     * @param <V>   值类型
-     * @param codec RedisCodec
-     * @return {@link RedisSyncOperator} – Redis 同步操作客户端
-     */
-    <K, V> RedisSyncOperator<K, V> redisSyncOperator(RedisCodec<K, V> codec);
-
-    /**
-     * 创建新的 Redis 异步操作客户端
-     *
-     * @param <K>   键类型
-     * @param <V>   值类型
-     * @param codec RedisCodec
-     * @return {@link RedisAsyncOperator} – Redis 异步操作客户端
-     */
-    <K, V> RedisAsyncOperator<K, V> redisAsyncOperator(RedisCodec<K, V> codec);
-
-    /**
-     * 创建新的 Redis 响应式操作客户端
-     *
-     * @param <K>   键类型
-     * @param <V>   值类型
-     * @param codec RedisCodec
-     * @return {@link RedisReactiveOperator} – Redis 响应式操作客户端
-     */
-    <K, V> RedisReactiveOperator<K, V> redisReactiveOperator(RedisCodec<K, V> codec);
 
     /**
      * 创建新的 Redis 客户端

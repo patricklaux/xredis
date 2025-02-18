@@ -1,16 +1,16 @@
 package com.igeeksky.xredis;
 
-import com.igeeksky.xredis.api.Pipeline;
 import com.igeeksky.xredis.api.RedisSyncOperator;
+import com.igeeksky.xredis.cases.LettuceTestHelper;
 import com.igeeksky.xtool.core.lang.LongValue;
-import io.lettuce.core.*;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.StreamMessage;
+import io.lettuce.core.TransactionResult;
+import io.lettuce.core.XReadArgs;
 import io.lettuce.core.XReadArgs.StreamOffset;
 import io.lettuce.core.api.StatefulConnection;
 import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
-import io.lettuce.core.resource.ClientResources;
-import io.lettuce.core.resource.DefaultClientResources;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,33 +32,22 @@ import java.util.concurrent.locks.LockSupport;
 @SuppressWarnings("unchecked")
 class LettuceOperatorTest {
 
-    private static RedisClient redisClient;
-    private static ClientResources resources;
+    private static LettuceStandaloneFactory factory;
     private static LettuceOperator<String, String> redisOperator;
+    private static LettucePipeline<String, String> pipeline;
 
     @BeforeAll
     static void beforeAll() {
-        RedisURI uri = RedisURI.builder().withHost("127.0.0.1").withPort(6380).build();
-        resources = DefaultClientResources.create();
-        redisClient = RedisClient.create(resources);
-        redisClient.setOptions(ClientOptions.create());
-
-        RedisCodec<String, String> codec = StringCodec.UTF8;
-        StatefulRedisConnection<String, String> connection = redisClient.connect(codec, uri);
-        StatefulRedisConnection<String, String> batchConnection = redisClient.connect(codec, uri);
-        connection.setAutoFlushCommands(true);
-        batchConnection.setAutoFlushCommands(false);
-
-        redisOperator = new LettuceOperator<>(connection, batchConnection, codec);
+        factory = LettuceTestHelper.createStandaloneFactory();
+        pipeline = factory.pipeline(StringCodec.UTF8);
+        redisOperator = factory.redisOperator(StringCodec.UTF8);
     }
 
     @AfterAll
     static void afterAll() {
-        redisOperator.closeAsync()
-                .thenAccept(v -> {
-                    redisClient.shutdown();
-                    resources.shutdown();
-                });
+        pipeline.closeAsync();
+        redisOperator.closeAsync();
+        factory.shutdownAsync();
     }
 
     @Test
@@ -66,20 +55,16 @@ class LettuceOperatorTest {
         StatefulConnection<String, String> connection = redisOperator.sync().getConnection();
         StatefulConnection<String, String> connection1 = redisOperator.async().getConnection();
         StatefulConnection<String, String> connection2 = redisOperator.reactive().getConnection();
-        StatefulConnection<String, String> connection3 = redisOperator.pipeline().getConnection();
 
         StatefulRedisConnection<String, String> statefulConnection = redisOperator.sync().getStatefulConnection();
         StatefulRedisConnection<String, String> statefulConnection1 = redisOperator.async().getStatefulConnection();
         StatefulRedisConnection<String, String> statefulConnection2 = redisOperator.reactive().getStatefulConnection();
-        StatefulRedisConnection<String, String> statefulConnection3 = redisOperator.pipeline().getStatefulConnection();
 
         Assertions.assertSame(connection, connection1);
         Assertions.assertSame(connection, connection2);
         Assertions.assertSame(connection, statefulConnection);
         Assertions.assertSame(connection, statefulConnection1);
         Assertions.assertSame(connection, statefulConnection2);
-        Assertions.assertSame(connection3, statefulConnection3);
-        Assertions.assertNotSame(connection, connection3);
     }
 
     @Test
@@ -155,7 +140,6 @@ class LettuceOperatorTest {
 
         int size = 100000;
         List<RedisFuture<String>> futures = new ArrayList<>(size);
-        Pipeline<String, String> pipeline = redisOperator.pipeline();
         for (int i = 0; i < size; i++) {
             futures.add(pipeline.set("key" + i, "value" + i));
         }
@@ -169,7 +153,7 @@ class LettuceOperatorTest {
 
         for (int i = 0; i < size; i++) {
             if (i % 10000 == 0) {
-                System.out.println(redisOperator.async().get("key" + i).get());
+                System.out.println(redisOperator.sync().get("key" + i));
             }
         }
     }
@@ -235,8 +219,8 @@ class LettuceOperatorTest {
                 throw new RuntimeException(e);
             }
             System.out.println("stream2-add-message-start");
-            redisOperator.pipeline().xadd(stream2, "stream2-key1", "stream2-value1");
-            redisOperator.pipeline().flushCommands();
+            pipeline.xadd(stream2, "stream2-key1", "stream2-value1");
+            pipeline.flushCommands();
             System.out.println("stream2-add-message-end");
         }).start();
 
@@ -317,10 +301,10 @@ class LettuceOperatorTest {
                 () -> redisOperator.reactive().setAutoFlushCommands(true));
 
         Assertions.assertThrowsExactly(UnsupportedOperationException.class,
-                () -> redisOperator.pipeline().setAutoFlushCommands(false));
+                () -> pipeline.setAutoFlushCommands(false));
 
         Assertions.assertThrowsExactly(UnsupportedOperationException.class,
-                () -> redisOperator.pipeline().setAutoFlushCommands(true));
+                () -> pipeline.setAutoFlushCommands(true));
     }
 
 }

@@ -1,9 +1,9 @@
-package com.igeeksky.xredis.stream.container;
+package com.igeeksky.xredis.common.stream.container;
 
 import com.igeeksky.xredis.common.flow.RetrySink;
+import com.igeeksky.xredis.common.stream.XStreamMessage;
+import com.igeeksky.xredis.common.stream.XStreamOffset;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
-import io.lettuce.core.StreamMessage;
-import io.lettuce.core.XReadArgs;
 
 import java.util.List;
 
@@ -40,25 +40,25 @@ public interface StreamTask<K, V> extends Runnable {
      * @param info     流信息
      * @param messages 消息列表
      */
-    default void sendToSink(StreamInfo<K, V> info, List<StreamMessage<K, V>> messages) {
+    default void sendToSink(StreamInfo<K, V> info, List<XStreamMessage<K, V>> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
-        RetrySink<StreamMessage<K, V>> sink = info.sink();
+        RetrySink<XStreamMessage<K, V>> sink = info.sink();
         if (sink.isCancelled()) {
             return;
         }
         String id = null;
-        for (StreamMessage<K, V> message : messages) {
+        for (XStreamMessage<K, V> message : messages) {
             if (sink.next(message)) {
-                id = message.getId();
+                id = message.id();
             } else {
                 break;
             }
         }
         // 更新读偏移
         if (id != null) {
-            info.offset(XReadArgs.StreamOffset.from(info.offset().getName(), id));
+            info.offset(XStreamOffset.from(info.offset().getKey(), id));
         }
     }
 

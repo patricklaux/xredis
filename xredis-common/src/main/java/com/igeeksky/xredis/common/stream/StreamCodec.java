@@ -1,4 +1,4 @@
-package com.igeeksky.xredis.stream;
+package com.igeeksky.xredis.common.stream;
 
 import java.util.Map;
 

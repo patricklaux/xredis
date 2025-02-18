@@ -1,12 +1,13 @@
-package com.igeeksky.xredis;
+package com.igeeksky.xredis.cluster;
 
+import com.igeeksky.xredis.LettuceHelper;
+import com.igeeksky.xredis.LettuceStreamOperator;
 import com.igeeksky.xredis.api.RedisOperatorFactory;
-import com.igeeksky.xredis.cluster.*;
+import com.igeeksky.xredis.common.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.container.StreamContainer;
+import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
 import com.igeeksky.xredis.config.LettuceClusterConfig;
 import com.igeeksky.xredis.config.RedisNode;
-import com.igeeksky.xredis.stream.XReadOptions;
-import com.igeeksky.xredis.stream.container.StreamContainer;
-import com.igeeksky.xredis.stream.container.StreamGenericContainer;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.cluster.RedisClusterClient;
@@ -70,7 +71,7 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
 
     @Override
     public <K, V> LettuceClusterPipeline<K, V> pipeline(RedisCodec<K, V> codec) {
-        StatefulRedisClusterConnection<K, V> batchConnection = connect(codec, false);
+        StatefulRedisClusterConnection<K, V> batchConnection = this.connect(codec, false);
         if (jsonParser != null) {
             return new LettuceClusterPipeline<>(batchConnection, codec, jsonParser);
         }
@@ -78,49 +79,29 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
     }
 
     @Override
-    public <K, V> LettuceClusterSyncOperator<K, V> redisSyncOperator(RedisCodec<K, V> codec) {
-        return new LettuceClusterSyncOperator<>(connect(codec, true));
-    }
-
-    @Override
-    public <K, V> LettuceClusterAsyncOperator<K, V> redisAsyncOperator(RedisCodec<K, V> codec) {
-        StatefulRedisClusterConnection<K, V> connection = connect(codec, true);
-        if (jsonParser != null) {
-            return new LettuceClusterAsyncOperator<>(connection, codec, jsonParser);
-        }
-        return new LettuceClusterAsyncOperator<>(connection, codec);
-    }
-
-    @Override
-    public <K, V> LettuceClusterReactiveOperator<K, V> redisReactiveOperator(RedisCodec<K, V> codec) {
-        StatefulRedisClusterConnection<K, V> connection = connect(codec, true);
-        if (jsonParser != null) {
-            return new LettuceClusterReactiveOperator<>(connection, codec, jsonParser);
-        }
-        return new LettuceClusterReactiveOperator<>(connection, codec);
-    }
-
-    @Override
     public <K, V> LettuceClusterOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
-        StatefulRedisClusterConnection<K, V> connection = connect(codec, true);
-        StatefulRedisClusterConnection<K, V> batchConnection = connect(codec, false);
+        StatefulRedisClusterConnection<K, V> connection = this.connect(codec, true);
         if (jsonParser != null) {
-            return new LettuceClusterOperator<>(connection, batchConnection, codec, jsonParser);
+            return new LettuceClusterOperator<>(connection, codec, jsonParser);
         }
-        return new LettuceClusterOperator<>(connection, batchConnection, codec);
+        return new LettuceClusterOperator<>(connection, codec);
     }
 
     @Override
     public <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, long interval,
                                                         ScheduledExecutorService scheduler) {
-        return new StreamContainer<>(redisOperator(codec), interval, executor, scheduler);
+        LettuceClusterOperator<K, V> operator = this.redisOperator(codec);
+        LettuceStreamOperator<K, V> streamOperator = new LettuceStreamOperator<>(operator);
+        return new StreamContainer<>(streamOperator, interval, executor, scheduler);
     }
 
     @Override
     public <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, long interval,
                                                                       XReadOptions options,
                                                                       ScheduledExecutorService scheduler) {
-        return new StreamGenericContainer<>(redisOperator(codec), interval, options, executor, scheduler);
+        LettuceClusterOperator<K, V> operator = this.redisOperator(codec);
+        LettuceStreamOperator<K, V> streamOperator = new LettuceStreamOperator<>(operator);
+        return new StreamGenericContainer<>(streamOperator, interval, options, executor, scheduler);
     }
 
     @Override

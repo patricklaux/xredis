@@ -7,6 +7,8 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Pipeline 实现类（非集群）
  *
@@ -53,6 +55,11 @@ public class LettucePipeline<K, V> extends RedisAsyncCommandsImpl<K, V> implemen
                 "Pipeline doesn't support change auto flush mode, it must be false." +
                         "If you want to flush commands immediately, please use redis-*-operator."
         );
+    }
+
+    @Override
+    public CompletableFuture<Void> closeAsync() {
+        return connection.closeAsync();
     }
 
 }

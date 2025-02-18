@@ -396,7 +396,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             List<byte[]> fields = entry.getValue();
             if (CollectionUtils.isNotEmpty(fields)) {
                 totalSize += fields.size();
-                futures.add(this.hmget(key, fields.toArray(new byte[0][])));
+                futures.add(this.hmget(key, fields.toArray(new byte[fields.size()][])));
             }
         }
         return combineKeyValues(CompletableFuture.completedFuture(new ArrayList<>(totalSize)), futures);
@@ -422,7 +422,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         for (Map.Entry<byte[], List<byte[]>> entry : keyFields.entrySet()) {
             List<byte[]> fields = entry.getValue();
             if (CollectionUtils.isNotEmpty(fields)) {
-                futures.add(this.hdel(entry.getKey(), fields.toArray(new byte[0][])));
+                futures.add(this.hdel(entry.getKey(), fields.toArray(new byte[fields.size()][])));
             }
         }
         return combineLongFutures(CompletableFuture.completedFuture(0L), futures);
@@ -486,14 +486,17 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public <T> CompletableFuture<T> evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
-        ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
-        RedisFuture<T> future;
-        if (ArrayUtils.isEmpty(args)) {
-            future = this.redisOperator.async().evalshaReadOnly(script.getSha1(), scriptOutputType, keys);
-        } else {
-            future = this.redisOperator.async().evalshaReadOnly(script.getSha1(), scriptOutputType, keys, args);
-        }
-        return future.toCompletableFuture()
+        return CompletableFuture.completedFuture(script)
+                .thenCompose(sc -> {
+                    ScriptOutputType type = getScriptOutputType(sc.getResultType());
+                    RedisFuture<T> future;
+                    if (ArrayUtils.isEmpty(args)) {
+                        future = this.redisOperator.async().evalshaReadOnly(sc.getSha1(), type, keys);
+                    } else {
+                        future = this.redisOperator.async().evalshaReadOnly(sc.getSha1(), type, keys, args);
+                    }
+                    return future;
+                })
                 .exceptionallyCompose(e -> {
                     if (e instanceof RedisNoScriptException) {
                         return this.scriptLoad(script)
@@ -505,17 +508,18 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<String> scriptLoad(RedisScript script) {
-        return this.redisOperator.async()
-                .scriptLoad(script.getScript())
-                .toCompletableFuture()
-                .thenApply(sha1 -> {
-                    if (sha1 != null) {
-                        script.setSha1(sha1);
-                    } else {
-                        throw new RedisOperationException("Failed to load script: " + script.getScript());
-                    }
-                    return sha1;
-                });
+        return CompletableFuture.completedFuture(script)
+                .thenCompose(sc -> this.redisOperator.async()
+                        .scriptLoad(sc.getScript())
+                        .toCompletableFuture()
+                        .thenApply(sha1 -> {
+                            if (sha1 != null) {
+                                sc.setSha1(sha1);
+                            } else {
+                                throw new RedisOperationException("Failed to load script: " + sc);
+                            }
+                            return sha1;
+                        }));
     }
 
     @Override

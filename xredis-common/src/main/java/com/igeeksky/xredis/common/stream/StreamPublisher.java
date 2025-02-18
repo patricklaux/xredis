@@ -1,10 +1,7 @@
-package com.igeeksky.xredis.stream;
+package com.igeeksky.xredis.common.stream;
 
 
-import com.igeeksky.xredis.LettuceConvertor;
-import com.igeeksky.xredis.api.RedisAsyncOperator;
 import com.igeeksky.xredis.common.RedisOperationException;
-import io.lettuce.core.XAddArgs;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -21,23 +18,24 @@ import java.util.concurrent.CompletableFuture;
 public class StreamPublisher<K, V, T> {
 
     private final K stream;
-    private final XAddArgs args;
+    private final XAddOptions options;
     private final StreamCodec<K, V, T> codec;
-    private final RedisAsyncOperator<K, V> async;
+    private final StreamOperator<K, V> operator;
 
     /**
      * 构造器
      *
-     * @param stream  流名称
-     * @param options 流消息添加选项
-     * @param codec   流消息编解码器
-     * @param async   Redis 管道（批量命令提交）
+     * @param stream   流名称
+     * @param options  流消息添加选项
+     * @param codec    流消息编解码器
+     * @param operator Redis 管道（批量命令提交）
      */
-    public StreamPublisher(K stream, XAddOptions options, StreamCodec<K, V, T> codec, RedisAsyncOperator<K, V> async) {
+    public StreamPublisher(K stream, XAddOptions options, StreamCodec<K, V, T> codec,
+                           StreamOperator<K, V> operator) {
         this.codec = codec;
-        this.async = async;
+        this.operator = operator;
         this.stream = stream;
-        this.args = LettuceConvertor.toAddArgs(options);
+        this.options = options;
     }
 
     /**
@@ -47,17 +45,17 @@ public class StreamPublisher<K, V, T> {
      * @return 消息ID
      */
     public CompletableFuture<String> publish(T message) {
-        return this.publish(message, this.args);
+        return this.publish(message, this.options);
     }
 
     /**
      * 发布消息（使用传入的 XAddArgs）
      *
-     * @param message 消息
-     * @param args    添加选项
+     * @param message 流消息
+     * @param options 流消息添加选项
      * @return 消息ID
      */
-    public CompletableFuture<String> publish(T message, XAddArgs args) {
+    public CompletableFuture<String> publish(T message, XAddOptions options) {
         if (message == null) {
             return CompletableFuture.failedFuture(new RedisOperationException("message must not be null."));
         }
@@ -65,10 +63,10 @@ public class StreamPublisher<K, V, T> {
         if (body == null) {
             return CompletableFuture.failedFuture(new RedisOperationException("message convert to body failed."));
         }
-        if (args == null) {
-            return async.xadd(stream, body).toCompletableFuture();
+        if (options == null) {
+            return operator.xadd(stream, body).toCompletableFuture();
         }
-        return async.xadd(stream, args, body).toCompletableFuture();
+        return operator.xadd(stream, options, body).toCompletableFuture();
     }
 
 }

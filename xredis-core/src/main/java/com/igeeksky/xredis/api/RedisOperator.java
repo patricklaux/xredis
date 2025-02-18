@@ -1,6 +1,6 @@
 package com.igeeksky.xredis.api;
 
-import io.lettuce.core.api.AsyncCloseable;
+import com.igeeksky.xredis.common.AsyncCloseable;
 
 /**
  * Redis 操作入口
@@ -36,12 +36,5 @@ public interface RedisOperator<K, V> extends RedisMode, AsyncCloseable {
      * @return RedisReactiveOperator
      */
     RedisReactiveOperator<K, V> reactive();
-
-    /**
-     * 批量操作
-     *
-     * @return Pipeline
-     */
-    Pipeline<K, V> pipeline();
 
 }

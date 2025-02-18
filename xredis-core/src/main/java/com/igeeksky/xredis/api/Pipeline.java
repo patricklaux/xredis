@@ -1,5 +1,7 @@
 package com.igeeksky.xredis.api;
 
+import com.igeeksky.xredis.common.AsyncCloseable;
+
 /**
  * Redis 管道接口
  * <p>
@@ -19,7 +21,7 @@ package com.igeeksky.xredis.api;
  * @see <a href="https://redis.github.io/lettuce/advanced-usage/#pipelining-and-command-flushing">pipelining-and-command-flushing</a>
  * @since 1.0.0
  */
-public interface Pipeline<K, V> extends RedisAsyncCommands<K, V> {
+public interface Pipeline<K, V> extends RedisAsyncCommands<K, V>, AsyncCloseable {
 
     /**
      * 提交当前连接的所有命令

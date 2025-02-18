@@ -1,19 +1,16 @@
-package com.igeeksky.xredis.stream.container;
+package com.igeeksky.xredis.common.stream.container;
 
-import com.igeeksky.xredis.api.Pipeline;
-import com.igeeksky.xredis.api.RedisOperator;
 import com.igeeksky.xredis.common.flow.RetrySink;
-import com.igeeksky.xredis.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.StreamOperator;
+import com.igeeksky.xredis.common.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.XStreamMessage;
+import com.igeeksky.xredis.common.stream.XStreamOffset;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
 import com.igeeksky.xtool.core.collection.Maps;
 import com.igeeksky.xtool.core.lang.ArrayUtils;
 import com.igeeksky.xtool.core.tuple.Tuple1;
 import com.igeeksky.xtool.core.tuple.Tuple2;
 import com.igeeksky.xtool.core.tuple.Tuples;
-import io.lettuce.core.RedisFuture;
-import io.lettuce.core.StreamMessage;
-import io.lettuce.core.XReadArgs;
-import io.lettuce.core.XReadArgs.StreamOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,11 +38,9 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
 
     private static final Logger log = LoggerFactory.getLogger(StreamGenericTask.class);
 
-    private final boolean block;
+    private final XReadOptions options;
 
-    private final XReadArgs readArgs;
-
-    private final RedisOperator<K, V> operator;
+    private final StreamOperator<K, V> operator;
 
     private final ConcurrentHashMap<Tuple1<K>, StreamInfo<K, V>> streams = new ConcurrentHashMap<>();
 
@@ -54,10 +50,9 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
      * @param operator RedisOperator
      * @param options  流读取选项
      */
-    public StreamGenericTask(RedisOperator<K, V> operator, XReadOptions options) {
+    public StreamGenericTask(StreamOperator<K, V> operator, XReadOptions options) {
+        this.options = options;
         this.operator = operator;
-        this.readArgs = options.to();
-        this.block = options.block() >= 0;
     }
 
     @Override
@@ -67,7 +62,7 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
             while (iterator.hasNext()) {
                 StreamInfo<K, V> info = iterator.next().getValue();
 
-                RetrySink<StreamMessage<K, V>> sink = info.sink();
+                RetrySink<XStreamMessage<K, V>> sink = info.sink();
                 if (sink.isCancelled()) {
                     iterator.remove();
                     continue;
@@ -82,10 +77,10 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
 
     @Override
     public void add(StreamInfo<K, V> info) {
-        Tuple1<K> key = Tuples.of(info.offset().getName());
+        Tuple1<K> key = Tuples.of(info.offset().getKey());
         StreamInfo<K, V> current = streams.compute(key, (k, old) -> {
             if (old != null) {
-                RetrySink<StreamMessage<K, V>> sink = old.sink();
+                RetrySink<XStreamMessage<K, V>> sink = old.sink();
                 if (!sink.isCancelled()) {
                     return old;
                 }
@@ -103,35 +98,31 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
             return;
         }
         try {
-            Tuple2<StreamOffset<K>[], List<RetrySink<StreamMessage<K, V>>>> tuple2 = getStreamOffsets();
-            StreamOffset<K>[] offsets = tuple2.getT1();
-            List<RetrySink<StreamMessage<K, V>>> sinks = tuple2.getT2();
+            Tuple2<XStreamOffset<K>[], List<RetrySink<XStreamMessage<K, V>>>> tuple2 = getStreamOffsets();
+            XStreamOffset<K>[] offsets = tuple2.getT1();
+            List<RetrySink<XStreamMessage<K, V>>> sinks = tuple2.getT2();
             // 无可用流
             if (ArrayUtils.isEmpty(offsets)) {
                 return;
             }
             // 拉取消息 & 分发消息
-            if (block) {
-                dispatch(sinks, this.xreadBlock(offsets));
-            } else {
-                dispatch(sinks, this.xread(offsets));
-            }
+            dispatch(sinks, this.xread(offsets));
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
         }
     }
 
-    private void dispatch(List<RetrySink<StreamMessage<K, V>>> sinks, RedisFuture<List<StreamMessage<K, V>>> future) {
+    private void dispatch(List<RetrySink<XStreamMessage<K, V>>> sinks, CompletableFuture<List<XStreamMessage<K, V>>> future) {
         future.toCompletableFuture()
                 .thenApply(messages -> {
                     // 根据流名称将消息归并
-                    Map<Tuple1<K>, List<StreamMessage<K, V>>> map = Maps.newHashMap(streams.size());
+                    Map<Tuple1<K>, List<XStreamMessage<K, V>>> map = Maps.newHashMap(streams.size());
                     if (CollectionUtils.isNotEmpty(messages)) {
-                        for (StreamMessage<K, V> message : messages) {
+                        for (XStreamMessage<K, V> message : messages) {
                             if (message == null) {
                                 continue;
                             }
-                            map.computeIfAbsent(Tuples.of(message.getStream()), k -> new ArrayList<>()).add(message);
+                            map.computeIfAbsent(Tuples.of(message.stream()), k -> new ArrayList<>()).add(message);
                         }
                     }
                     return map;
@@ -150,13 +141,13 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
      * @param key      流名称
      * @param messages 消息列表
      */
-    private void sendToSink(Tuple1<K> key, List<StreamMessage<K, V>> messages) {
+    private void sendToSink(Tuple1<K> key, List<XStreamMessage<K, V>> messages) {
         try {
             StreamInfo<K, V> info = streams.get(key);
             if (info == null) {
                 return;
             }
-            RetrySink<StreamMessage<K, V>> sink = info.sink();
+            RetrySink<XStreamMessage<K, V>> sink = info.sink();
             if (sink.isCancelled()) {
                 streams.remove(key);
                 return;
@@ -173,15 +164,14 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
      * @return {@code Tuple2<StreamOffset<K>[], List<RetrySink<StreamMessage<K, V>>>>}
      * key: 流信息 value: 消费者
      */
-    @SuppressWarnings("unchecked")
-    private Tuple2<StreamOffset<K>[], List<RetrySink<StreamMessage<K, V>>>> getStreamOffsets() {
-        List<StreamOffset<K>> offsets = new ArrayList<>(streams.size());
-        List<RetrySink<StreamMessage<K, V>>> sinks = new ArrayList<>(streams.size());
+    private Tuple2<XStreamOffset<K>[], List<RetrySink<XStreamMessage<K, V>>>> getStreamOffsets() {
+        List<XStreamOffset<K>> offsets = new ArrayList<>(streams.size());
+        List<RetrySink<XStreamMessage<K, V>>> sinks = new ArrayList<>(streams.size());
 
         Iterator<Map.Entry<Tuple1<K>, StreamInfo<K, V>>> iterator = streams.entrySet().iterator();
         while (iterator.hasNext()) {
             StreamInfo<K, V> info = iterator.next().getValue();
-            RetrySink<StreamMessage<K, V>> sink = info.sink();
+            RetrySink<XStreamMessage<K, V>> sink = info.sink();
             if (sink.isCancelled()) {
                 iterator.remove();
                 continue;
@@ -193,18 +183,13 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
             offsets.add(info.offset());
         }
 
-        return Tuples.of(offsets.toArray(new StreamOffset[0]), sinks);
+        @SuppressWarnings("unchecked")
+        XStreamOffset<K>[] offsetsArray = offsets.toArray(new XStreamOffset[0]);
+        return Tuples.of(offsetsArray, sinks);
     }
 
-    private RedisFuture<List<StreamMessage<K, V>>> xread(StreamOffset<K>[] offsets) {
-        Pipeline<K, V> pipeline = this.operator.pipeline();
-        RedisFuture<List<StreamMessage<K, V>>> future = pipeline.xread(readArgs, offsets);
-        pipeline.flushCommands();
-        return future;
-    }
-
-    private RedisFuture<List<StreamMessage<K, V>>> xreadBlock(StreamOffset<K>[] offsets) {
-        return this.operator.async().xread(readArgs, offsets);
+    private CompletableFuture<List<XStreamMessage<K, V>>> xread(XStreamOffset<K>[] offsets) {
+        return operator.xread(options, offsets);
     }
 
 }

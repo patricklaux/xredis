@@ -1,24 +1,16 @@
-package com.igeeksky.xredis.stream.container;
+package com.igeeksky.xredis.common.stream.container;
 
-import com.igeeksky.xredis.api.Pipeline;
-import com.igeeksky.xredis.api.RedisOperator;
-import com.igeeksky.xredis.common.TimeConvertor;
+import com.igeeksky.xredis.common.AsyncCloseable;
 import com.igeeksky.xredis.common.flow.Disposable;
 import com.igeeksky.xredis.common.flow.Flow;
 import com.igeeksky.xredis.common.flow.RetryFlow;
 import com.igeeksky.xredis.common.flow.RetrySink;
-import com.igeeksky.xredis.stream.StreamCodec;
-import com.igeeksky.xredis.stream.StreamPublisher;
-import com.igeeksky.xredis.stream.XAddOptions;
-import com.igeeksky.xredis.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.StreamOperator;
+import com.igeeksky.xredis.common.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.XStreamMessage;
+import com.igeeksky.xredis.common.stream.XStreamOffset;
 import com.igeeksky.xtool.core.lang.Assert;
-import io.lettuce.core.RedisFuture;
-import io.lettuce.core.StreamMessage;
-import io.lettuce.core.XReadArgs;
-import io.lettuce.core.XReadArgs.StreamOffset;
-import io.lettuce.core.api.AsyncCloseable;
 
-import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -37,8 +29,8 @@ public class StreamGenericContainer<K, V> implements AsyncCloseable {
 
     private final int count;
     private final long interval;
-    private final XReadArgs args;
-    private final RedisOperator<K, V> operator;
+    private final XReadOptions options;
+    private final StreamOperator<K, V> operator;
 
     private final ExecutorService executor;
     private final ScheduledExecutorService scheduler;
@@ -56,15 +48,18 @@ public class StreamGenericContainer<K, V> implements AsyncCloseable {
      * @param executor  虚拟线程执行器
      * @param scheduler 定时任务调度器
      */
-    public StreamGenericContainer(RedisOperator<K, V> operator, long interval, XReadOptions options,
+    public StreamGenericContainer(StreamOperator<K, V> operator, long interval, XReadOptions options,
                                   ExecutorService executor, ScheduledExecutorService scheduler) {
         Assert.notNull(operator, "operator must not be null");
         Assert.notNull(executor, "executor must not be null");
         Assert.notNull(scheduler, "scheduler must not be null");
         Assert.notNull(options, "options must not be null");
         Assert.isTrue(interval > 0, "interval must be greater than 0");
-        this.args = options.to();
-        this.count = options.count();
+        Long count = options.getCount();
+        Assert.isTrue(count > 0, "count must be greater than 0");
+        Assert.isTrue(count <= 536870912, "count must be greater than 0");
+        this.options = options;
+        this.count = count.intValue();
         this.interval = interval;
         this.operator = operator;
         this.executor = executor;
@@ -84,32 +79,6 @@ public class StreamGenericContainer<K, V> implements AsyncCloseable {
     }
 
     /**
-     * 创建一个 StreamMessagePublisher 对象，用于发布消息到指定的流。
-     *
-     * @param stream  流的名称
-     * @param options 发布消息的选项
-     * @param codec   消息编解码器
-     * @param <T>     消息类型
-     * @return {@link StreamPublisher}
-     */
-    public <T> StreamPublisher<K, V, T> publisher(K stream, XAddOptions options, StreamCodec<K, V, T> codec) {
-        return new StreamPublisher<>(stream, options, codec, operator.async());
-    }
-
-    /**
-     * 获取 Redis 服务器的当前时间戳，单位为毫秒。
-     *
-     * @param convertor 时间戳转换器
-     * @return 服务器的当前时间戳
-     */
-    public CompletableFuture<Long> serverTimeMillis(TimeConvertor<V> convertor) {
-        Pipeline<K, V> pipeline = this.operator.pipeline();
-        RedisFuture<List<V>> time = pipeline.time();
-        pipeline.flushCommands();
-        return time.toCompletableFuture().thenApply(convertor::milliseconds);
-    }
-
-    /**
      * 订阅流（非 group）
      * <p>
      * 注意：<br>
@@ -120,10 +89,10 @@ public class StreamGenericContainer<K, V> implements AsyncCloseable {
      * @param offset 偏移量
      * @return {@link Flow} 数据流
      */
-    public Flow<StreamMessage<K, V>> subscribe(StreamOffset<K> offset) {
+    public Flow<XStreamMessage<K, V>> subscribe(XStreamOffset<K> offset) {
         Assert.notNull(offset, "offset must not be null");
-        RetrySink<StreamMessage<K, V>> sink = new RetrySink<>(executor, count);
-        this.genericTask.add(new StreamInfo<>(args, offset, sink));
+        RetrySink<XStreamMessage<K, V>> sink = new RetrySink<>(executor, count);
+        this.genericTask.add(new StreamInfo<>(options, offset, sink));
         return new RetryFlow<>(sink);
     }
 

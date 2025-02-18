@@ -1,6 +1,6 @@
 package com.igeeksky.xredis.autoconfigure;
 
-import com.igeeksky.xredis.LettuceClusterFactory;
+import com.igeeksky.xredis.cluster.LettuceClusterFactory;
 import com.igeeksky.xredis.LettuceSentinelFactory;
 import com.igeeksky.xredis.LettuceStandaloneFactory;
 import com.igeeksky.xredis.api.RedisOperator;

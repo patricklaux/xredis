@@ -7,6 +7,8 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * 管道接口实现（集群模式）
  *
@@ -58,6 +60,11 @@ public class LettuceClusterPipeline<K, V> extends RedisAdvancedClusterAsyncComma
     @Override
     public boolean isCluster() {
         return true;
+    }
+
+    @Override
+    public CompletableFuture<Void> closeAsync() {
+        return connection.closeAsync();
     }
 
 }
