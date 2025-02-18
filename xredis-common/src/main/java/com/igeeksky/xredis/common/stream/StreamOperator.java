@@ -9,29 +9,148 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Stream 操作接口
  *
+ * @param <K> 键类型
+ * @param <V> 值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
 public interface StreamOperator<K, V> extends AsyncCloseable {
 
+    /**
+     * 确认消息
+     *
+     * @param key        流名称
+     * @param group      消费组名称
+     * @param messageIds 消息 ID 列表
+     * @return {@code CompletableFuture<Long>} – 确认数量
+     */
     CompletableFuture<Long> xack(K key, K group, String... messageIds);
 
+    /**
+     * 发布消息
+     *
+     * @param key  流名称
+     * @param body 消息体
+     * @return {@code CompletableFuture<String>} – 消息 ID
+     */
     CompletableFuture<String> xadd(K key, Map<K, V> body);
 
+    /**
+     * 发布消息
+     *
+     * @param key     流名称
+     * @param options 消息发布选项
+     * @param body    消息体
+     * @return {@code CompletableFuture<String>} – 消息 ID
+     */
     CompletableFuture<String> xadd(K key, XAddOptions options, Map<K, V> body);
 
-    CompletableFuture<List<XStreamMessage<K, V>>> xclaim(K key, XGroupConsumer<K> consumer, long minIdleTime, String... messageIds);
+    /**
+     * 认领消息
+     *
+     * @param key           流名称
+     * @param groupConsumer 消费组信息
+     * @param minIdleTime   最小空闲时间
+     * @param messageIds    消息 ID 列表
+     * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
+     */
+    CompletableFuture<List<XStreamMessage<K, V>>> xclaim(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds);
 
+    /**
+     * 删除消息
+     *
+     * @param key        流名称
+     * @param messageIds 消息 ID 列表
+     * @return {@code CompletableFuture<Long>} – 删除数量
+     */
     CompletableFuture<Long> xdel(K key, String... messageIds);
 
+    /**
+     * 创建消费组
+     *
+     * @param streamOffset 流偏移量
+     * @param group        消费组名称
+     * @return {@code CompletableFuture<String>} – "OK"：创建成功
+     */
     CompletableFuture<String> xgroupCreate(XStreamOffset<K> streamOffset, K group);
 
+    /**
+     * 创建消费组
+     *
+     * @param streamOffset 流偏移量
+     * @param group        消费组名称
+     * @param options      消费组创建选项
+     * @return {@code CompletableFuture<String>} – "OK"：创建成功
+     */
+    CompletableFuture<String> xgroupCreate(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options);
+
+    /**
+     * 创建消费者
+     * <p>
+     * 命令格式：{@code XGROUP CREATECONSUMER mystream mygroup myname}
+     *
+     * @param key           流名称
+     * @param groupConsumer 消费组信息
+     * @return {@code CompletableFuture<Boolean>} – true：创建成功
+     * @see <a href="https://redis.io/docs/latest/commands/xgroup-createconsumer/">XGROUP CREATECONSUMER</a>
+     */
+    CompletableFuture<Boolean> xgroupCreateconsumer(K key, XGroupConsumer<K> groupConsumer);
+
+    /**
+     * 删除消费者
+     * <p>
+     * 命令格式：{@code XGROUP DELCONSUMER mystream mygroup myname}
+     *
+     * @param key           流名称
+     * @param groupConsumer 消费组信息
+     * @return {@code CompletableFuture<Long>} – 截至删除之前，该消费者已读但未确认的消息数量
+     * @see <a href="https://redis.io/docs/latest/commands/xgroup-delconsumer/">XGROUP DELCONSUMER</a>
+     */
+    CompletableFuture<Long> xgroupDelconsumer(K key, XGroupConsumer<K> groupConsumer);
+
+    /**
+     * 删除消费组
+     *
+     * @param key   流名称
+     * @param group 消费组名称
+     * @return {@code CompletableFuture<Boolean>} – true：删除成功
+     */
+    CompletableFuture<Boolean> xgroupDestroy(K key, K group);
+
+    /**
+     * 读取消息
+     *
+     * @param streams 流名称及其偏移量
+     * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
+     */
     CompletableFuture<List<XStreamMessage<K, V>>> xread(XStreamOffset<K>... streams);
 
+    /**
+     * 读取消息
+     *
+     * @param options 消息读取选项
+     * @param streams 流名称及其偏移量
+     * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
+     */
     CompletableFuture<List<XStreamMessage<K, V>>> xread(XReadOptions options, XStreamOffset<K>... streams);
 
+    /**
+     * 读取消息（消费组）
+     *
+     * @param groupConsumer 消费组信息
+     * @param streams       流名称及其偏移量
+     * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
+     */
     CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams);
 
+    /**
+     * 读取消息（消费组）
+     *
+     * @param groupConsumer 消费组信息
+     * @param options       消息读取选项
+     * @param streams       流名称及其偏移量
+     * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
+     */
     CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams);
 
 }

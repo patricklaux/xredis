@@ -3,10 +3,7 @@ package com.igeeksky.xredis;
 import com.igeeksky.xredis.common.stream.*;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
-import io.lettuce.core.Consumer;
-import io.lettuce.core.StreamMessage;
-import io.lettuce.core.XAddArgs;
-import io.lettuce.core.XReadArgs;
+import io.lettuce.core.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,8 +24,9 @@ public abstract class LettuceConvertor {
     }
 
     /**
-     * {@link XReadOptions} 转换为 Lettuce {@link XReadArgs} 对象
+     * {@link XReadOptions} 转换为 Lettuce {@link XReadArgs}
      *
+     * @param <K>      键类型
      * @param consumer 消费者组名及消费者名称
      * @return Lettuce {@link XReadArgs} 对象
      */
@@ -37,7 +35,7 @@ public abstract class LettuceConvertor {
     }
 
     /**
-     * {@link XReadOptions} 转换为 Lettuce {@link XReadArgs} 对象
+     * {@link XReadOptions} 转换为 Lettuce {@link XReadArgs}
      *
      * @param options 流消息读取选项
      * @return Lettuce {@link XReadArgs} 对象
@@ -60,7 +58,7 @@ public abstract class LettuceConvertor {
     }
 
     /**
-     * {@link XAddOptions} 转换为 Lettuce {@link XAddArgs} 对象
+     * {@link XAddOptions} 转换为 Lettuce {@link XAddArgs}
      *
      * @param options 流消息发布选项
      * @return Lettuce {@link XAddArgs} 对象
@@ -91,8 +89,10 @@ public abstract class LettuceConvertor {
     }
 
     /**
-     * Lettuce {@link io.lettuce.core.KeyValue} 转换为 {@link KeyValue} 对象
+     * Lettuce {@link io.lettuce.core.KeyValue} 转换为 {@link KeyValue}
      *
+     * @param <K>       键类型
+     * @param <V>       值类型
      * @param keyValues Lettuce {@link io.lettuce.core.KeyValue} 对象列表
      * @return {@link KeyValue} 对象列表
      */
@@ -109,6 +109,13 @@ public abstract class LettuceConvertor {
         return results;
     }
 
+    /**
+     * {@link XStreamOffset} 转换为 Lettuce {@link XReadArgs.StreamOffset}
+     *
+     * @param <K>     键类型
+     * @param offsets Lettuce {@link XReadArgs.StreamOffset} 对象列表
+     * @return {@link XStreamOffset} 对象列表
+     */
     public static <K> XReadArgs.StreamOffset<K>[] toXStreamOffsets(XStreamOffset<K>[] offsets) {
         if (offsets == null || offsets.length == 0) {
             return null;
@@ -121,10 +128,25 @@ public abstract class LettuceConvertor {
         return result;
     }
 
+    /**
+     * {@link XStreamOffset} 转换为 Lettuce {@link XReadArgs.StreamOffset}
+     *
+     * @param <K>    键类型
+     * @param offset Lettuce {@link XReadArgs.StreamOffset} 对象
+     * @return {@link XStreamOffset} 对象
+     */
     public static <K> XReadArgs.StreamOffset<K> toXStreamOffset(XStreamOffset<K> offset) {
         return XReadArgs.StreamOffset.from(offset.getKey(), offset.getOffset());
     }
 
+    /**
+     * Lettuce {@link StreamMessage} 转换为 {@link XStreamMessage}
+     *
+     * @param <K>      键类型
+     * @param <V>      值类型
+     * @param messages Lettuce {@link StreamMessage} 对象列表
+     * @return {@link XStreamMessage} 对象列表
+     */
     public static <K, V> List<XStreamMessage<K, V>> fromStreamMessages(List<StreamMessage<K, V>> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return Collections.emptyList();
@@ -136,6 +158,24 @@ public abstract class LettuceConvertor {
             }
         }
         return list;
+    }
+
+    /**
+     * {@link XGroupCreateOptions} 转换为 Lettuce {@link XGroupCreateArgs}
+     *
+     * @param options 流消息组创建选项
+     * @return Lettuce {@link XGroupCreateArgs} 对象
+     */
+    public static XGroupCreateArgs toXGroupCreateOptions(XGroupCreateOptions options) {
+        if (options == null || !options.valid()) {
+            return null;
+        }
+        XGroupCreateArgs args = new XGroupCreateArgs();
+        args.mkstream(options.isMkstream());
+        if (options.getEntriesRead() != null) {
+            args.entriesRead(options.getEntriesRead());
+        }
+        return args;
     }
 
 }

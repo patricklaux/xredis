@@ -5,6 +5,7 @@ import com.igeeksky.xtool.core.lang.Assert;
 /**
  * 流读偏移
  *
+ * @param <K> 键类型
  * @author Patrick.Lau
  * @see <a href="https://redis.io/commands/xread">XREAD</a>
  * @see <a href="https://redis.io/docs/latest/commands/xreadgroup/">XREADGROUP</a>
@@ -65,6 +66,7 @@ public class XStreamOffset<K> {
     /**
      * 指定读取偏移量
      *
+     * @param <K>    键类型
      * @param key    流名称
      * @param offset 偏移量
      * @return {@code ReadOffset}
@@ -76,6 +78,7 @@ public class XStreamOffset<K> {
     /**
      * 从第一个消息开始读取
      *
+     * @param <K> 键类型
      * @param key 流名称
      * @return {@code ReadOffset}
      */
@@ -86,6 +89,7 @@ public class XStreamOffset<K> {
     /**
      * 读取新到达的消息（适用于阻塞模式）
      *
+     * @param <K> 键类型
      * @param key 流名称
      * @return {@code ReadOffset}
      */
@@ -96,6 +100,7 @@ public class XStreamOffset<K> {
     /**
      * 读取大于最后消费位置的消息（适用于消费者组）
      *
+     * @param <K> 键类型
      * @param key 流名称
      * @return {@code ReadOffset}
      */
