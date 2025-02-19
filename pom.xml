@@ -40,7 +40,7 @@
     </developers>
 
     <properties>
-        <revision>0.9.4</revision>
+        <revision>0.9.5</revision>
         <xtool.version>1.1.1</xtool.version>
         <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.16</logback.version>
@@ -70,27 +70,27 @@
             </dependency>
             <dependency>
                 <groupId>com.igeeksky.xredis</groupId>
-                <artifactId>xredis-core</artifactId>
+                <artifactId>xredis-lettuce</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.igeeksky.xredis</groupId>
-                <artifactId>xredis-resources-spring-boot-autoconfigure</artifactId>
+                <artifactId>xredis-lettuce-resources-autoconfigure</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.igeeksky.xredis</groupId>
-                <artifactId>xredis-spring-boot-autoconfigure</artifactId>
+                <artifactId>xredis-lettuce-spring-boot-autoconfigure</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <modules>
-        <module>xredis-core</module>
+        <module>xredis-lettuce</module>
         <module>xredis-common</module>
-        <module>xredis-resources-spring-boot-autoconfigure</module>
-        <module>xredis-spring-boot-autoconfigure</module>
+        <module>xredis-lettuce-resources-autoconfigure</module>
+        <module>xredis-lettuce-spring-boot-autoconfigure</module>
     </modules>
 
     <build>

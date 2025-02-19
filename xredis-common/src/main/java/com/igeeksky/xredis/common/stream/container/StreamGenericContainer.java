@@ -33,10 +33,12 @@ public class StreamGenericContainer<K, V> extends AbstractStreamContainer<K, V> 
     /**
      * 创建一个新的 StreamGenericContainer 实例
      *
-     * @param operator  StreamOperator
-     * @param executor  虚拟线程执行器
-     * @param scheduler 调度器
-     * @param interval  拉取消息任务的间隔时间，单位毫秒（必须大于 0）
+     * @param operator    StreamOperator
+     * @param executor    虚拟线程执行器
+     * @param scheduler   调度器
+     * @param quietPeriod quietPeriod 优雅关闭（等待正在运行的任务完成，单位毫秒）
+     * @param timeout     timeout 优雅关闭（最大等待时间，单位毫秒）
+     * @param interval    拉取消息任务的间隔时间，单位毫秒（必须大于 0）
      */
     public StreamGenericContainer(StreamOperator<K, V> operator, ExecutorService executor,
                                   ScheduledExecutorService scheduler, long quietPeriod, long timeout, long interval) {

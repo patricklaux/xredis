@@ -38,11 +38,13 @@ public class StreamContainer<K, V> extends AbstractStreamContainer<K, V> {
     /**
      * 创建一个新的 StreamContainer 实例
      *
-     * @param operator  RedisOperator
-     * @param executor  虚拟线程执行器（不能为空）
-     * @param scheduler 定时任务调度器（不能为空）
-     * @param interval  两次拉取消息的时间间隔，单位毫秒 {@code interval > 0}
-     * @param options   读选项（不能为空）
+     * @param operator    RedisOperator
+     * @param executor    虚拟线程执行器（不能为空）
+     * @param scheduler   定时任务调度器（不能为空）
+     * @param quietPeriod quietPeriod 优雅关闭（等待正在运行的任务完成，单位毫秒）
+     * @param timeout     timeout 优雅关闭（最大等待时间，单位毫秒）
+     * @param interval    两次拉取消息的时间间隔，单位毫秒 {@code interval > 0}
+     * @param options     读选项（不能为空）
      */
     public StreamContainer(StreamOperator<K, V> operator, ExecutorService executor,
                            ScheduledExecutorService scheduler, long quietPeriod, long timeout,

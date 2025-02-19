@@ -19,6 +19,7 @@ import java.util.concurrent.*;
 public abstract class AbstractStreamContainer<K, V> implements AsyncCloseable {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractStreamContainer.class);
+
     private final long quietPeriod;
 
     private final long timeout;
@@ -57,6 +58,15 @@ public abstract class AbstractStreamContainer<K, V> implements AsyncCloseable {
         this.timeout = timeout;
     }
 
+    /**
+     * 关闭 StreamContainer 对象
+     * <p>
+     * 1. 停止拉取任务（等待正在运行的任务完成）<br>
+     * 2. 停止消费任务（等待正在运行的任务完成）<br>
+     * 3. 关闭 Redis 连接。
+     *
+     * @since 1.0.0
+     */
     public void shutdown() {
         try {
             this.closeAsync().get(timeout, TimeUnit.MILLISECONDS);
