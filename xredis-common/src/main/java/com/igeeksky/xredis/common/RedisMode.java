@@ -1,4 +1,4 @@
-package com.igeeksky.xredis.api;
+package com.igeeksky.xredis.common;
 
 /**
  * Redis 连接模式
@@ -13,8 +13,6 @@ public interface RedisMode {
      *
      * @return true if this connection is a cluster connection.
      */
-    default boolean isCluster() {
-        return false;
-    }
+    boolean isCluster();
 
 }

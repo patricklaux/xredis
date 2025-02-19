@@ -1,5 +1,7 @@
 package com.igeeksky.xredis.common.stream;
 
+import com.igeeksky.xtool.core.lang.Assert;
+
 /**
  * 消费者组读取消息选项
  *
@@ -15,16 +17,14 @@ public class XReadOptions {
     private final boolean noack;
 
     /**
-     * 私有构造方法
+     * 私有构造器
      *
-     * @param block 阻塞时长（毫秒）
-     * @param count 读取数量
-     * @param noack 是否无需确认
+     * @param builder {@link Builder}
      */
-    private XReadOptions(Long block, Long count, boolean noack) {
-        this.block = block;
-        this.count = count;
-        this.noack = noack;
+    private XReadOptions(Builder builder) {
+        this.block = builder.block;
+        this.count = builder.count;
+        this.noack = builder.noack;
     }
 
     /**
@@ -37,7 +37,7 @@ public class XReadOptions {
     }
 
     /**
-     * 获取：阻塞时长（毫秒）
+     * 最大阻塞时长（毫秒）
      *
      * @return {@code Long} – 阻塞时长（毫秒）
      */
@@ -46,7 +46,7 @@ public class XReadOptions {
     }
 
     /**
-     * 获取：读取数量
+     * 最大读取数量
      *
      * @return {@code Long} – 读取数量
      */
@@ -55,69 +55,92 @@ public class XReadOptions {
     }
 
     /**
-     * 获取：是否无需确认
+     * 是否自动确认
      *
-     * @return {@code boolean} – {@code true}，无需确认；{@code false}，需要确认
+     * @return {@code boolean} – 是否自动确认。 {@code true} – 自动确认；{@code false} – 手动确认
      */
     public boolean isNoack() {
         return noack;
     }
 
     /**
-     * 设置：阻塞时长（毫秒）
-     * <p>
-     * Stream 读选项
+     * 创建 XReadOptions-builder
      *
-     * @param block 拉取消息的阻塞时长，单位毫秒 <br>
-     *              1. 小于 0 时不阻塞；<br>
-     *              2. 等于 0 时无限阻塞，直到有新消息到达；<br>
-     *              3. 大于 0 时为最大阻塞时长，直到有新消息到达或超过此设定的时长。
-     * @return {@link XReadOptions}
+     * @return {@link XReadOptions.Builder}
      */
-    public static XReadOptions block(Long block) {
-        return new XReadOptions(block, null, false);
+    public static XReadOptions.Builder builder() {
+        return new Builder();
     }
 
     /**
-     * 设置：读取数量
-     *
-     * @param count 读取数量
-     * @return {@link XReadOptions}
+     * XReadOptions-builder
      */
-    public static XReadOptions count(Long count) {
-        return new XReadOptions(null, count, false);
-    }
+    public static class Builder {
+        private Long block;
+        private Long count;
+        private boolean noack;
 
-    /**
-     * 设置为无需确认
-     *
-     * @return {@link XReadOptions}
-     */
-    public static XReadOptions noack() {
-        return new XReadOptions(null, null, true);
-    }
+        /**
+         * 私有构造器
+         */
+        private Builder() {
+        }
 
-    /**
-     * 设置：阻塞时长（毫秒） 和 读取数量
-     *
-     * @param block 阻塞时长（毫秒）
-     * @param count 读取数量
-     * @return {@link XReadOptions}
-     */
-    public static XReadOptions of(Long block, Long count) {
-        return new XReadOptions(block, count, false);
-    }
+        /**
+         * 设置：最大阻塞时长（单位：毫秒）
+         *
+         * @param block 最大阻塞时长 <br>
+         *              1. {@code block == null} – 不阻塞；<br>
+         *              2. {@code block == 0} – 无限阻塞，直到有新消息到达；<br>
+         *              3. {@code block > 0} – 最大阻塞时长，直到有新消息到达或超过此设定时长。
+         * @return {@link XReadOptions}
+         */
+        public Builder block(Long block) {
+            Assert.isTrue(block == null || block >= 0, "block must be greater than or equal to 0");
+            this.block = block;
+            return this;
+        }
 
-    /**
-     * 设置：阻塞时长（毫秒）、读取数量、是否无需确认
-     *
-     * @param block 阻塞时长（毫秒）
-     * @param count 读取数量
-     * @param noack 是否无需确认
-     * @return {@link XReadOptions}
-     */
-    public static XReadOptions of(Long block, Long count, boolean noack) {
-        return new XReadOptions(block, count, noack);
+        /**
+         * 设置：最大读取数量
+         *
+         * @param count 最大读取数量 <br>
+         *              1. {@code count == null} – 无数量限制；<br>
+         *              2. {@code count > 0} – 最大读取数量。
+         * @return {@link XReadOptions}
+         */
+        public Builder count(Long count) {
+            Assert.isTrue(count == null || count > 0, "count must be greater than 0");
+            this.count = count;
+            return this;
+        }
+
+        /**
+         * 设置：是否自动确认（仅用于消费者组）
+         * <p>
+         * 默认 {@code false}
+         * <p>
+         * 当值为 {@code false} 时，消息消费完成后需手动调用 {@code xack} 命令确认消息。
+         *
+         * @param noack 是否自动确认 {@code true} – 自动确认；{@code false} – 手动确认
+         * @return {@link XReadOptions.Builder}
+         * @see <a href="https://redis.io/docs/latest/commands/xreadgroup/">XREADGROUP</a>
+         * @see <a href="https://redis.io/docs/latest/commands/xack/">XACK</a>
+         */
+        public Builder noack(boolean noack) {
+            this.noack = noack;
+            return this;
+        }
+
+        /**
+         * 根据已设置参数创建 {@link XReadOptions}
+         *
+         * @return {@link XReadOptions}
+         */
+        public XReadOptions build() {
+            return new XReadOptions(this);
+        }
+
     }
 
 }

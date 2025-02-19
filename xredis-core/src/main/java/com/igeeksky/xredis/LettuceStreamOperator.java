@@ -142,6 +142,11 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
     }
 
     @Override
+    public boolean isCluster() {
+        return operator.isCluster();
+    }
+
+    @Override
     public CompletableFuture<Void> closeAsync() {
         return operator.closeAsync();
     }

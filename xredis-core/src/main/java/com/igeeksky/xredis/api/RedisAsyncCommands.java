@@ -1,5 +1,6 @@
 package com.igeeksky.xredis.api;
 
+import com.igeeksky.xredis.common.RedisMode;
 import io.lettuce.core.api.async.*;
 
 /**

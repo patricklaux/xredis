@@ -15,12 +15,7 @@ import java.util.List;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public interface StreamTask<K, V> extends Runnable {
-
-    /**
-     * 消费消息
-     */
-    void run();
+public interface StreamTask<K, V> {
 
     /**
      * 添加流
@@ -35,12 +30,12 @@ public interface StreamTask<K, V> extends Runnable {
     void pull();
 
     /**
-     * 将拉取到的消息发送到 Sink 缓存
+     * 将拉取的消息推送给 Sink
      *
      * @param info     流信息
      * @param messages 消息列表
      */
-    default void sendToSink(StreamInfo<K, V> info, List<XStreamMessage<K, V>> messages) {
+    default void push(StreamInfo<K, V> info, List<XStreamMessage<K, V>> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -58,8 +53,14 @@ public interface StreamTask<K, V> extends Runnable {
         }
         // 更新读偏移
         if (id != null) {
-            info.offset(XStreamOffset.from(info.offset().getKey(), id));
+            K key = info.offset().getKey();
+            info.offset(XStreamOffset.from(key, id));
         }
     }
+
+    /**
+     * 消费消息
+     */
+    void consume();
 
 }

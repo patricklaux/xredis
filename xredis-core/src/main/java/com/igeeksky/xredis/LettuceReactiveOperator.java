@@ -45,4 +45,9 @@ public class LettuceReactiveOperator<K, V> extends RedisReactiveCommandsImpl<K, 
                 "If you want to batch submit commands, please use pipeline.");
     }
 
+    @Override
+    public boolean isCluster() {
+        return false;
+    }
+
 }

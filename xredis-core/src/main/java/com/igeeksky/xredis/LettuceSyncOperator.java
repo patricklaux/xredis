@@ -3324,4 +3324,9 @@ public class LettuceSyncOperator<K, V> implements RedisSyncOperator<K, V>, Redis
         return connection;
     }
 
+    @Override
+    public boolean isCluster() {
+        return false;
+    }
+
 }

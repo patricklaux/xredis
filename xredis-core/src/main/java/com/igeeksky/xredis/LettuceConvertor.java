@@ -46,7 +46,7 @@ public abstract class LettuceConvertor {
         }
         XReadArgs args = new XReadArgs();
         Long block = options.getBlock();
-        if (block != null) {
+        if (block != null && block >= 0) {
             args.block(block);
         }
         Long count = options.getCount();

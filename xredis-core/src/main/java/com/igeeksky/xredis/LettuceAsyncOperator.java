@@ -45,4 +45,9 @@ public class LettuceAsyncOperator<K, V> extends RedisAsyncCommandsImpl<K, V> imp
                 "If you want to batch submit commands, please use pipeline.");
     }
 
+    @Override
+    public boolean isCluster() {
+        return false;
+    }
+
 }

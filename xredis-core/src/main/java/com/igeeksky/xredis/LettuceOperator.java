@@ -70,4 +70,9 @@ public class LettuceOperator<K, V> implements RedisOperator<K, V> {
         return connection.closeAsync();
     }
 
+    @Override
+    public boolean isCluster() {
+        return false;
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.api;
 
-import com.igeeksky.xredis.common.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.StreamOperator;
+import com.igeeksky.xredis.common.stream.container.ReadOptions;
 import com.igeeksky.xredis.common.stream.container.StreamContainer;
 import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
 import io.lettuce.core.codec.RedisCodec;
@@ -37,17 +38,14 @@ public interface RedisOperatorFactory {
     <K, V> RedisOperator<K, V> redisOperator(RedisCodec<K, V> codec);
 
     /**
-     * 创建新的 Redis 流容器
+     * 创建新的 Redis 流操作客户端
      *
-     * @param codec     RedisCodec
-     * @param interval  流任务执行间隔，单位毫秒
-     * @param scheduler 定时任务调度器
-     * @param <K>       键类型
-     * @param <V>       值类型
-     * @return {@linkplain StreamContainer} – Redis 流容器
+     * @param <K>   键类型
+     * @param <V>   值类型
+     * @param codec RedisCodec
+     * @return {@linkplain StreamOperator} – Redis 客户端
      */
-    <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, long interval,
-                                                 ScheduledExecutorService scheduler);
+    <K, V> StreamOperator<K, V> streamOperator(RedisCodec<K, V> codec);
 
     /**
      * 创建新的 Redis 流容器（仅适用于非消费者组）
@@ -60,11 +58,21 @@ public interface RedisOperatorFactory {
      * @param scheduler 定时任务调度器
      * @param <K>       键类型
      * @param <V>       值类型
+     * @return {@linkplain StreamContainer} – Redis 流容器
+     */
+    <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler, long interval, ReadOptions options);
+
+    /**
+     * 创建新的 Redis 流容器
+     *
+     * @param codec     RedisCodec
+     * @param interval  流任务执行间隔，单位毫秒
+     * @param scheduler 定时任务调度器
+     * @param <K>       键类型
+     * @param <V>       值类型
      * @return {@linkplain StreamGenericContainer} – Redis 流容器
      */
-    <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, long interval,
-                                                               XReadOptions options, ScheduledExecutorService scheduler);
-
+    <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler, long interval);
 
     /**
      * 关闭 Redis 客户端工厂

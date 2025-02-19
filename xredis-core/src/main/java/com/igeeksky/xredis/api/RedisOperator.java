@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.api;
 
 import com.igeeksky.xredis.common.AsyncCloseable;
+import com.igeeksky.xredis.common.RedisMode;
 
 /**
  * Redis 操作入口

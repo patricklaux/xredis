@@ -3,7 +3,7 @@ package com.igeeksky.xredis.cluster;
 import com.igeeksky.xredis.LettuceHelper;
 import com.igeeksky.xredis.LettuceStreamOperator;
 import com.igeeksky.xredis.api.RedisOperatorFactory;
-import com.igeeksky.xredis.common.stream.XReadOptions;
+import com.igeeksky.xredis.common.stream.container.ReadOptions;
 import com.igeeksky.xredis.common.stream.container.StreamContainer;
 import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
 import com.igeeksky.xredis.config.LettuceClusterConfig;
@@ -88,20 +88,27 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
     }
 
     @Override
-    public <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, long interval,
-                                                        ScheduledExecutorService scheduler) {
-        LettuceClusterOperator<K, V> operator = this.redisOperator(codec);
-        LettuceStreamOperator<K, V> streamOperator = new LettuceStreamOperator<>(operator);
-        return new StreamContainer<>(streamOperator, interval, executor, scheduler);
+    public <K, V> LettuceStreamOperator<K, V> streamOperator(RedisCodec<K, V> codec) {
+        return new LettuceStreamOperator<>(this.redisOperator(codec));
     }
 
     @Override
-    public <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, long interval,
-                                                                      XReadOptions options,
-                                                                      ScheduledExecutorService scheduler) {
-        LettuceClusterOperator<K, V> operator = this.redisOperator(codec);
-        LettuceStreamOperator<K, V> streamOperator = new LettuceStreamOperator<>(operator);
-        return new StreamGenericContainer<>(streamOperator, interval, options, executor, scheduler);
+    public <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler,
+                                                        long interval, ReadOptions options) {
+        long quietPeriod = config.getShutdownQuietPeriod();
+        long timeout = config.getShutdownTimeout();
+        LettuceStreamOperator<K, V> streamOperator = this.streamOperator(codec);
+        return new StreamContainer<>(streamOperator, executor, scheduler, quietPeriod, timeout, interval, options);
+    }
+
+    @Override
+    public <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec,
+                                                                      ScheduledExecutorService scheduler,
+                                                                      long interval) {
+        long quietPeriod = config.getShutdownQuietPeriod();
+        long timeout = config.getShutdownTimeout();
+        LettuceStreamOperator<K, V> streamOperator = this.streamOperator(codec);
+        return new StreamGenericContainer<>(streamOperator, executor, scheduler, quietPeriod, timeout, interval);
     }
 
     @Override

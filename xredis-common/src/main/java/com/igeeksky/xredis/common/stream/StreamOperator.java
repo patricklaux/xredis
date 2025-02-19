@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.common.stream;
 
 import com.igeeksky.xredis.common.AsyncCloseable;
+import com.igeeksky.xredis.common.RedisMode;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public interface StreamOperator<K, V> extends AsyncCloseable {
+public interface StreamOperator<K, V> extends RedisMode, AsyncCloseable {
 
     /**
      * 确认消息

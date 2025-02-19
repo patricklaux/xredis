@@ -62,4 +62,9 @@ public class LettucePipeline<K, V> extends RedisAsyncCommandsImpl<K, V> implemen
         return connection.closeAsync();
     }
 
+    @Override
+    public boolean isCluster() {
+        return false;
+    }
+
 }
