@@ -1,5 +1,7 @@
 package com.igeeksky.xredis.lettuce;
 
+import com.igeeksky.xredis.common.Limit;
+import com.igeeksky.xredis.common.Range;
 import com.igeeksky.xredis.common.stream.*;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
@@ -176,6 +178,62 @@ public abstract class LettuceConvertor {
             args.entriesRead(options.getEntriesRead());
         }
         return args;
+    }
+
+    /**
+     * {@link Range} 转换为 Lettuce {@link io.lettuce.core.Range}
+     *
+     * @param range {@link Range} 对象
+     * @param <T>   范围类型
+     * @return Lettuce {@link io.lettuce.core.Range} 对象
+     */
+    public static <T> io.lettuce.core.Range<T> toRange(Range<T> range) {
+        if (range == null) {
+            return null;
+        }
+
+        if (range.isUnbounded()) {
+            return io.lettuce.core.Range.unbounded();
+        }
+
+        return io.lettuce.core.Range.from(toBoundary(range.getLower()), toBoundary(range.getLower()));
+    }
+
+    /**
+     * {@link Range.Boundary} 转换为 Lettuce {@link io.lettuce.core.Range.Boundary}
+     *
+     * @param boundary {@link Range.Boundary} 对象
+     * @param <T>      边界类型
+     * @return Lettuce {@link io.lettuce.core.Range.Boundary} 对象
+     */
+    public static <T> io.lettuce.core.Range.Boundary<T> toBoundary(Range.Boundary<T> boundary) {
+        if (boundary.isUnbounded()) {
+            return io.lettuce.core.Range.Boundary.unbounded();
+        }
+
+        if (boundary.isIncluding()) {
+            return io.lettuce.core.Range.Boundary.including(boundary.getValue());
+        }
+
+        return io.lettuce.core.Range.Boundary.excluding(boundary.getValue());
+    }
+
+    /**
+     * {@link Limit} 转换为 Lettuce {@link io.lettuce.core.Limit}
+     *
+     * @param limit {@link Limit} 对象
+     * @return Lettuce {@link io.lettuce.core.Limit} 对象
+     */
+    public static io.lettuce.core.Limit toLimit(Limit limit) {
+        if (limit == null) {
+            return null;
+        }
+
+        if (limit.isUnlimited()) {
+            return io.lettuce.core.Limit.unlimited();
+        }
+
+        return io.lettuce.core.Limit.create(limit.getOffset(), limit.getCount());
     }
 
 }

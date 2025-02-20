@@ -3,7 +3,7 @@ package com.igeeksky.xredis.common.stream;
 import java.util.Map;
 
 /**
- * Redis 流消息编解码器
+ * Redis 流消息体编解码
  *
  * @param <K> 键类型
  * @param <V> 值类型

@@ -239,7 +239,7 @@ public class RedisOperatorProxyTestCase {
      * 获取版本信息
      */
     void version() {
-        String version = operatorProxy.version();
+        String version = operatorProxy.version().join();
         System.out.println(version);
         Assertions.assertNotNull(version);
 

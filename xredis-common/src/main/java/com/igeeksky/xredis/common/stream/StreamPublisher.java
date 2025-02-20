@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.common.stream;
 
 
+import com.igeeksky.xredis.common.AsyncCloseable;
 import com.igeeksky.xredis.common.RedisOperationException;
 
 import java.util.Map;
@@ -15,27 +16,26 @@ import java.util.concurrent.CompletableFuture;
  * @author Patrick.Lau
  * @since 0.0.4 2023-09-12
  */
-public class StreamPublisher<K, V, T> {
+public class StreamPublisher<K, V, T> implements AsyncCloseable {
 
     private final K stream;
     private final XAddOptions options;
-    private final StreamCodec<K, V, T> codec;
     private final StreamOperator<K, V> operator;
+    private final StreamCodec<K, V, T> streamCodec;
 
     /**
      * 构造器
      *
-     * @param stream   流名称
-     * @param options  流消息添加选项
-     * @param codec    流消息编解码器
-     * @param operator Redis 管道（批量命令提交）
+     * @param stream      流名称
+     * @param options     流消息添加选项
+     * @param operator    流操作
+     * @param streamCodec 流消息编解码器
      */
-    public StreamPublisher(K stream, XAddOptions options, StreamCodec<K, V, T> codec,
-                           StreamOperator<K, V> operator) {
-        this.codec = codec;
-        this.operator = operator;
+    public StreamPublisher(K stream, XAddOptions options, StreamOperator<K, V> operator, StreamCodec<K, V, T> streamCodec) {
         this.stream = stream;
         this.options = options;
+        this.operator = operator;
+        this.streamCodec = streamCodec;
     }
 
     /**
@@ -59,7 +59,7 @@ public class StreamPublisher<K, V, T> {
         if (message == null) {
             return CompletableFuture.failedFuture(new RedisOperationException("message must not be null."));
         }
-        Map<K, V> body = codec.encodeMsg(message);
+        Map<K, V> body = streamCodec.encodeMsg(message);
         if (body == null) {
             return CompletableFuture.failedFuture(new RedisOperationException("message convert to body failed."));
         }
@@ -67,6 +67,11 @@ public class StreamPublisher<K, V, T> {
             return operator.xadd(stream, body).toCompletableFuture();
         }
         return operator.xadd(stream, options, body).toCompletableFuture();
+    }
+
+    @Override
+    public CompletableFuture<Void> closeAsync() {
+        return operator.closeAsync();
     }
 
 }

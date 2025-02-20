@@ -1,6 +1,9 @@
 package com.igeeksky.xredis.lettuce;
 
 
+import com.igeeksky.xredis.common.stream.StreamCodec;
+import com.igeeksky.xredis.common.stream.StreamPublisher;
+import com.igeeksky.xredis.common.stream.XAddOptions;
 import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.common.RedisConfigException;
 import com.igeeksky.xredis.common.stream.container.ReadOptions;

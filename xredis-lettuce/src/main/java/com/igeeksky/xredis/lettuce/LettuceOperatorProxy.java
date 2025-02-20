@@ -1,8 +1,10 @@
 package com.igeeksky.xredis.lettuce;
 
+import com.igeeksky.xredis.common.Limit;
+import com.igeeksky.xredis.common.Range;
+import com.igeeksky.xredis.common.*;
 import com.igeeksky.xredis.lettuce.api.RedisAsyncOperator;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
-import com.igeeksky.xredis.common.*;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
@@ -50,6 +52,51 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     @Override
     public boolean isCluster() {
         return redisOperator.isCluster();
+    }
+
+    @Override
+    public CompletableFuture<String> info() {
+        return this.redisOperator.async().info().toCompletableFuture();
+    }
+
+    @Override
+    public CompletableFuture<String> info(String section) {
+        return this.redisOperator.async().info(section).toCompletableFuture();
+    }
+
+    @Override
+    public CompletableFuture<String> version() {
+        return this.redisOperator.async().info("Server")
+                .thenApply(serverInfo -> {
+                    String[] array = serverInfo.split("\n");
+                    for (String info : array) {
+                        if (info.startsWith("redis_version")) {
+                            return info.split(":")[1].trim();
+                        }
+                    }
+                    return null;
+                })
+                .toCompletableFuture();
+    }
+
+    @Override
+    public CompletableFuture<List<byte[]>> time() {
+        return this.redisOperator.async().time().toCompletableFuture();
+    }
+
+    @Override
+    public CompletableFuture<Long> timeSeconds() {
+        return this.time().thenApply(list -> ByteArrayTimeConvertor.getInstance().seconds(list));
+    }
+
+    @Override
+    public CompletableFuture<Long> timeMillis() {
+        return this.time().thenApply(list -> ByteArrayTimeConvertor.getInstance().milliseconds(list));
+    }
+
+    @Override
+    public CompletableFuture<Long> timeMicros() {
+        return this.time().thenApply(list -> ByteArrayTimeConvertor.getInstance().microseconds(list));
     }
 
     public CompletableFuture<Long> del(byte[]... keys) {
@@ -442,6 +489,40 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     }
 
     @Override
+    public CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range) {
+        return CompletableFuture.completedFuture(range)
+                .thenApply(LettuceConvertor::toRange)
+                .thenCompose(range1 -> this.redisOperator.async().zrangebylex(key, range1));
+    }
+
+    @Override
+    public CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range, Limit limit) {
+        return CompletableFuture.completedFuture(range)
+                .thenApply(LettuceConvertor::toRange)
+                .thenCompose(range1 -> {
+                    io.lettuce.core.Limit limit1 = LettuceConvertor.toLimit(limit);
+                    return this.redisOperator.async().zrangebylex(key, range1, limit1);
+                });
+    }
+
+    @Override
+    public CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range) {
+        return CompletableFuture.completedFuture(range)
+                .thenApply(LettuceConvertor::toRange)
+                .thenCompose(range1 -> this.redisOperator.async().zrangebyscore(key, range1));
+    }
+
+    @Override
+    public CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range, Limit limit) {
+        return CompletableFuture.completedFuture(range)
+                .thenApply(LettuceConvertor::toRange)
+                .thenCompose(range1 -> {
+                    io.lettuce.core.Limit limit1 = LettuceConvertor.toLimit(limit);
+                    return this.redisOperator.async().zrangebyscore(key, range1, limit1);
+                });
+    }
+
+    @Override
     public <T> CompletableFuture<T> eval(RedisScript script, byte[][] keys, byte[]... args) {
         ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
         RedisFuture<T> future;
@@ -520,18 +601,6 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                             }
                             return sha1;
                         }));
-    }
-
-    @Override
-    public String version() {
-        String serverInfo = this.redisOperator.sync().info("Server");
-        String[] array = serverInfo.split("\n");
-        for (String info : array) {
-            if (info.startsWith("redis_version")) {
-                return info.split(":")[1].trim();
-            }
-        }
-        return null;
     }
 
     /**

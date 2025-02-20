@@ -21,6 +21,8 @@ public interface RedisOperatorProxy {
      */
     String OK = "OK";
 
+    // -------------------------- server command start -----------------------
+
     /**
      * 判断当前 Redis 连接是否为集群模式
      *
@@ -29,11 +31,56 @@ public interface RedisOperatorProxy {
     boolean isCluster();
 
     /**
+     * 获取 RedisServer 全部信息
+     *
+     * @return {@link String} – RedisServer 信息
+     */
+    CompletableFuture<String> info();
+
+    /**
+     * 获取 RedisServer 指定段的信息
+     *
+     * @param section 段名
+     * @return {@link String} – RedisServer 指定段的信息
+     */
+    CompletableFuture<String> info(String section);
+
+    /**
      * 获取 Redis 版本信息
      *
      * @return 版本信息
      */
-    String version();
+    CompletableFuture<String> version();
+
+    /**
+     * 获取 RedisServer 当前时间
+     *
+     * @return {@link List} – 包含两个元素：1.unix time seconds；2.microseconds。
+     */
+    CompletableFuture<List<byte[]>> time();
+
+    /**
+     * 获取 RedisServer 当前时间（秒）
+     *
+     * @return {@code long} – 当前时间（秒）
+     */
+    CompletableFuture<Long> timeSeconds();
+
+    /**
+     * 获取 RedisServer 当前时间（毫秒）
+     *
+     * @return {@code long} – 当前时间（毫秒）
+     */
+    CompletableFuture<Long> timeMillis();
+
+    /**
+     * 获取 RedisServer 当前时间（微秒）
+     *
+     * @return {@code long} – 当前时间（微秒）
+     */
+    CompletableFuture<Long> timeMicros();
+
+    // -------------------------- server command end -------------------------
 
 
     // -------------------------- key command start --------------------------
@@ -284,6 +331,50 @@ public interface RedisOperatorProxy {
     CompletableFuture<Long> hdel(byte[] key, byte[]... fields);
 
     // -------------------------- hash command end ---------------------------
+
+
+    // -------------------------- sorted set command start -------------------
+
+    /**
+     * 根据给定的键字母序范围，返回成员列表
+     *
+     * @param key   键
+     * @param range 键字母序范围
+     * @return {@code CompletableFuture<List<byte[]>>} – 给定键字母序范围的成员列表
+     */
+    CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range);
+
+    /**
+     * 根据给定的键字母序范围，返回成员列表
+     *
+     * @param key   键
+     * @param range 键字母序范围
+     * @param limit 限定条件
+     * @return {@code CompletableFuture<List<byte[]>>} – 给定键字母序范围的成员列表
+     */
+    CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range, Limit limit);
+
+    /**
+     * 根据给定的分值范围，返回成员列表
+     *
+     * @param key   键
+     * @param range 分值范围
+     * @return {@code CompletableFuture<List<byte[]>>} – 给定分值范围的成员列表
+     */
+    CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range);
+
+    /**
+     * 根据给定的分值范围，返回成员列表
+     *
+     * @param key   键
+     * @param range 分值范围
+     * @param limit 限定条件
+     * @return {@code CompletableFuture<List<byte[]>>} – 给定分值范围的成员列表
+     */
+    CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range, Limit limit);
+
+    // -------------------------- sorted set command end ---------------------
+
 
     // -------------------------- script command start -----------------------
 

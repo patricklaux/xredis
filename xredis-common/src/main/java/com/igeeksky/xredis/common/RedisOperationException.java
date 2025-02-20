@@ -27,6 +27,15 @@ public class RedisOperationException extends RuntimeException {
     /**
      * 带参构造
      *
+     * @param cause 异常
+     */
+    public RedisOperationException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * 带参构造
+     *
      * @param message 异常信息
      * @param cause   异常
      */
