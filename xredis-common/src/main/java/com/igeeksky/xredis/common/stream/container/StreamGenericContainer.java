@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 循环监听 Stream 消息
+ * <p>
+ * 当有多个流有 block 选项，
  *
  * @param <K> 键类型
  * @param <V> 值类型

@@ -1,7 +1,8 @@
 package com.igeeksky.xredis.common.stream;
 
 import com.igeeksky.xredis.common.AsyncCloseable;
-import com.igeeksky.xredis.common.RedisMode;
+import com.igeeksky.xredis.common.ConnectionMode;
+import com.igeeksky.xredis.common.TimeConvertor;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,35 @@ import java.util.concurrent.CompletableFuture;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public interface StreamOperator<K, V> extends RedisMode, AsyncCloseable {
+public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
+
+    /**
+     * 获取 RedisServer 当前时间
+     *
+     * @return {@link List} – 包含两个元素：1.unix time seconds；2.microseconds。
+     */
+    CompletableFuture<List<V>> time();
+
+    /**
+     * 获取 RedisServer 当前时间（秒）
+     *
+     * @return {@code long} – 当前时间（秒）
+     */
+    CompletableFuture<Long> timeSeconds(TimeConvertor<V> convertor);
+
+    /**
+     * 获取 RedisServer 当前时间（毫秒）
+     *
+     * @return {@code long} – 当前时间（毫秒）
+     */
+    CompletableFuture<Long> timeMillis(TimeConvertor<V> convertor);
+
+    /**
+     * 获取 RedisServer 当前时间（微秒）
+     *
+     * @return {@code long} – 当前时间（微秒）
+     */
+    CompletableFuture<Long> timeMicros(TimeConvertor<V> convertor);
 
     /**
      * 确认消息

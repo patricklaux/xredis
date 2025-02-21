@@ -7,17 +7,12 @@ import com.igeeksky.xredis.common.stream.XStreamMessage;
 import com.igeeksky.xredis.common.stream.XStreamOffset;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
 import com.igeeksky.xtool.core.collection.Maps;
-import com.igeeksky.xtool.core.lang.ArrayUtils;
 import com.igeeksky.xtool.core.tuple.Tuple1;
-import com.igeeksky.xtool.core.tuple.Tuple2;
 import com.igeeksky.xtool.core.tuple.Tuples;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,10 +52,10 @@ public class StreamContainerTask<K, V> implements StreamTask<K, V> {
 
     @Override
     public void add(StreamInfo<K, V> info) {
-        Tuple1<K> key = Tuples.of(info.offset().getKey());
+        Tuple1<K> key = Tuples.of(info.getOffset().getKey());
         StreamInfo<K, V> current = streams.compute(key, (k, old) -> {
             if (old != null) {
-                RetrySink<XStreamMessage<K, V>> sink = old.sink();
+                RetrySink<XStreamMessage<K, V>> sink = old.getSink();
                 if (!sink.isCancelled()) {
                     return old;
                 }
@@ -72,62 +67,25 @@ public class StreamContainerTask<K, V> implements StreamTask<K, V> {
         }
     }
 
-
     @Override
-    public void consume() {
+    public void pull() {
         try {
-            Iterator<Map.Entry<Tuple1<K>, StreamInfo<K, V>>> iterator = streams.entrySet().iterator();
-            while (iterator.hasNext()) {
-                StreamInfo<K, V> info = iterator.next().getValue();
-
-                RetrySink<XStreamMessage<K, V>> sink = info.sink();
-                if (sink.isCancelled()) {
-                    iterator.remove();
-                    continue;
-                }
-
-                sink.run();
-            }
+            this.doPull();
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
         }
     }
 
-    @Override
-    public void pull() {
+    private void doPull() {
         if (streams.isEmpty()) {
             return;
         }
-        try {
-            Tuple2<XStreamOffset<K>[], List<RetrySink<XStreamMessage<K, V>>>> tuple2 = getStreamOffsets();
-            XStreamOffset<K>[] offsets = tuple2.getT1();
-            // 无可用流
-            if (ArrayUtils.isEmpty(offsets)) {
-                return;
-            }
-            // 拉取消息 & 分发消息
-            List<RetrySink<XStreamMessage<K, V>>> sinks = tuple2.getT2();
-            this.dispatch(sinks, this.xread(offsets));
-        } catch (Throwable e) {
-            log.error(e.getMessage(), e);
-        }
-    }
-
-
-    /**
-     * 获取流读偏移信息和消费者
-     *
-     * @return {@code Tuple2<StreamOffset<K>[], List<RetrySink<StreamMessage<K, V>>>>}
-     * key: 流信息 value: 消费者
-     */
-    private Tuple2<XStreamOffset<K>[], List<RetrySink<XStreamMessage<K, V>>>> getStreamOffsets() {
         List<XStreamOffset<K>> offsets = new ArrayList<>(streams.size());
         List<RetrySink<XStreamMessage<K, V>>> sinks = new ArrayList<>(streams.size());
-
         Iterator<Map.Entry<Tuple1<K>, StreamInfo<K, V>>> iterator = streams.entrySet().iterator();
         while (iterator.hasNext()) {
             StreamInfo<K, V> info = iterator.next().getValue();
-            RetrySink<XStreamMessage<K, V>> sink = info.sink();
+            RetrySink<XStreamMessage<K, V>> sink = info.getSink();
             if (sink.isCancelled()) {
                 iterator.remove();
                 continue;
@@ -136,63 +94,104 @@ public class StreamContainerTask<K, V> implements StreamTask<K, V> {
                 continue;
             }
             sinks.add(sink);
-            offsets.add(info.offset());
+            offsets.add(info.getOffset());
         }
-
-        @SuppressWarnings("unchecked")
-        XStreamOffset<K>[] offsetsArray = offsets.toArray(new XStreamOffset[0]);
-        return Tuples.of(offsetsArray, sinks);
+        // 拉取消息 & 分发消息
+        this.dispatch(sinks, this.xread(offsets));
     }
 
+    /**
+     * 分发消息
+     *
+     * @param sinks  数据池列表
+     * @param future 消息
+     */
     private void dispatch(List<RetrySink<XStreamMessage<K, V>>> sinks,
                           CompletableFuture<List<XStreamMessage<K, V>>> future) {
-        future.thenApply(messages -> {
-                    // 根据流名称将消息归并
-                    Map<Tuple1<K>, List<XStreamMessage<K, V>>> map = Maps.newHashMap(streams.size());
-                    if (CollectionUtils.isNotEmpty(messages)) {
-                        for (XStreamMessage<K, V> message : messages) {
-                            if (message == null) {
-                                continue;
-                            }
-                            Tuple1<K> key = Tuples.of(message.stream());
-                            map.computeIfAbsent(key, k -> new ArrayList<>()).add(message);
-                        }
-                    }
-                    return map;
-                })
+        future.thenApply(this::merge)
                 .thenAccept(map -> map.forEach(this::push))
                 .exceptionally(t -> {
-                    sinks.forEach(sink -> sink.error(t));
+                    sinks.forEach(sink -> {
+                        if (!sink.isCancelled()) {
+                            sink.error(t);
+                        }
+                    });
                     return null;
                 })
                 .join();
     }
 
     /**
-     * 根据流名称分发消息
+     * 合并消息
      *
-     * @param key      流名称
-     * @param messages 消息列表
+     * @param messages 消息
+     * @return {@code Map<Tuple1<K>, List<StreamMessage<K, V>>>} – key: 流 value: 消息列表
+     */
+    private Map<Tuple1<K>, List<XStreamMessage<K, V>>> merge(List<XStreamMessage<K, V>> messages) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return Collections.emptyMap();
+        }
+        Map<Tuple1<K>, List<XStreamMessage<K, V>>> map = Maps.newHashMap(streams.size());
+        for (XStreamMessage<K, V> message : messages) {
+            if (message != null) {
+                Tuple1<K> key = Tuples.of(message.stream());
+                map.computeIfAbsent(key, k -> new ArrayList<>()).add(message);
+            }
+        }
+        return map;
+    }
+
+    /**
+     * 推送消息
+     *
+     * @param key      流
+     * @param messages 消息
      */
     private void push(Tuple1<K> key, List<XStreamMessage<K, V>> messages) {
         try {
+            // 获取流信息
             StreamInfo<K, V> info = streams.get(key);
             if (info == null) {
                 return;
             }
-            RetrySink<XStreamMessage<K, V>> sink = info.sink();
+            // 获取数据池，如果已取消，则从订阅列表中移除
+            RetrySink<XStreamMessage<K, V>> sink = info.getSink();
             if (sink.isCancelled()) {
                 streams.remove(key);
                 return;
             }
-            push(info, messages);
+            // 分发数据
+            info.receive(messages);
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
         }
     }
 
-    private CompletableFuture<List<XStreamMessage<K, V>>> xread(XStreamOffset<K>[] offsets) {
-        return operator.xread(options, offsets);
+    @Override
+    public void consume() {
+        try {
+            Iterator<Map.Entry<Tuple1<K>, StreamInfo<K, V>>> iterator = streams.entrySet().iterator();
+            while (iterator.hasNext()) {
+                StreamInfo<K, V> info = iterator.next().getValue();
+                RetrySink<XStreamMessage<K, V>> sink = info.getSink();
+                if (sink.isCancelled()) {
+                    iterator.remove();
+                    continue;
+                }
+                sink.run();
+            }
+        } catch (Throwable e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private CompletableFuture<List<XStreamMessage<K, V>>> xread(List<XStreamOffset<K>> offsets) {
+        // 无可用流
+        if (CollectionUtils.isEmpty(offsets)) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return operator.xread(options, offsets.toArray(new XStreamOffset[0]));
     }
 
 }

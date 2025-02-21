@@ -37,7 +37,7 @@ public class StreamGroupInfo<K, V> extends StreamInfo<K, V> {
      *
      * @return 消费者组名称及消费者名称
      */
-    public XGroupConsumer<K> consumer() {
+    public XGroupConsumer<K> getConsumer() {
         return consumer;
     }
 

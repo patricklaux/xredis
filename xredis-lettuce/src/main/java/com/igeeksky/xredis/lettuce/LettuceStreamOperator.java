@@ -1,7 +1,8 @@
 package com.igeeksky.xredis.lettuce;
 
-import com.igeeksky.xredis.lettuce.api.RedisOperator;
+import com.igeeksky.xredis.common.TimeConvertor;
 import com.igeeksky.xredis.common.stream.*;
+import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import io.lettuce.core.Consumer;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
@@ -29,6 +30,26 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
      */
     public LettuceStreamOperator(RedisOperator<K, V> operator) {
         this.operator = operator;
+    }
+
+    @Override
+    public CompletableFuture<List<V>> time() {
+        return operator.async().time().toCompletableFuture();
+    }
+
+    @Override
+    public CompletableFuture<Long> timeSeconds(TimeConvertor<V> convertor) {
+        return operator.async().timeSeconds(convertor);
+    }
+
+    @Override
+    public CompletableFuture<Long> timeMillis(TimeConvertor<V> convertor) {
+        return operator.async().timeMillis(convertor);
+    }
+
+    @Override
+    public CompletableFuture<Long> timeMicros(TimeConvertor<V> convertor) {
+        return operator.async().timeMicros(convertor);
     }
 
     @Override

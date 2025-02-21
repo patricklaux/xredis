@@ -86,17 +86,17 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<Long> timeSeconds() {
-        return this.time().thenApply(list -> ByteArrayTimeConvertor.getInstance().seconds(list));
+        return this.redisOperator.async().timeSeconds(ByteArrayTimeConvertor.getInstance());
     }
 
     @Override
     public CompletableFuture<Long> timeMillis() {
-        return this.time().thenApply(list -> ByteArrayTimeConvertor.getInstance().milliseconds(list));
+        return this.redisOperator.async().timeMillis(ByteArrayTimeConvertor.getInstance());
     }
 
     @Override
     public CompletableFuture<Long> timeMicros() {
-        return this.time().thenApply(list -> ByteArrayTimeConvertor.getInstance().microseconds(list));
+        return this.redisOperator.async().timeMicros(ByteArrayTimeConvertor.getInstance());
     }
 
     public CompletableFuture<Long> del(byte[]... keys) {

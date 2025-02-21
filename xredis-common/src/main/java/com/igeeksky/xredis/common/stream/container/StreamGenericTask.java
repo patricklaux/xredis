@@ -63,7 +63,7 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
         Iterator<? extends StreamInfo<K, V>> iterator = streams.iterator();
         while (iterator.hasNext()) {
             StreamInfo<K, V> info = iterator.next();
-            RetrySink<XStreamMessage<K, V>> sink = info.sink();
+            RetrySink<XStreamMessage<K, V>> sink = info.getSink();
             if (sink.isCancelled()) {
                 iterator.remove();
                 continue;
@@ -93,7 +93,7 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
             Iterator<? extends StreamInfo<K, V>> iterator = streams.iterator();
             while (iterator.hasNext()) {
                 StreamInfo<K, V> info = iterator.next();
-                RetrySink<XStreamMessage<K, V>> sink = info.sink();
+                RetrySink<XStreamMessage<K, V>> sink = info.getSink();
                 if (sink.isCancelled()) {
                     iterator.remove();
                     continue;
@@ -107,12 +107,12 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
 
     @SuppressWarnings("unchecked")
     private CompletableFuture<List<XStreamMessage<K, V>>> xread(StreamInfo<K, V> info) {
-        return this.operator.xread(info.options(), info.offset());
+        return this.operator.xread(info.getOptions(), info.getOffset());
     }
 
     @SuppressWarnings("unchecked")
     private CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(StreamGroupInfo<K, V> info) {
-        return this.operator.xreadgroup(info.consumer(), info.options(), info.offset());
+        return this.operator.xreadgroup(info.getConsumer(), info.getOptions(), info.getOffset());
     }
 
     /**
@@ -124,9 +124,9 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
      */
     private CompletableFuture<Void> dispatch(StreamInfo<K, V> info,
                                              CompletableFuture<List<XStreamMessage<K, V>>> future) {
-        return future.thenAccept(messages -> push(info, messages))
+        return future.thenAccept(info::receive)
                 .exceptionally(t -> {
-                    info.sink().error(t);
+                    info.getSink().error(t);
                     return null;
                 });
     }

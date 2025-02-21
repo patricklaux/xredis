@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.lettuce.api;
 
 import com.igeeksky.xredis.common.AsyncCloseable;
-import com.igeeksky.xredis.common.RedisMode;
+import com.igeeksky.xredis.common.ConnectionMode;
 
 /**
  * Redis 操作入口
@@ -15,7 +15,7 @@ import com.igeeksky.xredis.common.RedisMode;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public interface RedisOperator<K, V> extends RedisMode, AsyncCloseable {
+public interface RedisOperator<K, V> extends ConnectionMode, AsyncCloseable {
 
     /**
      * 同步操作
