@@ -148,7 +148,9 @@ public final class LettuceHelper {
                                 ExecutorService executor, AbstractRedisClient client) {
         try {
             try {
-                boolean ignored = executor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+                if (quietPeriod > 0) {
+                    boolean ignored = executor.awaitTermination(quietPeriod, TimeUnit.MILLISECONDS);
+                }
                 executor.shutdown();
             } catch (InterruptedException e) {
                 executor.shutdownNow();
@@ -174,7 +176,9 @@ public final class LettuceHelper {
                     boolean terminated = false;
                     try {
                         try {
-                            terminated = executor.awaitTermination(timeout - quietPeriod, TimeUnit.MILLISECONDS);
+                            if (quietPeriod > 0) {
+                                terminated = executor.awaitTermination(quietPeriod, TimeUnit.MILLISECONDS);
+                            }
                             executor.shutdown();
                         } catch (InterruptedException e) {
                             executor.shutdownNow();

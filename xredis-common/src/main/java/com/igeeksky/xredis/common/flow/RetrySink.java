@@ -70,8 +70,8 @@ public class RetrySink<E> implements Sink<E>, Runnable {
             if (this.subscriber != null) {
                 throw new IllegalStateException("subscriber already set.");
             }
-            this.subscriber = subscriber;
             this.buffer = new ArrayBlockingQueue<>(this.count << 1);
+            this.subscriber = subscriber;
             this.tasks = new ConsumeTask[parallelism];
             for (int i = 0; i < parallelism; i++) {
                 this.tasks[i] = new ConsumeTask<>(this);
@@ -101,7 +101,6 @@ public class RetrySink<E> implements Sink<E>, Runnable {
             if (this.cancelled) {
                 return;
             }
-            this.cancelled = true;
             Future<?>[] futures1 = this.futures;
             if (futures1 != null) {
                 Futures.cancelAll(0, futures1, false);
@@ -110,6 +109,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
             this.tasks = null;
             this.buffer = null;
             this.subscriber = null;
+            this.cancelled = true;
         } finally {
             lock.unlock();
         }
@@ -136,7 +136,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
     /**
      * 是否有足够空间容纳新拉取的元素
      *
-     * @return {@code true} 空间充足； {@code false} 空间不足
+     * @return {@code true} 空间不足； {@code false} 空间充足
      */
     public boolean isNotEnoughSpace() {
         return this.buffer.size() > this.count;
@@ -199,12 +199,11 @@ public class RetrySink<E> implements Sink<E>, Runnable {
         public void run() {
             try {
                 while (true) {
-                    if (this.sink.cancelled) {
-                        return;
-                    }
                     ArrayBlockingQueue<E> buf = this.sink.buffer;
                     Subscriber<E> s = this.sink.subscriber;
-
+                    if (this.sink.cancelled || s == null || buf == null) {
+                        return;
+                    }
                     if (this.sink.paused) {
                         if (buf.isEmpty() && !this.retry) {
                             return;
