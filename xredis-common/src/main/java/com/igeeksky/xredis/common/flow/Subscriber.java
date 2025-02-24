@@ -36,6 +36,6 @@ public interface Subscriber<E> {
      * @param attempts 已重试次数
      * @param s        订阅
      */
-    void onError(Throwable t, E element, int attempts, RetrySubscription s);
+    void onError(Throwable t, E element, int attempts, RetrySubscription<E> s);
 
 }
