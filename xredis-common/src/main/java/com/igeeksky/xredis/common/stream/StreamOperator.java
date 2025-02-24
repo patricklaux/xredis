@@ -1,8 +1,8 @@
 package com.igeeksky.xredis.common.stream;
 
-import com.igeeksky.xredis.common.AsyncCloseable;
 import com.igeeksky.xredis.common.ConnectionMode;
 import com.igeeksky.xredis.common.TimeConvertor;
+import com.igeeksky.xtool.core.AsyncCloseable;
 
 import java.util.List;
 import java.util.Map;

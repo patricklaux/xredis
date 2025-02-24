@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.common.stream.container;
 
-import com.igeeksky.xredis.common.AsyncCloseable;
 import com.igeeksky.xredis.common.stream.StreamOperator;
+import com.igeeksky.xtool.core.Shutdown;
 import com.igeeksky.xtool.core.lang.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import java.util.concurrent.*;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public abstract class AbstractStreamContainer<K, V> implements AsyncCloseable {
+public abstract class AbstractStreamContainer<K, V> implements Shutdown {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractStreamContainer.class);
 
@@ -59,7 +59,7 @@ public abstract class AbstractStreamContainer<K, V> implements AsyncCloseable {
     }
 
     /**
-     * 关闭 StreamContainer 对象
+     * 使用配置参数优雅关闭 StreamContainer 对象
      * <p>
      * 1. 停止拉取任务（等待正在运行的任务完成）<br>
      * 2. 停止消费任务（等待正在运行的任务完成）<br>
@@ -67,26 +67,56 @@ public abstract class AbstractStreamContainer<K, V> implements AsyncCloseable {
      *
      * @since 1.0.0
      */
+    @Override
     public void shutdown() {
+        this.shutdown(quietPeriod, timeout, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 使用传入参数优雅关闭 StreamContainer 对象
+     * <p>
+     * 1. 停止拉取任务（等待正在运行的任务完成）<br>
+     * 2. 停止消费任务（等待正在运行的任务完成）<br>
+     * 3. 关闭 Redis 连接。
+     *
+     * @since 1.0.0
+     */
+    @Override
+    public void shutdown(long quietPeriod, long timeout, TimeUnit unit) {
         try {
-            this.closeAsync().get(timeout, TimeUnit.MILLISECONDS);
+            this.shutdownAsync(quietPeriod, timeout, unit).get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             log.error(e.getMessage(), e);
         }
     }
 
     /**
-     * 关闭 StreamContainer 对象
+     * 使用配置参数优雅关闭 StreamContainer 对象（异步）
      * <p>
      * 1. 停止拉取任务（等待正在运行的任务完成）<br>
      * 2. 停止消费任务（等待正在运行的任务完成）<br>
      * 3. 关闭 Redis 连接。
      *
-     * @return {@link CompletableFuture} – 关闭操作的异步通知。
+     * @return {@link CompletableFuture}
      * @since 1.0.0
      */
     @Override
-    public CompletableFuture<Void> closeAsync() {
+    public CompletableFuture<Void> shutdownAsync() {
+        return this.shutdownAsync(quietPeriod, timeout, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 使用传入参数优雅关闭 StreamContainer 对象（异步）
+     * <p>
+     * 1. 停止拉取任务（等待正在运行的任务完成）<br>
+     * 2. 停止消费任务（等待正在运行的任务完成）<br>
+     * 3. 关闭 Redis 连接。
+     *
+     * @return {@link CompletableFuture}
+     * @since 1.0.0
+     */
+    @Override
+    public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit unit) {
         if (this.schedulePullFuture != null) {
             this.schedulePullFuture.cancel(false);
         }
@@ -99,8 +129,8 @@ public abstract class AbstractStreamContainer<K, V> implements AsyncCloseable {
         if (this.quietPeriod > 0) {
             try {
                 Thread.sleep(this.quietPeriod);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            } catch (Throwable e) {
+                log.error(e.getMessage(), e);
             }
         }
         return this.operator.closeAsync();

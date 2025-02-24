@@ -1,6 +1,6 @@
 package com.igeeksky.xredis.lettuce.api;
 
-import com.igeeksky.xredis.common.AsyncCloseable;
+import com.igeeksky.xtool.core.AsyncCloseable;
 import com.igeeksky.xredis.common.ConnectionMode;
 
 /**

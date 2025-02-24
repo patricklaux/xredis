@@ -1,8 +1,8 @@
 package com.igeeksky.xredis.common.stream;
 
 
-import com.igeeksky.xredis.common.AsyncCloseable;
 import com.igeeksky.xredis.common.RedisOperationException;
+import com.igeeksky.xtool.core.AsyncCloseable;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

@@ -1,12 +1,13 @@
 package com.igeeksky.xredis.lettuce.autoconfigure;
 
+import com.igeeksky.xtool.core.Shutdown;
 import com.igeeksky.xtool.core.lang.Assert;
 import io.lettuce.core.resource.ClientResources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeoutException;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public class ClientResourcesHolder {
+public class ClientResourcesHolder implements Shutdown {
 
     private static final Logger log = LoggerFactory.getLogger(ClientResourcesHolder.class);
 
@@ -66,7 +67,10 @@ public class ClientResourcesHolder {
 
     /**
      * 根据预设参数，优雅关闭 ClientResources
+     *
+     * @see ClientResources#shutdown(long, long, TimeUnit)
      */
+    @Override
     public void shutdown() {
         this.shutdown(quietPeriod, timeout, timeUnit);
     }
@@ -77,16 +81,13 @@ public class ClientResourcesHolder {
      * @param quietPeriod 静默时间
      * @param timeout     超时世界
      * @param timeUnit    时间单位
+     * @see ClientResources#shutdown(long, long, TimeUnit)
      */
+    @Override
     public void shutdown(long quietPeriod, long timeout, TimeUnit timeUnit) {
         try {
-            Boolean success = clientResources.shutdown(quietPeriod, timeout, timeUnit).get(timeout, timeUnit);
-            if (success != null && success) {
-                log.info("ClientResources shutdown success.");
-            } else {
-                log.warn("ClientResources shutdown fail.");
-            }
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            this.shutdownAsync(quietPeriod, timeout, timeUnit).get();
+        } catch (InterruptedException | ExecutionException e) {
             log.error(e.getMessage(), e);
         }
     }
@@ -95,8 +96,10 @@ public class ClientResourcesHolder {
      * 根据预设参数，异步优雅关闭 ClientResources
      *
      * @return {@code Future<Boolean>} 是否无异常关闭成功
+     * @see ClientResources#shutdown(long, long, TimeUnit)
      */
-    public Future<Boolean> shutdownAsync() {
+    @Override
+    public CompletableFuture<Void> shutdownAsync() {
         return this.shutdownAsync(quietPeriod, timeout, timeUnit);
     }
 
@@ -108,8 +111,23 @@ public class ClientResourcesHolder {
      * @param timeUnit    时间单位
      * @return {@code Future<Boolean>} 是否无异常关闭成功
      */
-    public Future<Boolean> shutdownAsync(long quietPeriod, long timeout, TimeUnit timeUnit) {
-        return clientResources.shutdown(quietPeriod, timeout, timeUnit);
+    @Override
+    public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit timeUnit) {
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return clientResources.shutdown(quietPeriod, timeout, timeUnit).get(timeout, timeUnit);
+                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                        log.error(e.getMessage(), e);
+                        return false;
+                    }
+                })
+                .thenAccept(bool -> {
+                    if (bool != null && bool) {
+                        log.debug("ClientResources shutdown success.");
+                    } else {
+                        log.warn("ClientResources shutdown has error.");
+                    }
+                });
     }
 
 }

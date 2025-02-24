@@ -22,9 +22,9 @@ public class LettuceClientResourcesConfiguration {
     public LettuceClientResourcesConfiguration() {
     }
 
-    @Bean(name = "lettuceClientResources", destroyMethod = "shutdown")
     @ConditionalOnMissingBean
-    ClientResourcesHolder lettuceClientResources(ObjectProvider<ClientResourcesBuilderCustomizer> customizers) {
+    @Bean(name = "clientResourcesHolder", destroyMethod = "shutdown")
+    ClientResourcesHolder clientResourcesHolder(ObjectProvider<ClientResourcesBuilderCustomizer> customizers) {
         DefaultClientResources.Builder builder = DefaultClientResources.builder();
         customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
         return new ClientResourcesHolder(builder.build());
