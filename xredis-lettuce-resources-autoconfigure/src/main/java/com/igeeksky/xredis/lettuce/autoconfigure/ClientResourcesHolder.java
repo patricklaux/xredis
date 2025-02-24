@@ -45,7 +45,9 @@ public class ClientResourcesHolder {
      * @param timeUnit        时间单位
      */
     public ClientResourcesHolder(ClientResources clientResources, long timeout, long quietPeriod, TimeUnit timeUnit) {
-        Assert.isTrue(quietPeriod < timeout, "quietPeriod must be less than timeout.");
+        Assert.notNull(clientResources, "clientResources must not be null.");
+        Assert.notNull(timeUnit, "timeUnit must not be null.");
+        Assert.isTrue(timeout > 0, "timeout must be greater than 0.");
         Assert.isTrue(quietPeriod >= 0, "quietPeriod must be greater or equal to 0.");
         this.timeout = timeout;
         this.quietPeriod = quietPeriod;
