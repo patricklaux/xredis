@@ -26,6 +26,5 @@
 ### 待完成任务
 
 - [ ] 【开发】 closeAsync，shutdown 释放资源
-- [ ] 【开发】 RedisOperatorPool
 - [ ] 【文档】 Reference
 - [ ] 【开发】 RedisPooledOperator
