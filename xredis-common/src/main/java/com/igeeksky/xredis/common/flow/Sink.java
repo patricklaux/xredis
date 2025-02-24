@@ -13,8 +13,6 @@ public interface Sink<E> {
 
     /**
      * 订阅
-     * <p>
-     * 由 Flow 调用
      *
      * @param subscriber  订阅者
      * @param parallelism 并行度
@@ -31,28 +29,41 @@ public interface Sink<E> {
     void error(Throwable t);
 
     /**
-     * 接收上游数据
+     * 接收上游消息
      * <p>
      * 由上游发布者调用
      *
-     * @param element 下游接收数据
-     * @return 下游是否接收成功
+     * @param element 消息元素
+     * @return 是否成功接收消息
      */
     boolean next(E element);
 
     /**
-     * 暂停订阅
+     * 暂停拉取消息
      * <p>
-     * 由 Subscription（或 Disposable） 调用
+     * {@code Datasource ---X--> Flow -----> Subscriber}
+     * <p>
+     * 仅暂停拉取消息，已拉取的消息将继续推送给订阅者，直到数据池为空。
      *
-     * @param pauseTime 暂停时间
+     * @param pauseTime 暂停时长（达到此时长后，自动恢复拉取消息）
      */
-    void pause(Duration pauseTime);
+    void pausePull(Duration pauseTime);
 
     /**
-     * 取消订阅
+     * 暂停推送消息
      * <p>
-     * 由 Subscription（或 Disposable，或 Flow） 调用
+     * {@code Datasource -----> Flow ---X--> Subscriber}
+     * <p>
+     * 仅暂停推送消息，拉取消息任务仍将继续，直到数据池已满。
+     *
+     * @param pauseTime 暂停时长（达到此时长后，自动恢复推送消息）
+     */
+    void pausePush(Duration pauseTime);
+
+    /**
+     * 完全取消订阅
+     * <p>
+     * 调用此方法后不可恢复，需重新订阅
      */
     void cancel();
 

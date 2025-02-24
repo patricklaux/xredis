@@ -16,15 +16,15 @@
 - [X] 【开发】 Redis Lua 脚本执行失败重加载机制（RedisNoScriptException 异常处理）
 - [X] 【开发】 RedisSyncOperator, RedisAsyncOperator, RedisReactiveOperator
 - [X] 【开发】 MavenCentral：注册、试发布组件
-- [X] 【开发】 StreamGenericContainer（合并多个 Stream 为一个 xread 命令调用）
+- [X] 【开发】 StreamContainer（合并多个 Stream 为一个 xread 命令调用）
+- [X] 【开发】 StreamGenericContainer
 - [X] 【开发】 补充代码注释
 - [X] 【开发】 RedisAsyncOperator, RedisReactiveOperator：evalRedisScript
 - [X] 【开发】 RedisOperatorFactory：executor shutdown 释放资源
+- [X] 【开发】 Xcache 适配 Xredis 接口
 
 ### 待完成任务
 
-- [ ] 【开发】 Xcache 适配 Xredis 接口
-- [ ] 【开发】 StreamContainer 改成 block 和 nonBlock 两类
 - [ ] 【开发】 closeAsync，shutdown 释放资源
 - [ ] 【开发】 RedisOperatorPool
 - [ ] 【文档】 Reference

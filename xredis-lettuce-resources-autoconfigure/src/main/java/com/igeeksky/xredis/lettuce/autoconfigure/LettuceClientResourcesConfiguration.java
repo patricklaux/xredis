@@ -1,6 +1,5 @@
 package com.igeeksky.xredis.lettuce.autoconfigure;
 
-import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,10 +24,10 @@ public class LettuceClientResourcesConfiguration {
 
     @Bean(name = "lettuceClientResources", destroyMethod = "shutdown")
     @ConditionalOnMissingBean
-    ClientResources lettuceClientResources(ObjectProvider<ClientResourcesBuilderCustomizer> customizers) {
+    ClientResourcesHolder lettuceClientResources(ObjectProvider<ClientResourcesBuilderCustomizer> customizers) {
         DefaultClientResources.Builder builder = DefaultClientResources.builder();
         customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
-        return builder.build();
+        return new ClientResourcesHolder(builder.build());
     }
 
 }

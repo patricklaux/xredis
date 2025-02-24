@@ -11,7 +11,7 @@ import java.time.Duration;
 public interface Disposable {
 
     /**
-     * 关闭流并释放资源
+     * 放弃订阅：关闭流并释放资源
      */
     void dispose();
 
@@ -21,12 +21,5 @@ public interface Disposable {
      * @return true 已释放
      */
     boolean isDisposed();
-
-    /**
-     * 暂停订阅
-     *
-     * @param pauseTime 暂停时间
-     */
-    void pause(Duration pauseTime);
 
 }

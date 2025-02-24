@@ -1,7 +1,5 @@
 package com.igeeksky.xredis.common.flow;
 
-import java.time.Duration;
-
 /**
  * 可重试的无限流
  *
@@ -53,14 +51,6 @@ public class RetryFlow<E> implements Flow<E> {
         @Override
         public boolean isDisposed() {
             return sink == null;
-        }
-
-        @Override
-        public void pause(Duration pauseTime) {
-            if (sink == null) {
-                return;
-            }
-            sink.pause(pauseTime);
         }
 
     }

@@ -15,7 +15,7 @@ public class Limit {
     private final Long count;
 
     /**
-     * Creates a {@link Limit} given {@code offset} and {@code count}.
+     * 根据给定的 {@code offset} 和 {@code count} 创建 {@link Limit}
      *
      * @param offset 偏移量
      * @param count  最大条目数
@@ -25,36 +25,59 @@ public class Limit {
         this.count = count;
     }
 
+    /**
+     * 偏移量
+     *
+     * @return 偏移量
+     */
     public Long getOffset() {
         return offset;
     }
 
+    /**
+     * 最大条目数
+     *
+     * @return 最大条目数
+     */
     public Long getCount() {
         return count;
     }
 
+    /**
+     * 是否无限制
+     *
+     * @return 是否无限制
+     */
     public boolean isUnlimited() {
         return this == UNLIMITED;
     }
 
     /**
-     * @return an unlimited limit.
+     * 无限制
+     *
+     * @return 无限制
      */
     public static Limit unlimited() {
         return UNLIMITED;
     }
 
     /**
-     * Creates a {@link Limit} given {@code offset} and {@code count}.
+     * 根据给定的 {@code offset} 和 {@code count} 创建 {@link Limit}
      *
-     * @param offset the offset.
-     * @param count  the limit count.
-     * @return the {@link Limit}
+     * @param offset 偏移量
+     * @param count  最大条目数
+     * @return {@link Limit}
      */
     public static Limit create(long offset, long count) {
         return new Limit(offset, count);
     }
 
+    /**
+     * 根据给定的 {@code count} 创建 {@link Limit}
+     *
+     * @param count 最大条目数
+     * @return {@link Limit}
+     */
     public static Limit from(long count) {
         return new Limit(0L, count);
     }

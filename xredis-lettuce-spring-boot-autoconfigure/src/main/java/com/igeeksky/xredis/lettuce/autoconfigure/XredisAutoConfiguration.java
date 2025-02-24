@@ -1,11 +1,11 @@
 package com.igeeksky.xredis.lettuce.autoconfigure;
 
-import com.igeeksky.xredis.lettuce.cluster.LettuceClusterFactory;
+import com.igeeksky.xredis.common.RedisConfigException;
 import com.igeeksky.xredis.lettuce.LettuceSentinelFactory;
 import com.igeeksky.xredis.lettuce.LettuceStandaloneFactory;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
-import com.igeeksky.xredis.common.RedisConfigException;
+import com.igeeksky.xredis.lettuce.cluster.LettuceClusterFactory;
 import com.igeeksky.xredis.lettuce.config.ClientOptionsBuilderCustomizer;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceSentinelConfig;
@@ -17,7 +17,6 @@ import com.igeeksky.xredis.lettuce.props.LettuceStandalone;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.codec.StringCodec;
-import io.lettuce.core.resource.ClientResources;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -47,7 +46,7 @@ public class XredisAutoConfiguration {
     }
 
     @Bean(destroyMethod = "shutdown")
-    RedisOperatorFactory redisOperatorFactory(ClientResources clientResources,
+    RedisOperatorFactory redisOperatorFactory(ClientResourcesHolder clientResources,
                                               ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
 
         String id = xredisProperties.getId();
@@ -56,19 +55,19 @@ public class XredisAutoConfiguration {
         if (sentinel != null) {
             LettuceSentinelConfig config = LettuceConfigHelper.createConfig(id, sentinel);
             ClientOptions options = ClientOptionsHelper.clientOptions(config.getId(), sentinel.getClientOptions(), customizers);
-            return new LettuceSentinelFactory(config, options, clientResources);
+            return new LettuceSentinelFactory(config, options, clientResources.get());
         }
         LettuceCluster cluster = xredisProperties.getCluster();
         if (cluster != null) {
             LettuceClusterConfig config = LettuceConfigHelper.createConfig(id, cluster);
             ClusterClientOptions options = ClientOptionsHelper.clusterClientOptions(config.getId(), cluster.getClientOptions(), customizers);
-            return new LettuceClusterFactory(config, options, clientResources);
+            return new LettuceClusterFactory(config, options, clientResources.get());
         }
         LettuceStandalone standalone = xredisProperties.getStandalone();
         if (standalone != null) {
             LettuceStandaloneConfig config = LettuceConfigHelper.createConfig(id, standalone);
             ClientOptions options = ClientOptionsHelper.clientOptions(config.getId(), standalone.getClientOptions(), customizers);
-            return new LettuceStandaloneFactory(config, options, clientResources);
+            return new LettuceStandaloneFactory(config, options, clientResources.get());
         }
         throw new RedisConfigException("xredis.lettuce:[" + id + "] init error." + xredisProperties);
     }

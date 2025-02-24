@@ -31,9 +31,9 @@ public class RetrySink<E> implements Sink<E>, Runnable {
     private final ExecutorService executor;
     private final Subscription subscription;
 
-    private volatile long pauseTime;
-    private volatile boolean paused;
     private volatile boolean cancelled;
+    private volatile long restartPullTime;
+    private volatile long restartPushTime;
     private volatile Subscriber<E> subscriber;
 
     private volatile Future<?>[] futures;
@@ -83,12 +83,19 @@ public class RetrySink<E> implements Sink<E>, Runnable {
     }
 
     @Override
-    public void pause(Duration pauseTime) {
+    public void pausePull(Duration pauseTime) {
         Assert.notNull(pauseTime, "pauseTime must not be null");
-        long nanos = pauseTime.toNanos();
-        Assert.isTrue(nanos > 0, "pauseTime must be greater than 0");
-        this.pauseTime = nanos;
-        this.paused = true;
+        long millis = pauseTime.toMillis();
+        Assert.isTrue(millis > 0, "pauseTime must be greater than 0");
+        this.restartPullTime = System.currentTimeMillis() + millis;
+    }
+
+    @Override
+    public void pausePush(Duration pauseTime) {
+        Assert.notNull(pauseTime, "pauseTime must not be null");
+        long millis = pauseTime.toMillis();
+        Assert.isTrue(millis > 0, "pauseTime must be greater than 0");
+        this.restartPushTime = System.currentTimeMillis() + millis;
     }
 
     @Override
@@ -131,6 +138,15 @@ public class RetrySink<E> implements Sink<E>, Runnable {
      */
     public boolean isNotReady() {
         return (this.subscriber == null);
+    }
+
+    /**
+     * 是否处于暂停状态
+     *
+     * @return {@code true} 处于暂停状态； {@code false} 未处于暂停状态
+     */
+    public boolean isPullPaused() {
+        return this.restartPullTime > System.currentTimeMillis();
     }
 
     /**
@@ -182,13 +198,13 @@ public class RetrySink<E> implements Sink<E>, Runnable {
         }
     }
 
-    private static class ConsumeTask<E> implements RetrySubscription, Runnable {
+    private static class ConsumeTask<E> implements RetrySubscription<E>, Runnable {
 
         private final RetrySink<E> sink;
         private final AtomicInteger attempts = new AtomicInteger(0);
 
         private volatile E element;
-        private volatile long delay;
+        private volatile long delayNanos;
         private volatile boolean retry;
 
         public ConsumeTask(RetrySink<E> sink) {
@@ -199,23 +215,25 @@ public class RetrySink<E> implements Sink<E>, Runnable {
         public void run() {
             try {
                 while (true) {
-                    ArrayBlockingQueue<E> buf = this.sink.buffer;
                     Subscriber<E> s = this.sink.subscriber;
-                    if (this.sink.cancelled || s == null || buf == null) {
+                    if (this.sink.cancelled || s == null) {
                         return;
                     }
-                    if (this.sink.paused) {
-                        if (buf.isEmpty() && !this.retry) {
-                            return;
-                        }
-                        LockSupport.parkNanos(this.sink.pauseTime);
-                    }
-                    if (this.sink.cancelled) {
-                        return;
+                    long sleepMillis = sink.restartPushTime - System.currentTimeMillis();
+                    if (sleepMillis > 0) {
+                        long sleepNanos = sleepMillis * 1000000;
+                        long delay = this.delayNanos;
+                        this.delayNanos = delay - sleepNanos;
+                        LockSupport.parkNanos(sleepNanos);
+                        continue;
                     }
                     if (this.retry) {
                         this.processFailed(s);
                         continue;
+                    }
+                    ArrayBlockingQueue<E> buf = this.sink.buffer;
+                    if (buf == null) {
+                        return;
                     }
                     E element = buf.poll();
                     if (element == null) {
@@ -224,7 +242,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
                     try {
                         s.onNext(element);
                     } catch (Throwable t) {
-                        s.onError(t, this.element = element, attempts.incrementAndGet(), this);
+                        s.onError(t, element, attempts.incrementAndGet(), this);
                     }
                 }
             } catch (Throwable t) {
@@ -236,38 +254,46 @@ public class RetrySink<E> implements Sink<E>, Runnable {
          * 失败重试
          */
         private void processFailed(Subscriber<E> s) {
-            if (this.delay > 0) {
-                LockSupport.parkNanos(this.delay);
+            E e1 = this.element;
+            long delay = this.delayNanos;
+            if (delay > 0) {
+                LockSupport.parkNanos(delay);
                 if (this.sink.cancelled) {
                     return;
                 }
             }
             try {
-                s.onNext(element);
+                s.onNext(e1);
                 this.reset();
             } catch (Throwable t) {
                 this.retry = false;
-                s.onError(t, element, attempts.incrementAndGet(), this);
+                this.element = null;
+                s.onError(t, e1, attempts.incrementAndGet(), this);
             }
         }
 
         private void reset() {
             this.retry = false;
+            this.element = null;
             this.attempts.set(0);
         }
 
         @Override
-        public void retry() {
-            this.delay = 0;
+        public void retry(E element) {
+            Assert.notNull(element, "retry element must not be null.");
+            this.element = element;
+            this.delayNanos = 0;
             this.retry = true;
         }
 
         @Override
-        public void retry(Duration delay) {
+        public void retry(E element, Duration delay) {
+            Assert.notNull(element, "retry element must not be null.");
             Assert.notNull(delay, "delay must not be null.");
             long nanos = delay.toNanos();
             Assert.isTrue(nanos > 0, "delay must be greater than 0.");
-            this.delay = nanos;
+            this.element = element;
+            this.delayNanos = nanos;
             this.retry = true;
         }
 
@@ -277,8 +303,13 @@ public class RetrySink<E> implements Sink<E>, Runnable {
         }
 
         @Override
-        public void pause(Duration time) {
-            this.sink.pause(time);
+        public void pausePull(Duration pauseTime) {
+            this.sink.pausePull(pauseTime);
+        }
+
+        @Override
+        public void pausePush(Duration pauseTime) {
+            this.sink.pausePush(pauseTime);
         }
 
     }

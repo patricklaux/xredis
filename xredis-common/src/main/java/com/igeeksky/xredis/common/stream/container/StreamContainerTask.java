@@ -90,7 +90,7 @@ public class StreamContainerTask<K, V> implements StreamTask<K, V> {
                 iterator.remove();
                 continue;
             }
-            if (sink.isNotReady() || sink.isNotEnoughSpace()) {
+            if (sink.isNotReady() || sink.isNotEnoughSpace() || sink.isPullPaused()) {
                 continue;
             }
             sinks.add(sink);

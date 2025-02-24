@@ -18,8 +18,13 @@ public record DefaultSubscription<E>(Sink<E> sink) implements Subscription {
     }
 
     @Override
-    public void pause(Duration time) {
-        sink.pause(time);
+    public void pausePull(Duration time) {
+        sink.pausePull(time);
+    }
+
+    @Override
+    public void pausePush(Duration pauseTime) {
+        sink.pausePush(pauseTime);
     }
 
 }

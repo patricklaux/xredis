@@ -23,6 +23,7 @@ public interface RedisSyncOperator<K, V> extends ConnectionMode,
     /**
      * 获取 RedisServer 当前时间（秒）
      *
+     * @param convertor 时间格式转换器
      * @return {@code long} – 当前时间（秒）
      */
     default Long timeSeconds(TimeConvertor<V> convertor) {
@@ -32,6 +33,7 @@ public interface RedisSyncOperator<K, V> extends ConnectionMode,
     /**
      * 获取 RedisServer 当前时间（毫秒）
      *
+     * @param convertor 时间格式转换器
      * @return {@code long} – 当前时间（毫秒）
      */
     default Long timeMillis(TimeConvertor<V> convertor) {
@@ -41,6 +43,7 @@ public interface RedisSyncOperator<K, V> extends ConnectionMode,
     /**
      * 获取 RedisServer 当前时间（微秒）
      *
+     * @param convertor 时间格式转换器
      * @return {@code long} – 当前时间（微秒）
      */
     default Long timeMicros(TimeConvertor<V> convertor) {

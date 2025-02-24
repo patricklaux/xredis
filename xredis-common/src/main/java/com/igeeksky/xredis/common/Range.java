@@ -5,8 +5,9 @@ import com.igeeksky.xtool.core.lang.Assert;
 import java.util.Objects;
 
 /**
- * 数据的上限和下限
+ * 数据范围
  *
+ * @param <T> 限定值类型
  * @author Patrick.Lau
  * @since 1.0.0
  */
@@ -15,6 +16,12 @@ public class Range<T> {
     private final Boundary<T> lower;
     private final Boundary<T> upper;
 
+    /**
+     * 根据给定的上限和下限，创建 {@link Range} 对象
+     *
+     * @param lower 下限（不能为空）
+     * @param upper 上限（不能为空）
+     */
     private Range(Boundary<T> lower, Boundary<T> upper) {
         Assert.notNull(lower, "Lower bound must not be null");
         Assert.notNull(upper, "Upper bound must not be null");
@@ -22,72 +29,128 @@ public class Range<T> {
         this.upper = upper;
     }
 
+    /**
+     * 获取下限
+     *
+     * @return 下限
+     */
     public Boundary<T> getLower() {
         return lower;
     }
 
+    /**
+     * 获取上限
+     *
+     * @return 上限
+     */
     public Boundary<T> getUpper() {
         return upper;
     }
 
+    /**
+     * 判断是否无限制
+     *
+     * @return {@code true} 无限制，其它情况则返回 {@code false}
+     */
     public boolean isUnbounded() {
         return lower.isUnbounded() && upper.isUnbounded();
     }
 
     /**
-     * Create an unbounded range.
+     * 创建一个无上下限的 {@link Range}
      *
-     * @param <T> type of the range.
-     * @return the range.
+     * @param <T> 限定值类型
+     * @return 无上下限的 {@link Range} 对象
      */
     public static <T> Range<T> unbounded() {
         return new Range<>(Boundary.unbounded(), Boundary.unbounded());
     }
 
     /**
-     * Create a range that excludes the lower and upper bounds.
+     * 开区间（不包含给定的上限和下限）
      *
-     * @param lower must not be {@code null}.
-     * @param upper must not be {@code null}.
-     * @param <T>   type of the range.
-     * @return the range.
+     * @param lower 下限（不能为空）
+     * @param upper 上限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
      */
     public static <T> Range<T> open(T lower, T upper) {
         return new Range<>(Boundary.excluding(lower), Boundary.excluding(upper));
     }
 
     /**
-     * Create a range that includes the lower and upper bounds.
+     * 闭区间（包含给定的上限和下限）
      *
-     * @param lower must not be {@code null}.
-     * @param upper must not be {@code null}.
-     * @param <T>   type of the range.
-     * @return the range.
+     * @param lower 下限（不能为空）
+     * @param upper 上限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
      */
     public static <T> Range<T> closed(T lower, T upper) {
         return new Range<>(Boundary.including(lower), Boundary.including(upper));
     }
 
+    /**
+     * 根据给定的上限和下限，创建 {@link Range} 对象
+     *
+     * @param lower 下限（不能为空）
+     * @param upper 上限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
+     */
     public static <T> Range<T> from(Boundary<T> lower, Boundary<T> upper) {
         return new Range<>(lower, upper);
     }
 
+    /**
+     * 无上限 且 大于下限
+     *
+     * @param lower 下限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
+     */
     public static <T> Range<T> gt(T lower) {
         return new Range<>(Boundary.excluding(lower), Boundary.unbounded());
     }
 
+    /**
+     * 无上限 且 大于等于下限
+     *
+     * @param lower 下限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
+     */
     public static <T> Range<T> gte(T lower) {
         return new Range<>(Boundary.including(lower), Boundary.unbounded());
     }
 
+    /**
+     * 无下限 且 小于上限
+     *
+     * @param upper 上限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
+     */
     public static <T> Range<T> lt(T upper) {
         return new Range<>(Boundary.unbounded(), Boundary.excluding(upper));
     }
 
+    /**
+     * 无下限 且 小于等于上限
+     *
+     * @param upper 上限（不能为空）
+     * @param <T>   限定值类型
+     * @return {@link Range} 对象
+     */
     public static <T> Range<T> lte(T upper) {
         return new Range<>(Boundary.unbounded(), Boundary.including(upper));
     }
 
+    /**
+     * 边界
+     *
+     * @param <T> 限定值类型
+     */
     public static class Boundary<T> {
 
         private static final Boundary<?> UNBOUNDED = new Boundary<>(null, true);
@@ -102,10 +165,10 @@ public class Range<T> {
         }
 
         /**
-         * Creates an unbounded (infinite) boundary that marks the beginning/end of the range.
+         * 创建一个无限定值的边界
          *
-         * @param <T> inferred type.
-         * @return the unbounded boundary.
+         * @param <T> 限定值类型
+         * @return {@link Boundary} 对象
          */
         @SuppressWarnings("unchecked")
         public static <T> Boundary<T> unbounded() {
@@ -113,52 +176,51 @@ public class Range<T> {
         }
 
         /**
-         * Create a {@link Boundary} based on the {@code value} that includes the value when comparing ranges. Greater or
-         * equals, less or equals. but not Greater or equal, less or equal to {@code value}.
+         * 创建不包含限定值的边界
          *
-         * @param value must not be {@code null}.
-         * @param <T>   value type.
-         * @return the {@link Boundary}.
+         * @param value 限定值（不能为空）
+         * @param <T>   限定值类型
+         * @return {@link Boundary} 对象
          */
         public static <T> Boundary<T> including(T value) {
-
             Assert.notNull(value, "Value must not be null");
-
             return new Boundary<>(value, true);
         }
 
         /**
-         * Create a {@link Boundary} based on the {@code value} that excludes the value when comparing ranges. Greater or less
-         * to {@code value} but not greater or equal, less or equal.
+         * 创建一个不包含限定值的边界
          *
-         * @param value must not be {@code null}.
-         * @param <T>   value type.
-         * @return the {@link Boundary}.
+         * @param value 限定值（不能为空）
+         * @param <T>   限定值类型
+         * @return {@link Boundary} 对象
          */
         public static <T> Boundary<T> excluding(T value) {
-
             Assert.notNull(value, "Value must not be null");
-
             return new Boundary<>(value, false);
         }
 
         /**
-         * @return the value
+         * 获取限定值
+         *
+         * @return 限定值
          */
         public T getValue() {
             return value;
         }
 
         /**
-         * @return {@code true} if the boundary includes the value.
+         * 是否包含限定值
+         *
+         * @return {@code true} 包含限定值，否则返回 {@code false}
          */
         public boolean isIncluding() {
             return including;
         }
 
         /**
-         * @return {@code true} if the bound is unbounded.
-         * @since 6.0
+         * 是否无限制
+         *
+         * @return {@code true} 无限制，否则返回 {@code false}
          */
         public boolean isUnbounded() {
             return this == UNBOUNDED;
