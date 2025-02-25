@@ -373,6 +373,15 @@ public interface RedisOperatorProxy {
      */
     CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range, Limit limit);
 
+    /**
+     * 删除成员
+     *
+     * @param key     键
+     * @param members 成员列表
+     * @return {@code CompletableFuture<Long>} – 删除的成员数量
+     */
+    CompletableFuture<Long> zrem(byte[] key, byte[]... members);
+
     // -------------------------- sorted set command end ---------------------
 
 

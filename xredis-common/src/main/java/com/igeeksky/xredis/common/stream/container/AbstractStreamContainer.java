@@ -117,23 +117,27 @@ public abstract class AbstractStreamContainer<K, V> implements Shutdown {
      */
     @Override
     public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit unit) {
-        if (this.schedulePullFuture != null) {
-            this.schedulePullFuture.cancel(false);
-        }
-        if (this.vitrualPullFuture != null) {
-            this.vitrualPullFuture.cancel(false);
-        }
-        if (this.scheduleConsumeFuture != null) {
-            this.scheduleConsumeFuture.cancel(false);
-        }
-        if (this.quietPeriod > 0) {
-            try {
-                Thread.sleep(this.quietPeriod);
-            } catch (Throwable e) {
-                log.error(e.getMessage(), e);
+        return CompletableFuture.supplyAsync(() -> {
+            if (this.schedulePullFuture != null) {
+                this.schedulePullFuture.cancel(false);
             }
-        }
-        return this.operator.closeAsync();
+            if (this.vitrualPullFuture != null) {
+                this.vitrualPullFuture.cancel(false);
+            }
+            if (this.scheduleConsumeFuture != null) {
+                this.scheduleConsumeFuture.cancel(false);
+            }
+            return null;
+        }).thenCompose(ignore -> {
+            if (this.quietPeriod > 0) {
+                try {
+                    Thread.sleep(this.quietPeriod);
+                } catch (Throwable e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+            return this.operator.closeAsync();
+        });
     }
 
 }

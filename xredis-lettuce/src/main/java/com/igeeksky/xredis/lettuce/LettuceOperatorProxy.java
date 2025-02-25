@@ -523,6 +523,11 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     }
 
     @Override
+    public CompletableFuture<Long> zrem(byte[] key, byte[]... members) {
+        return this.redisOperator.async().zrem(key, members).toCompletableFuture();
+    }
+
+    @Override
     public <T> CompletableFuture<T> eval(RedisScript script, byte[][] keys, byte[]... args) {
         ScriptOutputType scriptOutputType = getScriptOutputType(script.getResultType());
         RedisFuture<T> future;
