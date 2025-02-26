@@ -2,6 +2,7 @@ package com.igeeksky.xredis.lettuce;
 
 import com.igeeksky.xredis.common.Limit;
 import com.igeeksky.xredis.common.Range;
+import com.igeeksky.xredis.common.ScoredValue;
 import com.igeeksky.xredis.common.*;
 import com.igeeksky.xredis.lettuce.api.RedisAsyncOperator;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
@@ -489,6 +490,33 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     }
 
     @Override
+    public CompletableFuture<Long> zadd(byte[] key, double score, byte[] member) {
+        return this.redisOperator.async().zadd(key, score, member).toCompletableFuture();
+    }
+
+    @SafeVarargs
+    @Override
+    public final CompletableFuture<Long> zadd(byte[] key, ScoredValue<byte[]>... scoredValues) {
+        if (ArrayUtils.isEmpty(scoredValues)) {
+            return CompletableFuture.completedFuture(0L);
+        }
+        RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
+        int size = scoredValues.length;
+        if (size <= batchSize) {
+            return async.zadd(key, LettuceConvertor.toScoredValues(scoredValues))
+                    .toCompletableFuture();
+        }
+        // 当数据量超过阈值，分批查询
+        CompletableFuture<Long> future = CompletableFuture.completedFuture(0L);
+        return combineLongFutures(future, this.splitApply(scoredValues, subValues -> async.zadd(key, LettuceConvertor.toScoredValues(subValues))));
+    }
+
+    @Override
+    public CompletableFuture<Long> zcard(byte[] key) {
+        return this.redisOperator.async().zcard(key).toCompletableFuture();
+    }
+
+    @Override
     public CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range) {
         return CompletableFuture.completedFuture(range)
                 .thenApply(LettuceConvertor::toRange)
@@ -636,6 +664,35 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         return futures;
     }
 
+    /**
+     * 按 batchSize 分割数据，并执行异步操作
+     *
+     * @param data   待分割的数据
+     * @param mapper 执行异步操作的函数
+     * @param <R>    返回数据类型
+     * @return {@code List<CompletionStage<R>>} 待合并的异步操作结果
+     */
+    @SuppressWarnings("unchecked")
+    private <R> List<CompletionStage<R>> splitApply(ScoredValue<byte[]>[] data,
+                                                    Function<ScoredValue<byte[]>[], CompletionStage<R>> mapper) {
+        int size = data.length;
+        List<CompletionStage<R>> futures = new ArrayList<>(size / batchSize + 1);
+        for (int i = 0; i < size; ) {
+            ScoredValue<byte[]>[] partition;
+            int remain = size - i;
+            if (remain >= batchSize) {
+                partition = new ScoredValue[batchSize];
+                System.arraycopy(data, i, partition, 0, batchSize);
+                i += batchSize;
+            } else {
+                partition = new ScoredValue[remain];
+                System.arraycopy(data, i, partition, 0, remain);
+                i += remain;
+            }
+            futures.add(mapper.apply(partition));
+        }
+        return futures;
+    }
 
     /**
      * 按 batchSize 分割数据，并执行异步操作

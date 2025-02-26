@@ -2,6 +2,7 @@ package com.igeeksky.xredis.lettuce;
 
 import com.igeeksky.xredis.common.Limit;
 import com.igeeksky.xredis.common.Range;
+import com.igeeksky.xredis.common.ScoredValue;
 import com.igeeksky.xredis.common.stream.*;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
@@ -196,7 +197,7 @@ public abstract class LettuceConvertor {
             return io.lettuce.core.Range.unbounded();
         }
 
-        return io.lettuce.core.Range.from(toBoundary(range.getLower()), toBoundary(range.getLower()));
+        return io.lettuce.core.Range.from(toBoundary(range.getLower()), toBoundary(range.getUpper()));
     }
 
     /**
@@ -234,6 +235,62 @@ public abstract class LettuceConvertor {
         }
 
         return io.lettuce.core.Limit.create(limit.getOffset(), limit.getCount());
+    }
+
+    /**
+     * Lettuce {@link io.lettuce.core.ScoredValue} 转换为 {@link ScoredValue}
+     *
+     * @param <V>          值类型
+     * @param scoredValues Lettuce {@link io.lettuce.core.ScoredValue} 对象列表
+     * @return {@link ScoredValue} 对象列表
+     */
+    public static <V> List<ScoredValue<V>> fromScoredValues(List<io.lettuce.core.ScoredValue<V>> scoredValues) {
+        if (CollectionUtils.isEmpty(scoredValues)) {
+            return Collections.emptyList();
+        }
+        List<ScoredValue<V>> result = new ArrayList<>(scoredValues.size());
+        for (io.lettuce.core.ScoredValue<V> scoredValue : scoredValues) {
+            ScoredValue<V> sv = fromScoredValue(scoredValue);
+            if (sv != null) {
+                result.add(sv);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Lettuce {@link io.lettuce.core.ScoredValue} 转换为 {@link ScoredValue}
+     *
+     * @param <V>         值类型
+     * @param scoredValue Lettuce {@link io.lettuce.core.ScoredValue} 对象
+     * @return {@link ScoredValue} 对象
+     */
+    public static <V> ScoredValue<V> fromScoredValue(io.lettuce.core.ScoredValue<V> scoredValue) {
+        if (scoredValue != null && scoredValue.hasValue()) {
+            return ScoredValue.just(scoredValue.getScore(), scoredValue.getValue());
+        }
+        return null;
+    }
+
+    /**
+     * {@link ScoredValue} 转换为 Lettuce {@link io.lettuce.core.ScoredValue}
+     *
+     * @param <V>          值类型
+     * @param scoredValues {@link ScoredValue} 对象列表
+     * @return Lettuce {@link io.lettuce.core.ScoredValue} 对象列表
+     */
+    public static <V> io.lettuce.core.ScoredValue<V>[] toScoredValues(ScoredValue<V>[] scoredValues) {
+        if (scoredValues == null) {
+            return null;
+        }
+        int size = scoredValues.length;
+        @SuppressWarnings("unchecked")
+        io.lettuce.core.ScoredValue<V>[] result = new io.lettuce.core.ScoredValue[size];
+        for (int i = 0; i < size; i++) {
+            ScoredValue<V> scoredValue = scoredValues[i];
+            result[i] = io.lettuce.core.ScoredValue.just(scoredValue.getScore(), scoredValue.getValue());
+        }
+        return result;
     }
 
 }

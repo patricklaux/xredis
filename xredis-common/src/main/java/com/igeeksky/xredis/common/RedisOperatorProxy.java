@@ -336,6 +336,36 @@ public interface RedisOperatorProxy {
     // -------------------------- sorted set command start -------------------
 
     /**
+     * 添加 Redis-SortedSet 的成员并设置分值（或更新已有成员的分值）
+     *
+     * @param key    Redis-SortedSet 的键
+     * @param member Redis-SortedSet 的成员
+     * @param score  Redis-SortedSet 的成员对应的分值
+     * @return {@code CompletableFuture<Long>} – 新增成员数量，值表示的状态详见 {@code ZADD} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
+     */
+    CompletableFuture<Long> zadd(byte[] key, double score, byte[] member);
+
+    /**
+     * 添加 Redis-SortedSet 的成员并设置分值（或更新已有成员的分值）
+     *
+     * @param key          Redis-SortedSet 的键
+     * @param scoredValues {@code 分值-成员} 列表
+     * @return {@code CompletableFuture<Long>} – 新增成员数量，值表示的状态详见 {@code ZADD} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
+     */
+    CompletableFuture<Long> zadd(byte[] key, ScoredValue<byte[]>... scoredValues);
+
+    /**
+     * 获取 Redis-SortedSet 的成员数量
+     *
+     * @param key 键
+     * @return {@code CompletableFuture<Long>} – 成员数量
+     * @see <a href="https://redis.io/docs/latest/commands/zcard/">ZCARD</a>
+     */
+    CompletableFuture<Long> zcard(byte[] key);
+
+    /**
      * 根据给定的键字母序范围，返回成员列表
      *
      * @param key   键
@@ -379,6 +409,7 @@ public interface RedisOperatorProxy {
      * @param key     键
      * @param members 成员列表
      * @return {@code CompletableFuture<Long>} – 删除的成员数量
+     * @see <a href="https://redis.io/docs/latest/commands/zrem/">ZREM</a>
      */
     CompletableFuture<Long> zrem(byte[] key, byte[]... members);
 

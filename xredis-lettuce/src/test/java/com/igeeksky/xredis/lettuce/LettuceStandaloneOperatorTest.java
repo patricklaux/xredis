@@ -145,6 +145,16 @@ class LettuceStandaloneOperatorTest {
         redisProxyTestCase.hmget2();
     }
 
+    @Test
+    void zadd() {
+        redisProxyTestCase.zadd();
+    }
+
+    @Test
+    void zrange() {
+        redisProxyTestCase.zrange();
+    }
+
     /**
      * 特殊测试
      * <p>

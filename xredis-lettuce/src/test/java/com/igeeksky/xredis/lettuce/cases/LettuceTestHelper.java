@@ -1,9 +1,10 @@
 package com.igeeksky.xredis.lettuce.cases;
 
 
-import com.igeeksky.xredis.lettuce.cluster.LettuceClusterFactory;
+import com.igeeksky.xredis.common.ScoredValue;
 import com.igeeksky.xredis.lettuce.LettuceSentinelFactory;
 import com.igeeksky.xredis.lettuce.LettuceStandaloneFactory;
+import com.igeeksky.xredis.lettuce.cluster.LettuceClusterFactory;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceSentinelConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceStandaloneConfig;
@@ -49,8 +50,8 @@ public class LettuceTestHelper {
         // standalone.setNode("192.168.50.157:6379");
         // standalone.setNodes(List.of("192.168.50.157:6378"));
 
-        // standalone.setNode("127.0.0.1:6379");
-        // standalone.setNodes(List.of("127.0.0.1:6378"));
+        standalone.setNode("127.0.0.1:6379");
+        standalone.setNodes(List.of("127.0.0.1:6378"));
 
         standalone.setReadFrom("upstream");
 
@@ -277,6 +278,40 @@ public class LettuceTestHelper {
             keyFieldValues.put(codec.encode(key), fieldValues);
         }
         return keyFieldValues;
+    }
+
+    /**
+     * 创建 键-分值-成员 集合
+     *
+     * @param size   键数量
+     * @param length 成员数量
+     * @param prefix 前缀
+     * @return key 键-分值-成员 集合
+     */
+    public static Map<byte[], List<ScoredValue<byte[]>>> createKeyScoredValueList(int size, int length, String prefix) {
+        Map<byte[], List<ScoredValue<byte[]>>> keyScoredValues = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = prefix + i + RandomUtils.nextString(18);
+            List<ScoredValue<byte[]>> scoredValues = createScoredValues(length, prefix);
+            keyScoredValues.put(codec.encode(key), scoredValues);
+        }
+        return keyScoredValues;
+    }
+
+    /**
+     * 创建 分值-成员 列表
+     *
+     * @param length 成员数量
+     * @param prefix 前缀
+     * @return key 键-字段-值 集合
+     */
+    public static List<ScoredValue<byte[]>> createScoredValues(int length, String prefix) {
+        List<ScoredValue<byte[]>> scoredValues = new ArrayList<>(length);
+        for (int j = 0; j < length; j++) {
+            byte[] member = codec.encode(prefix + ":" + j + RandomUtils.nextString(10));
+            scoredValues.add(ScoredValue.just(RandomUtils.nextDouble(10000, 100000), member));
+        }
+        return scoredValues;
     }
 
 }

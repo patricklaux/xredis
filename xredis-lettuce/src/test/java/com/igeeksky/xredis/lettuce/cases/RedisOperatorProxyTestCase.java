@@ -1,8 +1,11 @@
 package com.igeeksky.xredis.lettuce.cases;
 
+import com.igeeksky.xredis.common.Limit;
+import com.igeeksky.xredis.common.Range;
+import com.igeeksky.xredis.common.RedisOperatorProxy;
+import com.igeeksky.xredis.common.ScoredValue;
 import com.igeeksky.xredis.lettuce.LettuceOperatorProxy;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
-import com.igeeksky.xredis.common.RedisOperatorProxy;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
 import com.igeeksky.xtool.core.KeyValue;
 import com.igeeksky.xtool.core.collection.Maps;
@@ -647,6 +650,67 @@ public class RedisOperatorProxyTestCase {
         LettuceTestHelper.validateValues(fields, result, total);
 
         operatorProxy.del(keys).join();
+    }
+
+    public void zrange() {
+        String prefix = "test-zrange";
+        byte[] key = codec.encode(prefix);
+        operatorProxy.del(key).join();
+
+        int length = 20000;
+        List<ScoredValue<byte[]>> scoredValues = new ArrayList<>(length);
+        for (int i = 0; i < length; i++) {
+            byte[] member = codec.encode(prefix + ":" + i + RandomUtils.nextString(10));
+            scoredValues.add(ScoredValue.just(i, member));
+        }
+        @SuppressWarnings("unchecked")
+        ScoredValue<byte[]>[] array = scoredValues.toArray(new ScoredValue[0]);
+        Long zadd = operatorProxy.zadd(key, array).join();
+
+        Assertions.assertEquals(scoredValues.size(), zadd);
+        Assertions.assertEquals(scoredValues.size(), operatorProxy.zcard(key).join());
+
+        List<byte[]> zrange = operatorProxy.zrangebyscore(key, Range.closed(0, 5000)).join();
+        Assertions.assertEquals(5001, zrange.size());
+
+        zrange = operatorProxy.zrangebyscore(key, Range.closed(0, 5000), Limit.from(1000)).join();
+        Assertions.assertEquals(1000, zrange.size());
+
+        operatorProxy.del(key).join();
+    }
+
+    public void zadd() {
+        this.zadd_zrange_zrem_zcard("test-zadd:", 9998);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 9999);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 10000);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 10001);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 10002);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 19998);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 19999);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 20000);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 20001);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 20002);
+        this.zadd_zrange_zrem_zcard("test-zadd:", 120002);
+    }
+
+    public void zadd_zrange_zrem_zcard(String prefix, int length) {
+        byte[] key = codec.encode(prefix);
+        operatorProxy.del(key).join();
+
+        List<ScoredValue<byte[]>> scoredValues = LettuceTestHelper.createScoredValues(length, prefix);
+        @SuppressWarnings("unchecked")
+        ScoredValue<byte[]>[] array = scoredValues.toArray(new ScoredValue[0]);
+        Long zadd = operatorProxy.zadd(key, array).join();
+        Assertions.assertEquals(length, zadd);
+
+        List<byte[]> zrange = operatorProxy.zrangebyscore(key, Range.closed(0, Double.MAX_VALUE)).join();
+        // List<byte[]> zrange = redisOperator.async().zrangebyscore(key, io.lettuce.core.Range.create(0, Double.MAX_VALUE))
+        //         .toCompletableFuture().join();
+        Assertions.assertEquals(length, zrange.size());
+
+        operatorProxy.zrem(key, zrange.toArray(new byte[0][]));
+
+        Assertions.assertEquals(0, operatorProxy.zcard(key).join());
     }
 
 }
