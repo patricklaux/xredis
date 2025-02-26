@@ -195,6 +195,13 @@ public class RedisOperatorTestCase {
         }
     }
 
+    public void zadd_null_member() {
+        this.redisOperator.async()
+                .zadd(codec.encode("test-zadd"), 1, null)
+                .toCompletableFuture()
+                .join();
+    }
+
     void keys() {
         int size = 10;
         String prefix = "test-clear:";

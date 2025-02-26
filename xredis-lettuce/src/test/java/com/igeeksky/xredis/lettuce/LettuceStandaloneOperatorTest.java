@@ -58,6 +58,11 @@ class LettuceStandaloneOperatorTest {
     }
 
     @Test
+    void zadd_null_member() {
+        redisTestCase.zadd_null_member();
+    }
+
+    @Test
     @Disabled
     void psetex3() {
         redisProxyTestCase.psetex3();
