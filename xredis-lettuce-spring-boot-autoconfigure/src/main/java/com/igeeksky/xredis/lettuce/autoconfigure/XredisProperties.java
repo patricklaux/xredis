@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.lettuce.autoconfigure;
 
-import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.common.RedisConfigException;
+import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.lettuce.props.LettuceCluster;
 import com.igeeksky.xredis.lettuce.props.LettuceSentinel;
 import com.igeeksky.xredis.lettuce.props.LettuceStandalone;

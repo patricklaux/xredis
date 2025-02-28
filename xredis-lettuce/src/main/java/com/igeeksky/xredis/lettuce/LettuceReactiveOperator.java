@@ -5,7 +5,8 @@ import io.lettuce.core.RedisReactiveCommandsImpl;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
-import reactor.core.publisher.Mono;
+
+import java.util.function.Supplier;
 
 /**
  * RedisReactiveOperator 实现类（非集群）
@@ -35,7 +36,7 @@ public class LettuceReactiveOperator<K, V> extends RedisReactiveCommandsImpl<K, 
      * @param codec      编解码器
      * @param parser     json 解析器
      */
-    public LettuceReactiveOperator(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec, Mono<JsonParser> parser) {
+    public LettuceReactiveOperator(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec, Supplier<JsonParser> parser) {
         super(connection, codec, parser);
     }
 

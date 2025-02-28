@@ -39,8 +39,22 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     /**
      * 创建 RedisOperatorProxy
+     * <p>
+     * batchSize 默认值：10000 <br>
+     * batchTimeout 默认值：60000
      *
-     * @param batchSize     命令提交数量阈值（如 batchSize 为 10000，写入 100 万数据会分 100 批次提交到 Redis）
+     * @param redisOperator RedisOperator
+     */
+    public LettuceOperatorProxy(RedisOperator<byte[], byte[]> redisOperator) {
+        this(10000, redisOperator);
+    }
+
+    /**
+     * 创建 RedisOperatorProxy
+     *
+     * @param batchSize     单批次命令提交数量阈值 <br>
+     *                      如 batchSize 设为 10000，当 {@link RedisOperatorProxy} 接收到单次操作 100 万条数据的请求时，
+     *                      会将数据切分为 100 份，每份 10000条数据，然后分 100 批次提交到 RedisServer。
      * @param redisOperator RedisOperator
      */
     public LettuceOperatorProxy(int batchSize, RedisOperator<byte[], byte[]> redisOperator) {
@@ -53,6 +67,11 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     @Override
     public boolean isCluster() {
         return redisOperator.isCluster();
+    }
+
+    @Override
+    public long getBatchSize() {
+        return this.batchSize;
     }
 
     @Override

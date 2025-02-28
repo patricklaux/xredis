@@ -31,14 +31,24 @@ public interface RedisOperatorProxy {
     boolean isCluster();
 
     /**
-     * 获取 RedisServer 全部信息
+     * 获取单批次命令提交数量阈值
+     * <p>
+     * 如 batchSize 设为 10000，当 {@link RedisOperatorProxy} 接收到单次操作 100 万条数据的请求时，
+     * 会将数据切分为 100 份，每份 10000条数据，然后分 100 批次提交到 RedisServer。
+     *
+     * @return 单批次命令提交数量阈值
+     */
+    long getBatchSize();
+
+    /**
+     * RedisServer 信息
      *
      * @return {@link String} – RedisServer 信息
      */
     CompletableFuture<String> info();
 
     /**
-     * 获取 RedisServer 指定段的信息
+     * RedisServer 指定段的信息
      *
      * @param section 段名
      * @return {@link String} – RedisServer 指定段的信息
@@ -46,35 +56,35 @@ public interface RedisOperatorProxy {
     CompletableFuture<String> info(String section);
 
     /**
-     * 获取 Redis 版本信息
+     * RedisServer 版本信息
      *
      * @return 版本信息
      */
     CompletableFuture<String> version();
 
     /**
-     * 获取 RedisServer 当前时间
+     * RedisServer 当前时间
      *
      * @return {@link List} – 包含两个元素：1.unix time seconds；2.microseconds。
      */
     CompletableFuture<List<byte[]>> time();
 
     /**
-     * 获取 RedisServer 当前时间（秒）
+     * RedisServer 当前时间（秒）
      *
      * @return {@code long} – 当前时间（秒）
      */
     CompletableFuture<Long> timeSeconds();
 
     /**
-     * 获取 RedisServer 当前时间（毫秒）
+     * RedisServer 当前时间（毫秒）
      *
      * @return {@code long} – 当前时间（毫秒）
      */
     CompletableFuture<Long> timeMillis();
 
     /**
-     * 获取 RedisServer 当前时间（微秒）
+     * RedisServer 当前时间（微秒）
      *
      * @return {@code long} – 当前时间（微秒）
      */

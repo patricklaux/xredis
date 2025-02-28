@@ -1,14 +1,10 @@
 package com.igeeksky.xredis.lettuce;
 
-
-import com.igeeksky.xredis.common.stream.StreamCodec;
-import com.igeeksky.xredis.common.stream.StreamPublisher;
-import com.igeeksky.xredis.common.stream.XAddOptions;
-import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.common.RedisConfigException;
 import com.igeeksky.xredis.common.stream.container.ReadOptions;
 import com.igeeksky.xredis.common.stream.container.StreamContainer;
 import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
+import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.lettuce.config.LettuceStandaloneConfig;
 import com.igeeksky.xredis.lettuce.config.RedisNode;
 import com.igeeksky.xtool.core.collection.CollectionUtils;
@@ -20,13 +16,13 @@ import io.lettuce.core.json.JsonParser;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import io.lettuce.core.resource.ClientResources;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 /**
  * Lettuce Standalone 客户端工厂
@@ -40,7 +36,7 @@ public final class LettuceStandaloneFactory implements RedisOperatorFactory {
 
     private final RedisClient client;
     private final LettuceStandaloneConfig config;
-    private final Mono<JsonParser> jsonParser;
+    private final Supplier<JsonParser> jsonParser;
     private final ExecutorService executor;
 
     /**

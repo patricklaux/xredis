@@ -5,7 +5,8 @@ import io.lettuce.core.cluster.RedisAdvancedClusterReactiveCommandsImpl;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
-import reactor.core.publisher.Mono;
+
+import java.util.function.Supplier;
 
 /**
  * 响应式操作接口实现（集群模式）
@@ -34,7 +35,8 @@ public class LettuceClusterReactiveOperator<K, V> extends RedisAdvancedClusterRe
      * @param codec      编解码器
      * @param parser     json 解析器
      */
-    public LettuceClusterReactiveOperator(StatefulRedisClusterConnection<K, V> connection, RedisCodec<K, V> codec, Mono<JsonParser> parser) {
+    public LettuceClusterReactiveOperator(StatefulRedisClusterConnection<K, V> connection, RedisCodec<K, V> codec,
+                                          Supplier<JsonParser> parser) {
         super(connection, codec, parser);
     }
 

@@ -1,11 +1,11 @@
 package com.igeeksky.xredis.lettuce.cluster;
 
-import com.igeeksky.xredis.lettuce.LettuceHelper;
-import com.igeeksky.xredis.lettuce.LettuceStreamOperator;
-import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.common.stream.container.ReadOptions;
 import com.igeeksky.xredis.common.stream.container.StreamContainer;
 import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
+import com.igeeksky.xredis.lettuce.LettuceHelper;
+import com.igeeksky.xredis.lettuce.LettuceStreamOperator;
+import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.RedisNode;
 import io.lettuce.core.RedisURI;
@@ -15,13 +15,13 @@ import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
 import io.lettuce.core.resource.ClientResources;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 /**
  * Lettuce 集群客户端工厂
@@ -33,7 +33,7 @@ public final class LettuceClusterFactory implements RedisOperatorFactory {
 
     private final RedisClusterClient client;
     private final LettuceClusterConfig config;
-    private final Mono<JsonParser> jsonParser;
+    private final Supplier<JsonParser> jsonParser;
     private final ExecutorService executor;
 
     /**

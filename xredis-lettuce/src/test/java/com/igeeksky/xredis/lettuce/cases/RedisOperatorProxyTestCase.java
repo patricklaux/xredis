@@ -40,7 +40,7 @@ public class RedisOperatorProxyTestCase {
      */
     public RedisOperatorProxyTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new LettuceOperatorProxy(10000, redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(redisOperator);
     }
 
     /**

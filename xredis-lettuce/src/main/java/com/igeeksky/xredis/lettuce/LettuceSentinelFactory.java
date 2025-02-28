@@ -1,9 +1,9 @@
 package com.igeeksky.xredis.lettuce;
 
-import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.common.stream.container.ReadOptions;
 import com.igeeksky.xredis.common.stream.container.StreamContainer;
 import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
+import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.lettuce.config.LettuceSentinelConfig;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.RedisClient;
@@ -13,11 +13,11 @@ import io.lettuce.core.json.JsonParser;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
 import io.lettuce.core.resource.ClientResources;
-import reactor.core.publisher.Mono;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 /**
  * Lettuce Sentinel 客户端工厂
@@ -30,7 +30,7 @@ public final class LettuceSentinelFactory implements RedisOperatorFactory {
     private final RedisURI uri;
     private final RedisClient client;
     private final LettuceSentinelConfig config;
-    private final Mono<JsonParser> jsonParser;
+    private final Supplier<JsonParser> jsonParser;
     private final ExecutorService executor;
 
     /**

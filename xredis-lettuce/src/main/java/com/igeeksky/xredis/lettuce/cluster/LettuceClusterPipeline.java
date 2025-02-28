@@ -5,9 +5,9 @@ import io.lettuce.core.cluster.RedisAdvancedClusterAsyncCommandsImpl;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
-import reactor.core.publisher.Mono;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * 管道接口实现（集群模式）
@@ -39,7 +39,8 @@ public class LettuceClusterPipeline<K, V> extends RedisAdvancedClusterAsyncComma
      * @param codec      编解码器
      * @param parser     json 解析器
      */
-    public LettuceClusterPipeline(StatefulRedisClusterConnection<K, V> connection, RedisCodec<K, V> codec, Mono<JsonParser> parser) {
+    public LettuceClusterPipeline(StatefulRedisClusterConnection<K, V> connection, RedisCodec<K, V> codec,
+                                  Supplier<JsonParser> parser) {
         super(connection, codec, parser);
         this.connection = connection;
     }

@@ -5,7 +5,8 @@ import io.lettuce.core.RedisAsyncCommandsImpl;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
-import reactor.core.publisher.Mono;
+
+import java.util.function.Supplier;
 
 /**
  * 异步操作
@@ -35,7 +36,7 @@ public class LettuceAsyncOperator<K, V> extends RedisAsyncCommandsImpl<K, V> imp
      * @param parser     json 解析器
      */
     public LettuceAsyncOperator(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec,
-                                Mono<JsonParser> parser) {
+                                Supplier<JsonParser> parser) {
         super(connection, codec, parser);
     }
 

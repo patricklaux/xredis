@@ -4,9 +4,9 @@ import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
-import reactor.core.publisher.Mono;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * LettuceClusterOperator
@@ -44,7 +44,7 @@ public class LettuceClusterOperator<K, V> implements RedisOperator<K, V> {
      * @param parser     json 解析器
      */
     public LettuceClusterOperator(StatefulRedisClusterConnection<K, V> connection,
-                                  RedisCodec<K, V> codec, Mono<JsonParser> parser) {
+                                  RedisCodec<K, V> codec, Supplier<JsonParser> parser) {
         this.connection = connection;
         this.sync = new LettuceClusterSyncOperator<>(connection);
         this.async = new LettuceClusterAsyncOperator<>(connection, codec, parser);

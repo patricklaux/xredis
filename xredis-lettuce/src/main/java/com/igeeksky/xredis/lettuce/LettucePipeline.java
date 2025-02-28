@@ -5,9 +5,9 @@ import io.lettuce.core.RedisAsyncCommandsImpl;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.json.JsonParser;
-import reactor.core.publisher.Mono;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * Pipeline 实现类（非集群）
@@ -39,7 +39,7 @@ public class LettucePipeline<K, V> extends RedisAsyncCommandsImpl<K, V> implemen
      * @param codec      编解码器
      * @param parser     JSON 解析器
      */
-    public LettucePipeline(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec, Mono<JsonParser> parser) {
+    public LettucePipeline(StatefulRedisConnection<K, V> connection, RedisCodec<K, V> codec, Supplier<JsonParser> parser) {
         super(connection, codec, parser);
         this.connection = connection;
     }
