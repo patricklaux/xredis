@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.igeeksky.xredis.lettuce.autoconfigure.XredisAutoConfiguration
+com.igeeksky.xredis.lettuce.autoconfigure.LettuceAutoConfiguration

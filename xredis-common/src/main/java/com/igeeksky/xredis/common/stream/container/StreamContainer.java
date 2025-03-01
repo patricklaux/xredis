@@ -66,11 +66,8 @@ public class StreamContainer<K, V> extends AbstractStreamContainer<K, V> {
     }
 
     private void start() {
-        this.schedulePullFuture = this.scheduler.scheduleWithFixedDelay(() -> {
-            if (vitrualPullFuture == null || vitrualPullFuture.isDone()) {
-                vitrualPullFuture = this.executor.submit(this.streamTask::pull);
-            }
-        }, this.interval, this.interval, TimeUnit.MILLISECONDS);
+        this.schedulePullFuture = this.scheduler.scheduleWithFixedDelay(this.streamTask::pull,
+                this.interval, this.interval, TimeUnit.MILLISECONDS);
         this.scheduleConsumeFuture = this.scheduler.scheduleWithFixedDelay(this.streamTask::consume,
                 this.interval, Math.max(1, this.interval / 2), TimeUnit.MILLISECONDS);
     }

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * 流容器（抽象类）
@@ -28,11 +29,6 @@ public abstract class AbstractStreamContainer<K, V> implements Shutdown {
      * Redis 流操作对象
      */
     protected final StreamOperator<K, V> operator;
-
-    /**
-     * 拉取消息的 Future（虚拟线程执行）
-     */
-    protected volatile Future<?> vitrualPullFuture;
 
     /**
      * 拉取消息的 Future（调度器执行）
@@ -121,20 +117,13 @@ public abstract class AbstractStreamContainer<K, V> implements Shutdown {
             if (this.schedulePullFuture != null) {
                 this.schedulePullFuture.cancel(false);
             }
-            if (this.vitrualPullFuture != null) {
-                this.vitrualPullFuture.cancel(false);
-            }
             if (this.scheduleConsumeFuture != null) {
                 this.scheduleConsumeFuture.cancel(false);
             }
             return null;
         }).thenCompose(ignore -> {
             if (this.quietPeriod > 0) {
-                try {
-                    Thread.sleep(this.quietPeriod);
-                } catch (Throwable e) {
-                    log.error(e.getMessage(), e);
-                }
+                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(this.quietPeriod));
             }
             return this.operator.closeAsync();
         });

@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>xredis-lettuce</artifactId>
-    <name>xredis core</name>
+    <name>xredis lettuce</name>
     <description>${project.name}</description>
     <url>https://github.com/patricklaux/xredis</url>
 
@@ -22,7 +22,6 @@
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
-            <version>${lettuce.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

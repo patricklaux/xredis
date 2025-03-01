@@ -40,7 +40,7 @@ public class RedisOperatorProxyTestCase {
      */
     public RedisOperatorProxyTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new LettuceOperatorProxy(10000, redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(redisOperator);
     }
 
     /**
@@ -92,14 +92,14 @@ public class RedisOperatorProxyTestCase {
     public void set_get_del(String prefix) {
         byte[] key = codec.encode(prefix + RandomUtils.nextString(5));
         byte[] val = codec.encode(prefix + RandomUtils.nextString(5));
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
 
-        String ok = operatorProxy.set(key, val).join();
+        String ok = operatorProxy.setAsync(key, val).join();
         Assertions.assertEquals(RedisOperatorProxy.OK, ok);
 
-        Assertions.assertArrayEquals(val, operatorProxy.get(key).join());
+        Assertions.assertArrayEquals(val, operatorProxy.getAsync(key).join());
 
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
     }
 
     public void mset() {
@@ -124,12 +124,12 @@ public class RedisOperatorProxyTestCase {
         byte[][] keysArray = LettuceTestHelper.toKeysArray(keys.length, keys);
         Map<byte[], byte[]> keyValues = LettuceTestHelper.createKeyValues(size, keysArray);
 
-        operatorProxy.del(keysArray).join();
+        operatorProxy.delAsync(keysArray).join();
 
-        String ok = operatorProxy.mset(keyValues).join();
+        String ok = operatorProxy.msetAsync(keyValues).join();
         Assertions.assertEquals(RedisOperatorProxy.OK, ok);
 
-        List<KeyValue<byte[], byte[]>> results = operatorProxy.mget(keysArray).join();
+        List<KeyValue<byte[], byte[]>> results = operatorProxy.mgetAsync(keysArray).join();
         Assertions.assertEquals(size, results.size());
 
         Map<String, String> results1 = LettuceTestHelper.fromKeyValues(results);
@@ -137,21 +137,21 @@ public class RedisOperatorProxyTestCase {
 
         LettuceTestHelper.validateValues(keys, results1, size);
 
-        operatorProxy.del(keysArray).join();
+        operatorProxy.delAsync(keysArray).join();
     }
 
     public void psetex() {
         byte[] key = codec.encode("test-psetex");
         byte[] value = codec.encode("test-psetex-value");
-        operatorProxy.del(key).join();
-        String ok = operatorProxy.psetex(key, RandomUtils.nextInt(1000000, 2000000), value).join();
+        operatorProxy.delAsync(key).join();
+        String ok = operatorProxy.psetexAsync(key, RandomUtils.nextInt(1000000, 2000000), value).join();
         Assertions.assertEquals("OK", ok);
 
-        Assertions.assertArrayEquals(value, operatorProxy.get(key).join());
+        Assertions.assertArrayEquals(value, operatorProxy.getAsync(key).join());
         Long pttl = redisOperator.async().pttl(key).toCompletableFuture().join();
         Assertions.assertTrue(pttl > 900000);
 
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
     }
 
     public void psetex_random() {
@@ -182,17 +182,17 @@ public class RedisOperatorProxyTestCase {
 
         // 保存 key-value 到 redis
         long start = System.currentTimeMillis();
-        operatorProxy.psetex(keyValues).join();
+        operatorProxy.psetexAsync(keyValues).join();
         System.out.println("size: [" + size + "]\t psetex-random-cost: [" + (System.currentTimeMillis() - start) + "]");
 
         // 读取 redis 数据
-        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
+        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mgetAsync(keyBytes).join());
 
         // 验证读取数据是否正确
         LettuceTestHelper.validateValues(keys, map, size);
 
         // 删除数据，还原测试环境
-        operatorProxy.del(keyBytes).join();
+        operatorProxy.delAsync(keyBytes).join();
     }
 
     public void psetex3() {
@@ -214,7 +214,7 @@ public class RedisOperatorProxyTestCase {
         byte[][] keyBytes = LettuceTestHelper.toKeysArray(size, keys);
 
         // 删除 redis 中的已有数据
-        operatorProxy.del(keyBytes).join();
+        operatorProxy.delAsync(keyBytes).join();
 
         List<KeyValue<byte[], byte[]>> keyValues = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
@@ -223,11 +223,11 @@ public class RedisOperatorProxyTestCase {
 
         long start = System.currentTimeMillis();
         // 保存 key-value 到 redis
-        operatorProxy.psetex(keyValues, 10000000).join();
+        operatorProxy.psetexAsync(keyValues, 10000000).join();
         System.out.println("size: [" + size + "]\t psetex-cost: [" + (System.currentTimeMillis() - start) + "]");
 
         // 读取 redis 数据
-        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mget(keyBytes).join());
+        Map<String, String> map = LettuceTestHelper.fromKeyValues(operatorProxy.mgetAsync(keyBytes).join());
 
         // 验证读取数据是否正确
         for (String key : keys) {
@@ -235,14 +235,14 @@ public class RedisOperatorProxyTestCase {
         }
 
         // 删除数据，还原测试环境
-        operatorProxy.del(keyBytes).join();
+        operatorProxy.delAsync(keyBytes).join();
     }
 
     /**
      * 获取版本信息
      */
     void version() {
-        String version = operatorProxy.version().join();
+        String version = operatorProxy.versionAsync().join();
         System.out.println(version);
         Assertions.assertNotNull(version);
 
@@ -345,7 +345,7 @@ public class RedisOperatorProxyTestCase {
                 byte[] temp = codec.encode(prefix + RandomUtils.nextString(18));
                 keyValues.add(new ExpiryKeyValue<>(temp, temp, RandomUtils.nextInt(2000000, 3000000)));
                 if (keyValues.size() == capacity) {
-                    operatorProxy.psetex(keyValues).join();
+                    operatorProxy.psetexAsync(keyValues).join();
                     keyValues.clear();
                     capacity = Math.min(50000, size - i - 1);
                 }
@@ -364,7 +364,7 @@ public class RedisOperatorProxyTestCase {
                 byte[] temp = codec.encode(prefix + RandomUtils.nextString(18));
                 keyValues.put(temp, temp);
                 if (keyValues.size() == 50000 || i == size) {
-                    operatorProxy.mset(keyValues).join();
+                    operatorProxy.msetAsync(keyValues).join();
                     keyValues.clear();
                 }
             }
@@ -378,25 +378,25 @@ public class RedisOperatorProxyTestCase {
         byte[] key = codec.encode("test-hset");
         byte[] field = codec.encode("hset-field-1");
         byte[] value = codec.encode("hset-value-1");
-        operatorProxy.del(key).join();
-        Assertions.assertNull(operatorProxy.hget(key, field).join());
+        operatorProxy.delAsync(key).join();
+        Assertions.assertNull(operatorProxy.hgetAsync(key, field).join());
 
-        Assertions.assertTrue(operatorProxy.hset(key, field, value).join());
-        Assertions.assertArrayEquals(value, operatorProxy.hget(key, field).join());
+        Assertions.assertTrue(operatorProxy.hsetAsync(key, field, value).join());
+        Assertions.assertArrayEquals(value, operatorProxy.hgetAsync(key, field).join());
 
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
     }
 
     public void hget() {
         byte[] key = codec.encode("test-hget");
         byte[] field = codec.encode("hget-field-1");
         byte[] value = codec.encode("hget-value-1");
-        operatorProxy.del(key).join();
-        Assertions.assertNull(operatorProxy.hget(key, field).join());
-        operatorProxy.hset(key, field, value).join();
-        Assertions.assertArrayEquals(value, operatorProxy.hget(key, field).join());
+        operatorProxy.delAsync(key).join();
+        Assertions.assertNull(operatorProxy.hgetAsync(key, field).join());
+        operatorProxy.hsetAsync(key, field, value).join();
+        Assertions.assertArrayEquals(value, operatorProxy.hgetAsync(key, field).join());
 
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
     }
 
     public void hdel() {
@@ -406,11 +406,11 @@ public class RedisOperatorProxyTestCase {
         byte[][] fieldsArray = LettuceTestHelper.toKeysArray(fields.length, fields);
         Map<byte[], byte[]> fieldValues = LettuceTestHelper.createKeyValues(size, fieldsArray);
 
-        operatorProxy.del(key).join();
-        Assertions.assertEquals(0, operatorProxy.hdel(key, fieldsArray).join());
+        operatorProxy.delAsync(key).join();
+        Assertions.assertEquals(0, operatorProxy.hdelAsync(key, fieldsArray).join());
 
-        operatorProxy.hmset(key, fieldValues).join();
-        Assertions.assertEquals(size, operatorProxy.hdel(key, fieldsArray).join());
+        operatorProxy.hmsetAsync(key, fieldValues).join();
+        Assertions.assertEquals(size, operatorProxy.hdelAsync(key, fieldsArray).join());
     }
 
     public void hdel2() {
@@ -448,16 +448,16 @@ public class RedisOperatorProxyTestCase {
         String[] fields = LettuceTestHelper.createKeys(size, prefix + "-field:");
         byte[][] fieldsArray = LettuceTestHelper.toKeysArray(size, fields);
 
-        operatorProxy.del(key).join();
-        operatorProxy.hmset(key, LettuceTestHelper.createKeyValues(size, fieldsArray));
+        operatorProxy.delAsync(key).join();
+        operatorProxy.hmsetAsync(key, LettuceTestHelper.createKeyValues(size, fieldsArray));
 
-        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(key, fieldsArray).join();
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmgetAsync(key, fieldsArray).join();
         Assertions.assertEquals(size, keyValues.size());
 
         Map<String, String> map = LettuceTestHelper.fromKeyValues(keyValues);
         LettuceTestHelper.validateValues(fields, map, size);
 
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
     }
 
     public void hmset2() {
@@ -497,25 +497,25 @@ public class RedisOperatorProxyTestCase {
             map.forEach((field, value) -> fields.add(codec.decode(field)));
         });
 
-        operatorProxy.del(keys).join();
+        operatorProxy.delAsync(keys).join();
 
         long start = System.currentTimeMillis();
-        operatorProxy.hmset(keyFieldValues).join();
+        operatorProxy.hmsetAsync(keyFieldValues).join();
         long time1 = System.currentTimeMillis();
         System.out.println("hmset cost: " + (time1 - start));
 
-        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields).join();
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmgetAsync(keyFields).join();
         Assertions.assertEquals(total, keyValues.size());
         long time2 = System.currentTimeMillis();
         System.out.println("hmget cost: " + (time2 - time1));
 
-        Assertions.assertEquals(total, operatorProxy.hdel(keyFields).join());
+        Assertions.assertEquals(total, operatorProxy.hdelAsync(keyFields).join());
         long end = System.currentTimeMillis();
         System.out.println("hdel cost: " + (end - time2));
 
         Map<String, String> result = LettuceTestHelper.fromKeyValues(keyValues);
         LettuceTestHelper.validateValues(fields, result, total);
-        operatorProxy.del(keys).join();
+        operatorProxy.delAsync(keys).join();
     }
 
     public void hmget2() {
@@ -527,11 +527,11 @@ public class RedisOperatorProxyTestCase {
         String[] keys = LettuceTestHelper.createKeys(size, "test-hpset:");
         byte[][] keysArray = LettuceTestHelper.toKeysArray(size, keys);
 
-        operatorProxy.del(keysArray).join();
+        operatorProxy.delAsync(keysArray).join();
 
         for (int i = 0; i < size; i++) {
             byte[] key = codec.encode(keys[i]);
-            operatorProxy.hpset(key, 100000, key, key).join();
+            operatorProxy.hpsetAsync(key, 100000, key, key).join();
             if (i == (size - 1)) {
                 System.out.println(keys[i]);
             }
@@ -574,10 +574,10 @@ public class RedisOperatorProxyTestCase {
             fieldsValues.forEach(kv -> fields.add(codec.decode(kv.getKey())));
         });
 
-        operatorProxy.del(keys).join();
+        operatorProxy.delAsync(keys).join();
 
         long start = System.currentTimeMillis();
-        List<Long> states = operatorProxy.hmpset(keyFieldValues, 1000000).join();
+        List<Long> states = operatorProxy.hmpsetAsync(keyFieldValues, 1000000).join();
         Assertions.assertEquals(total, states.size());
         for (Long state : states) {
             Assertions.assertEquals(1, state);
@@ -585,12 +585,12 @@ public class RedisOperatorProxyTestCase {
         long time1 = System.currentTimeMillis();
         System.out.println("hmpset cost: " + (time1 - start));
 
-        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields).join();
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmgetAsync(keyFields).join();
         Assertions.assertEquals(total, keyValues.size());
         long time2 = System.currentTimeMillis();
         System.out.println("hmget cost: " + (time2 - time1));
 
-        Assertions.assertEquals(total, operatorProxy.hdel(keyFields).join());
+        Assertions.assertEquals(total, operatorProxy.hdelAsync(keyFields).join());
         long end = System.currentTimeMillis();
         System.out.println("hdel cost: " + (end - time2));
 
@@ -625,10 +625,10 @@ public class RedisOperatorProxyTestCase {
             fieldsValues.forEach(kv -> fields.add(codec.decode(kv.getKey())));
         });
 
-        operatorProxy.del(keys).join();
+        operatorProxy.delAsync(keys).join();
 
         long start = System.currentTimeMillis();
-        List<Long> states = operatorProxy.hmpset(keyFieldValues).join();
+        List<Long> states = operatorProxy.hmpsetAsync(keyFieldValues).join();
         Assertions.assertEquals(total, states.size());
         for (Long state : states) {
             Assertions.assertEquals(1, state);
@@ -637,25 +637,25 @@ public class RedisOperatorProxyTestCase {
         long time1 = System.currentTimeMillis();
         System.out.println("hmpset cost: " + (time1 - start));
 
-        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmget(keyFields).join();
+        List<KeyValue<byte[], byte[]>> keyValues = operatorProxy.hmgetAsync(keyFields).join();
         Assertions.assertEquals(total, keyValues.size());
         long time2 = System.currentTimeMillis();
         System.out.println("hmget cost: " + (time2 - time1));
 
-        Assertions.assertEquals(total, operatorProxy.hdel(keyFields).join());
+        Assertions.assertEquals(total, operatorProxy.hdelAsync(keyFields).join());
         long end = System.currentTimeMillis();
         System.out.println("hdel cost: " + (end - time2));
 
         Map<String, String> result = LettuceTestHelper.fromKeyValues(keyValues);
         LettuceTestHelper.validateValues(fields, result, total);
 
-        operatorProxy.del(keys).join();
+        operatorProxy.delAsync(keys).join();
     }
 
     public void zrange() {
         String prefix = "test-zrange";
         byte[] key = codec.encode(prefix);
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
 
         int length = 20000;
         List<ScoredValue<byte[]>> scoredValues = new ArrayList<>(length);
@@ -665,18 +665,18 @@ public class RedisOperatorProxyTestCase {
         }
         @SuppressWarnings("unchecked")
         ScoredValue<byte[]>[] array = scoredValues.toArray(new ScoredValue[0]);
-        Long zadd = operatorProxy.zadd(key, array).join();
+        Long zadd = operatorProxy.zaddAsync(key, array).join();
 
         Assertions.assertEquals(scoredValues.size(), zadd);
-        Assertions.assertEquals(scoredValues.size(), operatorProxy.zcard(key).join());
+        Assertions.assertEquals(scoredValues.size(), operatorProxy.zcardAsync(key).join());
 
-        List<byte[]> zrange = operatorProxy.zrangebyscore(key, Range.closed(0, 5000)).join();
+        List<byte[]> zrange = operatorProxy.zrangebyscoreAsync(key, Range.closed(0, 5000)).join();
         Assertions.assertEquals(5001, zrange.size());
 
-        zrange = operatorProxy.zrangebyscore(key, Range.closed(0, 5000), Limit.from(1000)).join();
+        zrange = operatorProxy.zrangebyscoreAsync(key, Range.closed(0, 5000), Limit.from(1000)).join();
         Assertions.assertEquals(1000, zrange.size());
 
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
     }
 
     public void zadd() {
@@ -695,22 +695,23 @@ public class RedisOperatorProxyTestCase {
 
     public void zadd_zrange_zrem_zcard(String prefix, int length) {
         byte[] key = codec.encode(prefix);
-        operatorProxy.del(key).join();
+        operatorProxy.delAsync(key).join();
 
         List<ScoredValue<byte[]>> scoredValues = LettuceTestHelper.createScoredValues(length, prefix);
         @SuppressWarnings("unchecked")
         ScoredValue<byte[]>[] array = scoredValues.toArray(new ScoredValue[0]);
-        Long zadd = operatorProxy.zadd(key, array).join();
+        Long zadd = operatorProxy.zaddAsync(key, array).join();
         Assertions.assertEquals(length, zadd);
 
-        List<byte[]> zrange = operatorProxy.zrangebyscore(key, Range.closed(0, Double.MAX_VALUE)).join();
+        List<byte[]> zrange = operatorProxy.zrangebyscoreAsync(key, Range.closed(0, Double.MAX_VALUE)).join();
         // List<byte[]> zrange = redisOperator.async().zrangebyscore(key, io.lettuce.core.Range.create(0, Double.MAX_VALUE))
         //         .toCompletableFuture().join();
         Assertions.assertEquals(length, zrange.size());
 
-        operatorProxy.zrem(key, zrange.toArray(new byte[0][]));
+        Long removed = operatorProxy.zremAsync(key, zrange.toArray(new byte[0][])).join();
+        Assertions.assertEquals(length, removed);
 
-        Assertions.assertEquals(0, operatorProxy.zcard(key).join());
+        Assertions.assertEquals(0, operatorProxy.zcardAsync(key).join());
     }
 
 }

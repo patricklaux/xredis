@@ -1,8 +1,8 @@
 package com.igeeksky.xredis.lettuce.cases;
 
+import com.igeeksky.xredis.common.RedisOperatorProxy;
 import com.igeeksky.xredis.lettuce.LettuceOperatorProxy;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
-import com.igeeksky.xredis.common.RedisOperatorProxy;
 import com.igeeksky.xtool.core.collection.Maps;
 import com.igeeksky.xtool.core.lang.RandomUtils;
 import com.igeeksky.xtool.core.lang.codec.StringCodec;
@@ -32,7 +32,7 @@ public class RedisOperatorTestCase {
      */
     public RedisOperatorTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new LettuceOperatorProxy(10000, redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(10000, 60000, redisOperator);
     }
 
     public boolean isCluster() {

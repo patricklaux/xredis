@@ -4,6 +4,7 @@ import com.igeeksky.xredis.common.TimeConvertor;
 import com.igeeksky.xredis.common.stream.*;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import io.lettuce.core.Consumer;
+import io.lettuce.core.StreamMessage;
 import io.lettuce.core.XGroupCreateArgs;
 import io.lettuce.core.XReadArgs;
 
@@ -24,7 +25,7 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
     private final RedisOperator<K, V> operator;
 
     /**
-     * 构造器
+     * 使用 {@code RedisOperator} 创建 {@link LettuceStreamOperator}
      *
      * @param operator RedisOperator
      */
@@ -33,143 +34,254 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
     }
 
     @Override
-    public CompletableFuture<List<V>> time() {
-        return operator.async().time().toCompletableFuture();
+    public CompletableFuture<List<V>> timeAsync() {
+        return this.operator.async().time().toCompletableFuture();
     }
 
     @Override
-    public CompletableFuture<Long> timeSeconds(TimeConvertor<V> convertor) {
-        return operator.async().timeSeconds(convertor);
+    public List<V> time() {
+        return this.operator.sync().time();
     }
 
     @Override
-    public CompletableFuture<Long> timeMillis(TimeConvertor<V> convertor) {
-        return operator.async().timeMillis(convertor);
+    public CompletableFuture<Long> timeSecondsAsync(TimeConvertor<V> convertor) {
+        return this.operator.async().timeSeconds(convertor);
     }
 
     @Override
-    public CompletableFuture<Long> timeMicros(TimeConvertor<V> convertor) {
-        return operator.async().timeMicros(convertor);
+    public Long timeSeconds(TimeConvertor<V> convertor) {
+        return this.operator.sync().timeSeconds(convertor);
     }
 
     @Override
-    public CompletableFuture<Long> xack(K key, K group, String... messageIds) {
-        return operator.async().xack(key, group, messageIds).toCompletableFuture();
+    public CompletableFuture<Long> timeMillisAsync(TimeConvertor<V> convertor) {
+        return this.operator.async().timeMillis(convertor);
     }
 
     @Override
-    public CompletableFuture<String> xadd(K key, Map<K, V> body) {
-        return operator.async().xadd(key, body).toCompletableFuture();
+    public Long timeMillis(TimeConvertor<V> convertor) {
+        return this.operator.sync().timeMillis(convertor);
     }
 
     @Override
-    public CompletableFuture<String> xadd(K key, XAddOptions options, Map<K, V> body) {
-        return operator.async().xadd(key, LettuceConvertor.toXAddArgs(options), body).toCompletableFuture();
+    public CompletableFuture<Long> timeMicrosAsync(TimeConvertor<V> convertor) {
+        return this.operator.async().timeMicros(convertor);
     }
 
     @Override
-    public CompletableFuture<List<XStreamMessage<K, V>>> xclaim(K key, XGroupConsumer<K> groupConsumer,
-                                                                long minIdleTime, String... messageIds) {
+    public Long timeMicros(TimeConvertor<V> convertor) {
+        return this.operator.sync().timeMicros(convertor);
+    }
+
+    @Override
+    public CompletableFuture<Long> xackAsync(K key, K group, String... messageIds) {
+        return this.operator.async().xack(key, group, messageIds).toCompletableFuture();
+    }
+
+    @Override
+    public Long xack(K key, K group, String... messageIds) {
+        return this.operator.sync().xack(key, group, messageIds);
+    }
+
+    @Override
+    public CompletableFuture<String> xaddAsync(K key, Map<K, V> body) {
+        return this.operator.async().xadd(key, body).toCompletableFuture();
+    }
+
+    @Override
+    public String xadd(K key, Map<K, V> body) {
+        return this.operator.sync().xadd(key, body);
+    }
+
+    @Override
+    public CompletableFuture<String> xaddAsync(K key, XAddOptions options, Map<K, V> body) {
+        return this.operator.async().xadd(key, LettuceConvertor.toXAddArgs(options), body).toCompletableFuture();
+    }
+
+    @Override
+    public String xadd(K key, XAddOptions options, Map<K, V> body) {
+        return this.operator.sync().xadd(key, LettuceConvertor.toXAddArgs(options), body);
+    }
+
+    @Override
+    public CompletableFuture<List<XStreamMessage<K, V>>> xclaimAsync(K key, XGroupConsumer<K> groupConsumer,
+                                                                     long minIdleTime, String... messageIds) {
         return CompletableFuture.completedFuture(groupConsumer)
                 .thenApply(LettuceConvertor::toXGroupConsumer)
-                .thenCompose(consumer -> operator.async().xclaim(key, consumer, minIdleTime, messageIds))
+                .thenCompose(consumer -> this.operator.async().xclaim(key, consumer, minIdleTime, messageIds))
                 .thenApply(LettuceConvertor::fromStreamMessages);
     }
 
     @Override
-    public CompletableFuture<Long> xdel(K key, String... messageIds) {
-        return operator.async().xdel(key, messageIds).toCompletableFuture();
+    public List<XStreamMessage<K, V>> xclaim(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds) {
+        Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
+        List<StreamMessage<K, V>> messages = this.operator.sync().xclaim(key, consumer, minIdleTime, messageIds);
+        return LettuceConvertor.fromStreamMessages(messages);
     }
 
     @Override
-    public CompletableFuture<String> xgroupCreate(XStreamOffset<K> streamOffset, K group) {
+    public CompletableFuture<Long> xdelAsync(K key, String... messageIds) {
+        return this.operator.async().xdel(key, messageIds).toCompletableFuture();
+    }
+
+    @Override
+    public Long xdel(K key, String... messageIds) {
+        return this.operator.sync().xdel(key, messageIds);
+    }
+
+    @Override
+    public CompletableFuture<String> xgroupCreateAsync(XStreamOffset<K> streamOffset, K group) {
         return CompletableFuture.completedFuture(streamOffset)
                 .thenApply(LettuceConvertor::toXStreamOffset)
-                .thenCompose(offset -> operator.async().xgroupCreate(offset, group));
+                .thenCompose(offset -> this.operator.async().xgroupCreate(offset, group));
     }
 
     @Override
-    public CompletableFuture<String> xgroupCreate(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options) {
+    public String xgroupCreate(XStreamOffset<K> streamOffset, K group) {
+        return this.operator.sync().xgroupCreate(LettuceConvertor.toXStreamOffset(streamOffset), group);
+    }
+
+    @Override
+    public CompletableFuture<String> xgroupCreateAsync(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options) {
         return CompletableFuture.completedFuture(streamOffset)
                 .thenApply(LettuceConvertor::toXStreamOffset)
                 .thenCompose(offset -> {
                     XGroupCreateArgs args = LettuceConvertor.toXGroupCreateOptions(options);
-                    return operator.async().xgroupCreate(offset, group, args);
+                    return this.operator.async().xgroupCreate(offset, group, args);
                 });
     }
 
     @Override
-    public CompletableFuture<Boolean> xgroupCreateconsumer(K key, XGroupConsumer<K> groupConsumer) {
-        return CompletableFuture.completedFuture(groupConsumer)
-                .thenApply(LettuceConvertor::toXGroupConsumer)
-                .thenCompose(consumer -> operator.async().xgroupCreateconsumer(key, consumer));
+    public String xgroupCreate(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options) {
+        XGroupCreateArgs args = LettuceConvertor.toXGroupCreateOptions(options);
+        XReadArgs.StreamOffset<K> offset = LettuceConvertor.toXStreamOffset(streamOffset);
+        return this.operator.sync().xgroupCreate(offset, group, args);
     }
 
     @Override
-    public CompletableFuture<Long> xgroupDelconsumer(K key, XGroupConsumer<K> groupConsumer) {
+    public CompletableFuture<Boolean> xgroupCreateconsumerAsync(K key, XGroupConsumer<K> groupConsumer) {
         return CompletableFuture.completedFuture(groupConsumer)
                 .thenApply(LettuceConvertor::toXGroupConsumer)
-                .thenCompose(consumer -> operator.async().xgroupDelconsumer(key, consumer));
+                .thenCompose(consumer -> this.operator.async().xgroupCreateconsumer(key, consumer));
     }
 
     @Override
-    public CompletableFuture<Boolean> xgroupDestroy(K key, K group) {
-        return operator.async().xgroupDestroy(key, group).toCompletableFuture();
+    public Boolean xgroupCreateconsumer(K key, XGroupConsumer<K> groupConsumer) {
+        Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
+        return this.operator.sync().xgroupCreateconsumer(key, consumer);
+    }
+
+    @Override
+    public CompletableFuture<Long> xgroupDelconsumerAsync(K key, XGroupConsumer<K> groupConsumer) {
+        return CompletableFuture.completedFuture(groupConsumer)
+                .thenApply(LettuceConvertor::toXGroupConsumer)
+                .thenCompose(consumer -> this.operator.async().xgroupDelconsumer(key, consumer));
+    }
+
+    @Override
+    public Long xgroupDelconsumer(K key, XGroupConsumer<K> groupConsumer) {
+        Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
+        return this.operator.sync().xgroupDelconsumer(key, consumer);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> xgroupDestroyAsync(K key, K group) {
+        return this.operator.async().xgroupDestroy(key, group).toCompletableFuture();
+    }
+
+    @Override
+    public Boolean xgroupDestroy(K key, K group) {
+        return this.operator.sync().xgroupDestroy(key, group);
     }
 
     @SafeVarargs
     @Override
-    public final CompletableFuture<List<XStreamMessage<K, V>>> xread(XStreamOffset<K>... streams) {
+    public final CompletableFuture<List<XStreamMessage<K, V>>> xreadAsync(XStreamOffset<K>... streams) {
         return CompletableFuture.completedFuture(streams)
                 .thenApply(LettuceConvertor::toXStreamOffsets)
-                .thenCompose(offsets -> operator.async().xread(offsets))
+                .thenCompose(offsets -> this.operator.async().xread(offsets))
                 .thenApply(LettuceConvertor::fromStreamMessages);
     }
 
     @SafeVarargs
     @Override
-    public final CompletableFuture<List<XStreamMessage<K, V>>> xread(XReadOptions options, XStreamOffset<K>... streams) {
+    public final List<XStreamMessage<K, V>> xread(XStreamOffset<K>... streams) {
+        XReadArgs.StreamOffset<K>[] offsets = LettuceConvertor.toXStreamOffsets(streams);
+        List<StreamMessage<K, V>> messages = this.operator.sync().xread(offsets);
+        return LettuceConvertor.fromStreamMessages(messages);
+    }
+
+    @SafeVarargs
+    @Override
+    public final CompletableFuture<List<XStreamMessage<K, V>>> xreadAsync(XReadOptions options, XStreamOffset<K>... streams) {
         return CompletableFuture.completedFuture(streams)
                 .thenApply(LettuceConvertor::toXStreamOffsets)
-                .thenCompose(offsets -> operator.async().xread(LettuceConvertor.toXReadArgs(options), offsets))
+                .thenCompose(offsets -> this.operator.async().xread(LettuceConvertor.toXReadArgs(options), offsets))
                 .thenApply(LettuceConvertor::fromStreamMessages);
     }
 
     @SafeVarargs
     @Override
-    public final CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(XGroupConsumer<K> groupConsumer,
-                                                                          XStreamOffset<K>... streams) {
+    public final List<XStreamMessage<K, V>> xread(XReadOptions options, XStreamOffset<K>... streams) {
+        XReadArgs.StreamOffset<K>[] offsets = LettuceConvertor.toXStreamOffsets(streams);
+        List<StreamMessage<K, V>> messages = this.operator.sync().xread(LettuceConvertor.toXReadArgs(options), offsets);
+        return LettuceConvertor.fromStreamMessages(messages);
+    }
+
+    @SafeVarargs
+    @Override
+    public final CompletableFuture<List<XStreamMessage<K, V>>> xreadgroupAsync(XGroupConsumer<K> groupConsumer,
+                                                                               XStreamOffset<K>... streams) {
         return CompletableFuture.completedFuture(streams)
                 .thenApply(LettuceConvertor::toXStreamOffsets)
                 .thenCompose(offsets -> {
                     Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
-                    return operator.async().xreadgroup(consumer, offsets);
+                    return this.operator.async().xreadgroup(consumer, offsets);
                 })
                 .thenApply(LettuceConvertor::fromStreamMessages);
     }
 
     @SafeVarargs
     @Override
-    public final CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(XGroupConsumer<K> groupConsumer,
-                                                                          XReadOptions options, XStreamOffset<K>... streams) {
+    public final List<XStreamMessage<K, V>> xreadgroup(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams) {
+        XReadArgs.StreamOffset<K>[] offsets = LettuceConvertor.toXStreamOffsets(streams);
+        Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
+        List<StreamMessage<K, V>> messages = this.operator.sync().xreadgroup(consumer, offsets);
+        return LettuceConvertor.fromStreamMessages(messages);
+    }
+
+    @SafeVarargs
+    @Override
+    public final CompletableFuture<List<XStreamMessage<K, V>>> xreadgroupAsync(XGroupConsumer<K> groupConsumer,
+                                                                               XReadOptions options, XStreamOffset<K>... streams) {
         return CompletableFuture.completedFuture(streams)
                 .thenApply(LettuceConvertor::toXStreamOffsets)
                 .thenCompose(offsets -> {
                     Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
                     XReadArgs readArgs = LettuceConvertor.toXReadArgs(options);
-                    return operator.async().xreadgroup(consumer, readArgs, offsets);
+                    return this.operator.async().xreadgroup(consumer, readArgs, offsets);
                 })
                 .thenApply(LettuceConvertor::fromStreamMessages);
     }
 
+    @SafeVarargs
+    @Override
+    public final List<XStreamMessage<K, V>> xreadgroup(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams) {
+        XReadArgs.StreamOffset<K>[] offsets = LettuceConvertor.toXStreamOffsets(streams);
+        Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
+        XReadArgs readArgs = LettuceConvertor.toXReadArgs(options);
+        List<StreamMessage<K, V>> messages = this.operator.sync().xreadgroup(consumer, readArgs, offsets);
+        return LettuceConvertor.fromStreamMessages(messages);
+    }
+
     @Override
     public boolean isCluster() {
-        return operator.isCluster();
+        return this.operator.isCluster();
     }
 
     @Override
     public CompletableFuture<Void> closeAsync() {
-        return operator.closeAsync();
+        return this.operator.closeAsync();
     }
 
 }

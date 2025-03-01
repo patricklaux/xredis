@@ -96,7 +96,7 @@ public class XReadOptions {
          * @return {@link XReadOptions}
          */
         public Builder block(Long block) {
-            Assert.isTrue(block == null || block >= 0, "block must be greater than or equal to 0");
+            Assert.isTrue(block == null || block >= 0, "block must be greater or equal 0");
             this.block = block;
             return this;
         }

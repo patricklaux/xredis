@@ -4,7 +4,7 @@ package com.igeeksky.xredis.lettuce.cases;
 import com.igeeksky.xredis.common.ScoredValue;
 import com.igeeksky.xredis.lettuce.LettuceSentinelFactory;
 import com.igeeksky.xredis.lettuce.LettuceStandaloneFactory;
-import com.igeeksky.xredis.lettuce.cluster.LettuceClusterFactory;
+import com.igeeksky.xredis.lettuce.LettuceClusterFactory;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceSentinelConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceStandaloneConfig;

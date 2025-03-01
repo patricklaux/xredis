@@ -1,6 +1,6 @@
 package com.igeeksky.xredis.autoconfigure;
 
-import com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties;
+import com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties;
 import com.igeeksky.xredis.lettuce.props.LettuceCluster;
 import com.igeeksky.xredis.lettuce.props.LettuceSentinel;
 import com.igeeksky.xredis.lettuce.props.LettuceStandalone;
@@ -8,19 +8,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * 测试 {@link XredisProperties}
+ * 测试 {@link LettuceProperties}
  *
  * @author Patrick.Lau
  * @since 1.0.0
  */
-class XredisPropertiesTest {
+class LettucePropertiesTest {
 
     /**
-     * 测试 {@link XredisProperties#toString()} 是否为 JSON 格式
+     * 测试 {@link LettuceProperties#toString()} 是否为 JSON 格式
      */
     @Test
     void testToString() {
-        XredisProperties properties = new XredisProperties();
+        LettuceProperties properties = new LettuceProperties();
         properties.setId("id");
         properties.setStandalone(new LettuceStandalone());
         properties.setCluster(new LettuceCluster());

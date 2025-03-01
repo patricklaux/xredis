@@ -64,9 +64,9 @@ public class StreamPublisher<K, V, T> implements AsyncCloseable {
             return CompletableFuture.failedFuture(new RedisOperationException("message convert to body failed."));
         }
         if (options == null) {
-            return operator.xadd(stream, body).toCompletableFuture();
+            return operator.xaddAsync(stream, body).toCompletableFuture();
         }
-        return operator.xadd(stream, options, body).toCompletableFuture();
+        return operator.xaddAsync(stream, options, body).toCompletableFuture();
     }
 
     @Override
