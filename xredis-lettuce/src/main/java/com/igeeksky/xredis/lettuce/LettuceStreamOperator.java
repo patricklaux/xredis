@@ -21,15 +21,34 @@ import java.util.concurrent.CompletableFuture;
  */
 public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
 
+    private final long syncTimeout;
     private final RedisOperator<K, V> operator;
 
     /**
-     * 构造器
+     * 使用默认的 {@code syncTimeout} 创建 {@link LettuceStreamOperator}
+     * <p>
+     * syncTimeout：默认 60000 毫秒
      *
      * @param operator RedisOperator
      */
     public LettuceStreamOperator(RedisOperator<K, V> operator) {
+        this(60000, operator);
+    }
+
+    /**
+     * 使用指定的 {@code syncTimeout} 创建 {@link LettuceStreamOperator}
+     *
+     * @param syncTimeout 异步转同步结果阻塞超时
+     * @param operator    RedisOperator
+     */
+    public LettuceStreamOperator(long syncTimeout, RedisOperator<K, V> operator) {
+        this.syncTimeout = syncTimeout;
         this.operator = operator;
+    }
+
+    @Override
+    public long getSyncTimeout() {
+        return syncTimeout;
     }
 
     @Override

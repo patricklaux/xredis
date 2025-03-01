@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * RedisOperatorProxy（简化批量数据读写）
+ * RedisOperatorProxy
+ * <p>
+ * 主要是为了简化数据批量操作，及屏蔽 {@code RedisOperator} 的底层具体实现。
  *
  * @author Patrick.Lau
  * @since 1.0.0
@@ -24,9 +26,12 @@ public interface RedisOperatorProxy {
     // -------------------------- server command start -----------------------
 
     /**
-     * 判断当前 Redis 连接是否为集群模式
+     * 判断当前 Redis 连接是否为集群连接
+     * <p>
+     * 此方法仅判断连接是否为集群连接，而不是 RedisServer 是否为集群节点。<br>
+     * 譬如，如果使用 {@code standalone} 方式创建到 Redis 集群某个节点的连接，返回的结果为 {@code false}。
      *
-     * @return {@code true} 表示集群模式，{@code false} 表示非集群模式
+     * @return 如果为集群连接，返回 {@code true} ，否则返回 {@code false}
      */
     boolean isCluster();
 
@@ -41,14 +46,38 @@ public interface RedisOperatorProxy {
     long getBatchSize();
 
     /**
-     * RedisServer 信息
+     * 异步转同步阻塞超时时间
+     * <p>
+     * 默认值：60000 单位：毫秒
+     * <p>
+     * 如果调用同步接口，会先调用异步接口获取 {@link CompletableFuture}，
+     * 然后再调用 {@code future.get(timeout, TimeUnit.MILLISECONDS)} 方法等待数据处理完成。<p>
+     * <b>注意：</b><p>
+     * 1、当调用同步接口时，如果异步操作未在设定超时时间内完成或线程被中断，会抛出异常。<br>
+     * 2、当调用同步接口时，请根据单次操作数据量、网络拥堵情况、RedisServer 处理能力等适当调整超时时间。
+     *
+     * @return {@link Long} – 异步转同步阻塞超时时间
+     */
+    long getSyncTimeout();
+
+    /**
+     * 获取 RedisServer 信息（异步）
      *
      * @return {@link String} – RedisServer 信息
      */
     CompletableFuture<String> info();
 
     /**
-     * RedisServer 指定段的信息
+     * 获取 RedisServer 信息（同步）
+     *
+     * @return {@link String} – RedisServer 信息
+     */
+    default String infoSync() {
+        return RedisFutureHelper.get(info(), getSyncTimeout());
+    }
+
+    /**
+     * 获取 RedisServer 指定段的信息（异步）
      *
      * @param section 段名
      * @return {@link String} – RedisServer 指定段的信息
@@ -56,39 +85,94 @@ public interface RedisOperatorProxy {
     CompletableFuture<String> info(String section);
 
     /**
-     * RedisServer 版本信息
+     * 获取 RedisServer 指定段的信息（同步）
+     *
+     * @param section 段名
+     * @return {@link String} – RedisServer 指定段的信息
+     */
+    default String infoSync(String section) {
+        return RedisFutureHelper.get(info(section), getSyncTimeout());
+    }
+
+    /**
+     * 获取 RedisServer 版本信息（异步）
      *
      * @return 版本信息
      */
     CompletableFuture<String> version();
 
     /**
-     * RedisServer 当前时间
+     * 获取 RedisServer 版本信息（同步）
+     *
+     * @return 版本信息
+     */
+    default String versionSync() {
+        return RedisFutureHelper.get(version(), getSyncTimeout());
+    }
+
+    /**
+     * 获取 RedisServer 当前时间（异步）
      *
      * @return {@link List} – 包含两个元素：1.unix time seconds；2.microseconds。
      */
     CompletableFuture<List<byte[]>> time();
 
     /**
-     * RedisServer 当前时间（秒）
+     * 获取 RedisServer 当前时间（同步）
+     *
+     * @return {@link List} – 包含两个元素：1.unix time seconds；2.microseconds。
+     */
+    default List<byte[]> timeSync() {
+        return RedisFutureHelper.get(time(), getSyncTimeout());
+    }
+
+    /**
+     * 获取 RedisServer 当前时间（异步）
      *
      * @return {@code long} – 当前时间（秒）
      */
     CompletableFuture<Long> timeSeconds();
 
     /**
-     * RedisServer 当前时间（毫秒）
+     * 获取 RedisServer 当前时间（同步）
+     *
+     * @return {@code long} – 当前时间（秒）
+     */
+    default Long timeSecondsSync() {
+        return RedisFutureHelper.get(timeSeconds(), getSyncTimeout());
+    }
+
+    /**
+     * 获取 RedisServer 当前时间（异步）
      *
      * @return {@code long} – 当前时间（毫秒）
      */
     CompletableFuture<Long> timeMillis();
 
     /**
-     * RedisServer 当前时间（微秒）
+     * 获取 RedisServer 当前时间（同步）
+     *
+     * @return {@code long} – 当前时间（毫秒）
+     */
+    default Long timeMillisSync() {
+        return RedisFutureHelper.get(timeMillis(), getSyncTimeout());
+    }
+
+    /**
+     * 获取 RedisServer 当前时间（异步）
      *
      * @return {@code long} – 当前时间（微秒）
      */
     CompletableFuture<Long> timeMicros();
+
+    /**
+     * 获取 RedisServer 当前时间（同步）
+     *
+     * @return {@code long} – 当前时间（微秒）
+     */
+    default Long timeMicrosSync() {
+        return RedisFutureHelper.get(timeMicros(), getSyncTimeout());
+    }
 
     // -------------------------- server command end -------------------------
 
@@ -96,24 +180,36 @@ public interface RedisOperatorProxy {
     // -------------------------- key command start --------------------------
 
     /**
-     * 异步批量删除键
+     * Redis-Key：批量删除键（异步）
      * <p>
      * 如单次删除的数据量超过 batchSize，则分批次删除。
      *
      * @param keys 键
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @return {@link Long} – 删除数量
      */
     CompletableFuture<Long> del(byte[]... keys);
 
     /**
-     * 清理匹配指定模式的 key
+     * Redis-Key：批量删除键（同步）
+     * <p>
+     * 如单次删除的数据量超过 batchSize，则分批次删除。
+     *
+     * @param keys 键
+     * @return {@link Long} – 删除数量
+     */
+    default Long delSync(byte[]... keys) {
+        return RedisFutureHelper.get(del(keys), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Key：清理匹配指定模式的键集（同步）
      * <p>
      * 内部使用 ScanCursor 扫描，避免使用 KEYS 命令，避免内存消耗过大
      *
      * @param pattern 模式
-     * @return 清理数量
+     * @return {@link Long} – 清理数量
      */
-    long clear(byte[] pattern);
+    Long clear(byte[] pattern);
 
     // -------------------------- key command end ----------------------------
 
@@ -121,34 +217,67 @@ public interface RedisOperatorProxy {
     // -------------------------- string command start -----------------------
 
     /**
-     * 异步设置 Redis-String 键的值
+     * Redis-String：设置键对应的值（异步）
      *
      * @param key   键
      * @param value 值
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> set(byte[] key, byte[] value);
 
     /**
-     * 异步获取 Redis-String 键的值
+     * Redis-String：设置键对应的值（同步）
+     *
+     * @param key   键
+     * @param value 值
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String setSync(byte[] key, byte[] value) {
+        return RedisFutureHelper.get(set(key, value), getSyncTimeout());
+    }
+
+    /**
+     * Redis-String：获取键对应的值（异步）
      *
      * @param key 键
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步获取的值
+     * @return {@code byte[]} – 值
      */
     CompletableFuture<byte[]> get(byte[] key);
 
     /**
-     * 异步批量设置 Redis-String 键的值
-     * <p>
-     * 如单次存储的数据量超过 batchSize，则分批次存储。
+     * Redis-String：获取键对应的值（同步）
      *
-     * @param keyValues Redis-String 键及对应的值集合
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @param key 键
+     * @return {@code byte[]} – 值
+     */
+    default byte[] getSync(byte[] key) {
+        return RedisFutureHelper.get(get(key), getSyncTimeout());
+    }
+
+    /**
+     * Redis-String：批量设置键的值（异步）
+     * <p>
+     * 如单次设置的数据量超过 batchSize，则分批次提交数据，然后再合并结果。
+     *
+     * @param keyValues 键值对集合
+     * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> mset(Map<byte[], byte[]> keyValues);
 
     /**
-     * 异步批量获取键对应的值
+     * Redis-String：批量设置键的值（异步）
+     * <p>
+     * 如单次设置的数据量超过 batchSize，则分批次提交数据，然后再合并结果。
+     *
+     * @param keyValues 键值对集合
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String msetSync(Map<byte[], byte[]> keyValues) {
+        return RedisFutureHelper.get(mset(keyValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-String：批量获取键对应的值（异步）
      * <p>
      * 如单次获取的数据量超过 batchSize，则分批次查询数据，然后再合并返回。
      *
@@ -158,7 +287,19 @@ public interface RedisOperatorProxy {
     CompletableFuture<List<KeyValue<byte[], byte[]>>> mget(byte[][] keys);
 
     /**
-     * 异步设置 Redis-String 键的值，并设置过期时间
+     * Redis-String：批量获取键对应的值（同步）
+     * <p>
+     * 如单次获取的数据量超过 batchSize，则分批次查询数据，然后再合并返回。
+     *
+     * @param keys 键列表
+     * @return {@code List<KeyValue<byte[], byte[]>>} – 键值对列表
+     */
+    default List<KeyValue<byte[], byte[]>> mgetSync(byte[][] keys) {
+        return RedisFutureHelper.get(mget(keys), getSyncTimeout());
+    }
+
+    /**
+     * Redis-String：设置键对应的值和过期时间（异步）
      *
      * @param key          键
      * @param milliseconds 过期时间（毫秒）
@@ -168,25 +309,62 @@ public interface RedisOperatorProxy {
     CompletableFuture<String> psetex(byte[] key, long milliseconds, byte[] value);
 
     /**
-     * 异步设置 Redis-String 键的值，并设置过期时间
+     * Redis-String：设置键对应的值和过期时间（同步）
+     *
+     * @param key          键
+     * @param milliseconds 过期时间（毫秒）
+     * @param value        值
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String psetexSync(byte[] key, long milliseconds, byte[] value) {
+        return RedisFutureHelper.get(psetex(key, milliseconds, value), getSyncTimeout());
+    }
+
+    /**
+     * Redis-String：批量设置键对应的值和过期时间（异步）
      * <p>
      * 每个键有独立的过期时间
      *
-     * @param keyValues （键-值-过期时间）列表
+     * @param expiryKeyValues {@code List<ExpiryKeyValue<键, 值, 过期时间>>}
      * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
-    CompletableFuture<String> psetex(List<ExpiryKeyValue<byte[], byte[]>> keyValues);
+    CompletableFuture<String> psetex(List<ExpiryKeyValue<byte[], byte[]>> expiryKeyValues);
 
     /**
-     * 异步设置 Redis-String 键的值，并设置过期时间
+     * Redis-String：批量设置键对应的值和过期时间（同步）
+     * <p>
+     * 每个键有独立的过期时间
+     *
+     * @param expiryKeyValues {@code List<ExpiryKeyValue<键, 值, 过期时间>>}
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String psetexSync(List<ExpiryKeyValue<byte[], byte[]>> expiryKeyValues) {
+        return RedisFutureHelper.get(psetex(expiryKeyValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-String：批量设置键对应的值和过期时间（异步）
      * <p>
      * 所有键有相同的过期时间
      *
-     * @param keyValues    键值对列表
+     * @param keyValues    {@code List<KeyValue<键, 值>>}
      * @param milliseconds 过期时间（毫秒）
      * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> psetex(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds);
+
+    /**
+     * Redis-String：批量设置键对应的值和过期时间（同步）
+     * <p>
+     * 所有键有相同的过期时间
+     *
+     * @param keyValues    {@code List<KeyValue<键, 值>>}
+     * @param milliseconds 过期时间（毫秒）
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String psetexSync(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds) {
+        return RedisFutureHelper.get(psetex(keyValues, milliseconds), getSyncTimeout());
+    }
 
     // -------------------------- string command end -------------------------
 
@@ -194,60 +372,116 @@ public interface RedisOperatorProxy {
     // -------------------------- hash command start -------------------------
 
     /**
-     * 异步将指定的值设置到指定的哈希字段中
-     * 如果字段已存在，会覆盖该字段的值
+     * Redis-Hash：设置字段值（异步）
+     * <p>
+     * 如果字段已存在，则覆盖该字段的值
      *
-     * @param key   Redis-Hash 的键
-     * @param field Redis-Hash 的字段
-     * @param value Redis-Hash 的字段值
-     * @return 返回一个CompletableFuture，表示异步操作的结果
-     * 完成后，结果为 true 表示设置成功，false 表示设置失败
+     * @param key   Redis-Hash 键
+     * @param field Redis-Hash 字段
+     * @param value Redis-Hash 字段对应的值
+     * @return {@code CompletableFuture<Boolean>} – 如果命令执行成功，则返回 true
      */
     CompletableFuture<Boolean> hset(byte[] key, byte[] field, byte[] value);
 
     /**
-     * 异步批量设置 Redis-Hash 值
+     * Redis-Hash：设置字段值（同步）
      * <p>
-     * 支持多个 Hash 键批量设置多个 Hash 值
-     * <p>
-     * 该方法通过 Pipeline 机制优化了多个 Hash值的批量设置操作，旨在减少网络往返次数，提高操作效率。
-     * <p>
-     * 如单次提交的数据量超过 batchSize，则分批次提交数据。
+     * 如果字段已存在，则覆盖该字段的值
      *
-     * @param keyFieldValues 包含Key及其对应Field-Value映射的字典，其中 Key为 Hash的键名，Value为 Field-Value 映射
-     * @return 返回一个CompletableFuture对象，表示异步操作的结果
+     * @param key   Redis-Hash 键
+     * @param field Redis-Hash 字段
+     * @param value Redis-Hash 字段对应的值
+     * @return {@link Boolean} – 如果命令执行成功，则返回 true
+     */
+    default Boolean hsetSync(byte[] key, byte[] field, byte[] value) {
+        return RedisFutureHelper.get(hset(key, field, value), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量设置字段值（异步）
+     * <p>
+     * 支持操作多个 Hash 表
+     *
+     * @param keyFieldValues {@code Map<键, Map<字段, 值>>}
+     * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> hmset(Map<byte[], Map<byte[], byte[]>> keyFieldValues);
 
     /**
-     * 异步批量设置 Redis-Hash 的字段值
+     * Redis-Hash：批量设置字段值（同步）
      * <p>
-     * 如单次提交的数据量超过 batchSize，则分批次提交数据。
+     * 支持操作多个 Hash 表
      *
-     * @param key         Redis-Hash 的键
-     * @param fieldValues 字段与值的映射
-     * @return 返回表示异步操作完成的Future对象
+     * @param keyFieldValues {@code Map<键, Map<字段, 值>>}
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String hmsetSync(Map<byte[], Map<byte[], byte[]>> keyFieldValues) {
+        return RedisFutureHelper.get(hmset(keyFieldValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量设置字段值（异步）
+     * <p>
+     * 支持操作单个 Hash 表
+     *
+     * @param key         键
+     * @param fieldValues {@code Map<字段, 值>}
+     * @return {@code CompletableFuture<String>} – 如果命令执行成功，则返回 OK
      */
     CompletableFuture<String> hmset(byte[] key, Map<byte[], byte[]> fieldValues);
 
     /**
-     * 异步设置 Redis-Hash 键的值及过期时间
+     * Redis-Hash：批量设置字段值（同步）
+     * <p>
+     * 支持操作单个 Hash 表
      *
-     * @param key          Hash 键
+     * @param key         键
+     * @param fieldValues {@code Map<字段, 值>}
+     * @return {@link String} – 如果命令执行成功，则返回 OK
+     */
+    default String hmsetSync(byte[] key, Map<byte[], byte[]> fieldValues) {
+        return RedisFutureHelper.get(hmset(key, fieldValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：设置字段的值及字段过期时间（异步）
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
+     *
+     * @param key          键
      * @param milliseconds 过期时间（毫秒）
-     * @param field        Hash 字段
-     * @param value        Hash 字段值
+     * @param field        字段
+     * @param value        字段对应的值
      * @return {@code CompletableFuture<Long>} – 设置结果，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     CompletableFuture<Long> hpset(byte[] key, long milliseconds, byte[] field, byte[] value);
 
     /**
-     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * Redis-Hash：设置字段的值及字段过期时间（同步）
      * <p>
-     * 所有字段有相同的过期时间
+     * 注意：RedisServer 版本需大于等于 7.4.0
      *
-     * @param key          Redis-Hash 的键
-     * @param fieldsValues {@code 字段-值} 列表
+     * @param key          键
+     * @param milliseconds 过期时间（毫秒）
+     * @param field        字段
+     * @param value        字段对应的值
+     * @return {@link Long} – 设置结果，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
+    default Long hpsetSync(byte[] key, long milliseconds, byte[] field, byte[] value) {
+        return RedisFutureHelper.get(hpset(key, milliseconds, field, value), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量设置字段的值及字段过期时间（异步）
+     * <p>
+     * 所有字段使用相同的过期时间，支持操作单个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
+     *
+     * @param key          Redis-Hash 键
+     * @param fieldsValues {@code List<KeyValue<字段, 值>}
      * @param milliseconds 过期时间（毫秒）
      * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
@@ -255,34 +489,88 @@ public interface RedisOperatorProxy {
     CompletableFuture<List<Long>> hmpset(byte[] key, long milliseconds, List<KeyValue<byte[], byte[]>> fieldsValues);
 
     /**
-     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * Redis-Hash：批量设置字段的值及字段过期时间（同步）
      * <p>
-     * 每个字段有独立的过期时间
+     * 所有字段使用相同的过期时间，支持操作单个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
      *
-     * @param key                Redis-Hash 的键
-     * @param expiryFieldsValues {@code 字段-值-过期时间（毫秒）} 列表
+     * @param key          Redis-Hash 键
+     * @param fieldsValues {@code List<KeyValue<字段, 值>}
+     * @param milliseconds 过期时间（毫秒）
+     * @return {@link List<Long>} – 设置结果列表，值表示的状态见 {@code}
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
+    default List<Long> hmpsetSync(byte[] key, long milliseconds, List<KeyValue<byte[], byte[]>> fieldsValues) {
+        return RedisFutureHelper.get(hmpset(key, milliseconds, fieldsValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量设置字段的值及字段过期时间（异步）
+     * <p>
+     * 每个字段使用独立的过期时间，支持操作单个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
+     *
+     * @param key                Redis-Hash 键
+     * @param expiryFieldsValues {@code List<ExpiryKeyValue<字段, 值, 过期时间>}
      * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     CompletableFuture<List<Long>> hmpset(byte[] key, List<ExpiryKeyValue<byte[], byte[]>> expiryFieldsValues);
 
     /**
-     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * Redis-Hash：批量设置字段的值及字段过期时间（同步）
      * <p>
-     * 每个字段有独立的过期时间
+     * 每个字段使用独立的过期时间，支持操作单个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
      *
-     * @param expiryKeysFieldsValues {@code 键：字段-值-过期时间（毫秒）} 列表
+     * @param key                Redis-Hash 键
+     * @param expiryFieldsValues {@code List<ExpiryKeyValue<字段, 值, 过期时间>}
+     * @return {@link List<Long>} –设置结果列表，值表示的状态见 {@code HPEXPIRE}
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
+    default List<Long> hmpsetSync(byte[] key, List<ExpiryKeyValue<byte[], byte[]>> expiryFieldsValues) {
+        return RedisFutureHelper.get(hmpset(key, expiryFieldsValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量设置字段的值及字段过期时间（异步）
+     * <p>
+     * 每个字段使用独立的过期时间，支持操作多个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
+     *
+     * @param expiryKeysFieldsValues {@code Map<键, List<ExpiryKeyValue<字段, 值, 过期时间>>>}
      * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     CompletableFuture<List<Long>> hmpset(Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> expiryKeysFieldsValues);
 
     /**
-     * 异步设置 Redis-Hash 的字段值，并设置字段的过期时间
+     * Redis-Hash：批量设置字段的值及字段过期时间（同步）
      * <p>
-     * 所有字段有相同的过期时间
+     * 每个字段使用独立的过期时间，支持操作多个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
      *
-     * @param keysFieldsValues {@code 键：字段-值} 列表
+     * @param expiryKeysFieldsValues {@code Map<键, List<ExpiryKeyValue<字段, 值, 过期时间>>>}
+     * @return {@link List<Long>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
+    default List<Long> hmpsetSync(Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> expiryKeysFieldsValues) {
+        return RedisFutureHelper.get(hmpset(expiryKeysFieldsValues), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量设置字段的值及字段过期时间（异步）
+     * <p>
+     * 所有字段使用相同的过期时间，支持操作多个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
+     *
+     * @param keysFieldsValues {@code Map<键, List<KeyValue<字段, 值>>>} 列表
      * @param milliseconds     过期时间（毫秒）
      * @return {@code CompletableFuture<List<Long>>} – 设置结果列表，值表示的状态见 {@code HPEXPIRE} 命令
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
@@ -290,55 +578,134 @@ public interface RedisOperatorProxy {
     CompletableFuture<List<Long>> hmpset(Map<byte[], List<KeyValue<byte[], byte[]>>> keysFieldsValues, long milliseconds);
 
     /**
-     * 异步获取 Redis-Hash 键的值
+     * Redis-Hash：批量设置字段的值及字段过期时间（同步）
+     * <p>
+     * 所有字段使用相同的过期时间，支持操作多个 Hash 表
+     * <p>
+     * 注意：RedisServer 版本需大于等于 7.4.0
      *
-     * @param key   Redis-Hash 的键
-     * @param field Redis-Hash 的字段
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @param keysFieldsValues {@code Map<键, List<KeyValue<字段, 值>>>} 列表
+     * @param milliseconds     过期时间（毫秒）
+     * @return {@link List<Long>} –设置结果列表，值表示的状态见 {@code HPEXPIRE}
+     * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
+     */
+    default List<Long> hmpsetSync(Map<byte[], List<KeyValue<byte[], byte[]>>> keysFieldsValues, long milliseconds) {
+        return RedisFutureHelper.get(hmpset(keysFieldsValues, milliseconds), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：获取字段对应的值（异步）
+     *
+     * @param key   键
+     * @param field 字段
+     * @return {@code CompletableFuture<byte[]>} – 字段对应的值
      */
     CompletableFuture<byte[]> hget(byte[] key, byte[] field);
 
     /**
-     * 异步批量获取 Redis-Hash 键的值
+     * Redis-Hash：获取字段对应的值（同步）
+     *
+     * @param key   键
+     * @param field 字段
+     * @return {@code byte[]} – 字段对应的值
+     */
+    default byte[] hgetSync(byte[] key, byte[] field) {
+        return RedisFutureHelper.get(hget(key, field), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量获取字段对应的的值（异步）
      * <p>
      * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并返回。
      *
-     * @param key    Redis-Hash 的键
-     * @param fields Redis-Hash 的字段列表
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @param key    Redis-Hash 键
+     * @param fields Redis-Hash 字段列表
+     * @return {@code CompletableFuture<List<KeyValue<字段, 值>>>}
      */
     CompletableFuture<List<KeyValue<byte[], byte[]>>> hmget(byte[] key, byte[]... fields);
 
     /**
-     * 异步批量获取 Redis-Hash 键的值
+     * Redis-Hash：批量获取字段对应的值（同步）
      * <p>
      * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并返回。
      *
+     * @param key    Redis-Hash 键
+     * @param fields Redis-Hash 字段列表
+     * @return {@code List<KeyValue<字段, 值>>}
+     */
+    default List<KeyValue<byte[], byte[]>> hmgetSync(byte[] key, byte[]... fields) {
+        return RedisFutureHelper.get(hmget(key, fields), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量获取字段对应的值（异步）
+     * <p>
+     * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并结果。
+     *
      * @param keyFields Redis-Hash 键及对应的字段集合
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @return {@code CompletableFuture<List<KeyValue<字段, 值>>>} <br>
+     * 返回结果不区分是从哪个 Key 获取的字段和值，如果要区分不同的键，请使用不同的键分别调用 {@link #hmget(byte[], byte[]...)}
      */
     CompletableFuture<List<KeyValue<byte[], byte[]>>> hmget(Map<byte[], List<byte[]>> keyFields);
 
     /**
-     * 异步批量删除 Redis-Hash 键的值
+     * Redis-Hash：批量获取字段对应的值（同步）
      * <p>
-     * 如单次删除的数据量超过 batchSize，则分批次删除数据。
+     * 如单次获取的数据量超过 batchSize，则分批次获取数据再合并结果。
      *
-     * @param keyFields 包含 Key 及其对应 field 列表，其中 Key 为 Hash 键，Value 为 field 列表
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @param keyFields Redis-Hash 键及对应的字段集合
+     * @return {@code List<KeyValue<字段, 值>>} <br>
+     * 返回结果不区分是从哪个 Key 获取的字段和值，如果要区分不同的键，请使用不同的键分别调用 {@link #hmget(byte[], byte[]...)}
+     */
+    default List<KeyValue<byte[], byte[]>> hmgetSync(Map<byte[], List<byte[]>> keyFields) {
+        return RedisFutureHelper.get(hmget(keyFields), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量删除键对应的字段列表（异步）
+     * <p>
+     * 如单次删除的数据量超过 batchSize，则分批次删除数据再合并结果。
+     *
+     * @param keyFields {@code Map<键, List<字段>>}
+     * @return {@code CompletableFuture<Long>} – 删除数量
      */
     CompletableFuture<Long> hdel(Map<byte[], List<byte[]>> keyFields);
 
     /**
-     * 异步批量删除 Redis-Hash 键对应的字段列表
+     * Redis-Hash：批量删除键对应的字段列表（同步）
      * <p>
-     * 如单次删除的数据量超过 batchSize，则分批次删除。
+     * 如单次删除的数据量超过 batchSize，则分批次删除数据再合并结果。
      *
-     * @param key    Redis-Hash 键
-     * @param fields Redis-Hash 键对应的字段列表
-     * @return 返回一个 {@link CompletableFuture} 对象，表示异步操作的结果
+     * @param keyFields {@code Map<键, List<字段>>}
+     * @return {@link Long} – 删除数量
+     */
+    default Long hdelSync(Map<byte[], List<byte[]>> keyFields) {
+        return RedisFutureHelper.get(hdel(keyFields), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Hash：批量删除键对应的字段列表（异步）
+     * <p>
+     * 如单次删除的数据量超过 batchSize，则分批次删除数据再合并结果。
+     *
+     * @param key    键
+     * @param fields 字段列表
+     * @return {@code CompletableFuture<Long>} – 删除数量
      */
     CompletableFuture<Long> hdel(byte[] key, byte[]... fields);
+
+    /**
+     * Redis-Hash：批量删除键对应的字段列表（同步）
+     * <p>
+     * 如单次删除的数据量超过 batchSize，则分批次删除数据再合并结果。
+     *
+     * @param key    键
+     * @param fields 字段列表
+     * @return {@link Long} – 删除数量
+     */
+    default Long hdelSync(byte[] key, byte[]... fields) {
+        return RedisFutureHelper.get(hdel(key, fields), getSyncTimeout());
+    }
 
     // -------------------------- hash command end ---------------------------
 
@@ -346,75 +713,165 @@ public interface RedisOperatorProxy {
     // -------------------------- sorted set command start -------------------
 
     /**
-     * 添加 Redis-SortedSet 的成员并设置分值（或更新已有成员的分值）
+     * Redis-SortedSet：添加成员并设置分值（或更新已有成员的分值）（异步）
      *
-     * @param key    Redis-SortedSet 的键
-     * @param member Redis-SortedSet 的成员
-     * @param score  Redis-SortedSet 的成员对应的分值
+     * @param key    键
+     * @param member 成员
+     * @param score  成员分值
      * @return {@code CompletableFuture<Long>} – 新增成员数量，值表示的状态详见 {@code ZADD} 命令
      * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
      */
     CompletableFuture<Long> zadd(byte[] key, double score, byte[] member);
 
     /**
-     * 添加 Redis-SortedSet 的成员并设置分值（或更新已有成员的分值）
+     * Redis-SortedSet：添加成员并设置分值（或更新已有成员的分值）（同步）
      *
-     * @param key          Redis-SortedSet 的键
-     * @param scoredValues {@code 分值-成员} 列表
+     * @param key    键
+     * @param member 成员
+     * @param score  成员分值
+     * @return {@link Long} – 新增成员数量，值表示的状态详见 {@code ZADD} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
+     */
+    default Long zaddSync(byte[] key, double score, byte[] member) {
+        return RedisFutureHelper.get(zadd(key, score, member), getSyncTimeout());
+    }
+
+    /**
+     * 批量添加成员并设置分值（或更新已有成员的分值）（异步）
+     *
+     * @param key          键
+     * @param scoredValues {@code ScoredValue<成员，分值>} 列表
      * @return {@code CompletableFuture<Long>} – 新增成员数量，值表示的状态详见 {@code ZADD} 命令
      * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
      */
     CompletableFuture<Long> zadd(byte[] key, ScoredValue<byte[]>... scoredValues);
 
     /**
-     * 获取 Redis-SortedSet 的成员数量
+     * 批量添加成员并设置分值（或更新已有成员的分值）（同步）
+     *
+     * @param key          键
+     * @param scoredValues {@code ScoredValue<成员，分值>} 列表
+     * @return {@link Long} – 新增成员数量，值表示的状态详见 {@code ZADD} 命令
+     * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
+     */
+    default Long zaddSync(byte[] key, ScoredValue<byte[]>... scoredValues) {
+        return RedisFutureHelper.get(zadd(key, scoredValues), getSyncTimeout());
+    }
+
+    /**
+     * 获取指定 Redis-SortedSet 的基数（成员数量）（异步）
      *
      * @param key 键
-     * @return {@code CompletableFuture<Long>} – 成员数量
+     * @return {@code CompletableFuture<Long>} – 此 SortedSet 的基数（成员数量），如键不存在返回 0。
      * @see <a href="https://redis.io/docs/latest/commands/zcard/">ZCARD</a>
      */
     CompletableFuture<Long> zcard(byte[] key);
 
     /**
-     * 根据给定的键字母序范围，返回成员列表
+     * 获取指定 Redis-SortedSet 的基数（成员数量）（同步）
+     *
+     * @param key 键
+     * @return {@link Long} – 此 SortedSet 的基数（成员数量），如键不存在返回 0。
+     * @see <a href="https://redis.io/docs/latest/commands/zcard/">ZCARD</a>
+     */
+    default Long zcardSync(byte[] key) {
+        return RedisFutureHelper.get(zcard(key), getSyncTimeout());
+    }
+
+    /**
+     * 根据给定的字典序范围，返回成员列表（异步）
      *
      * @param key   键
-     * @param range 键字母序范围
-     * @return {@code CompletableFuture<List<byte[]>>} – 给定键字母序范围的成员列表
+     * @param range 成员的字典序范围
+     * @return {@code CompletableFuture<List<byte[]>>} – 给定字典序范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebylex/">ZRANGEBYLEX</a>
      */
     CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range);
 
     /**
-     * 根据给定的键字母序范围，返回成员列表
+     * 根据给定的字典序范围，返回成员列表（同步）
      *
      * @param key   键
-     * @param range 键字母序范围
-     * @param limit 限定条件
-     * @return {@code CompletableFuture<List<byte[]>>} – 给定键字母序范围的成员列表
+     * @param range 成员的字典序范围
+     * @return {@code List<byte[]>} – 给定字典序范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebylex/">ZRANGEBYLEX</a>
+     */
+    default List<byte[]> zrangebylexSync(byte[] key, Range<byte[]> range) {
+        return RedisFutureHelper.get(zrangebylex(key, range), getSyncTimeout());
+    }
+
+    /**
+     * 根据给定的字典序范围，返回成员列表（异步）
+     *
+     * @param key   键
+     * @param range 成员的字典序范围
+     * @param limit 限定条件：读偏移和读取数量
+     * @return {@code CompletableFuture<List<byte[]>>} – 给定字典序范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebylex/">ZRANGEBYLEX</a>
      */
     CompletableFuture<List<byte[]>> zrangebylex(byte[] key, Range<byte[]> range, Limit limit);
 
     /**
-     * 根据给定的分值范围，返回成员列表
+     * 根据给定的字典序范围，返回成员列表（同步）
+     *
+     * @param key   键
+     * @param range 成员的字典序范围
+     * @param limit 限定条件：读偏移和读取数量
+     * @return {@code List<byte[]>} – 给定字典序范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebylex/">ZRANGEBYLEX</a>
+     */
+    default List<byte[]> zrangebylexSync(byte[] key, Range<byte[]> range, Limit limit) {
+        return RedisFutureHelper.get(zrangebylex(key, range, limit), getSyncTimeout());
+    }
+
+    /**
+     * 根据给定的分值范围，返回成员列表（异步）
      *
      * @param key   键
      * @param range 分值范围
      * @return {@code CompletableFuture<List<byte[]>>} – 给定分值范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebyscore/">ZRANGEBYSCORE</a>
      */
     CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range);
 
     /**
-     * 根据给定的分值范围，返回成员列表
+     * 根据给定的分值范围，返回成员列表（同步）
      *
      * @param key   键
      * @param range 分值范围
-     * @param limit 限定条件
+     * @return {@code List<byte[]>} – 给定分值范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebyscore/">ZRANGEBYSCORE</a>
+     */
+    default List<byte[]> zrangebyscoreSync(byte[] key, Range<? extends Number> range) {
+        return RedisFutureHelper.get(zrangebyscore(key, range), getSyncTimeout());
+    }
+
+    /**
+     * 根据给定的分值范围，返回成员列表（异步）
+     *
+     * @param key   键
+     * @param range 分值范围
+     * @param limit 限定条件：读偏移和读取数量
      * @return {@code CompletableFuture<List<byte[]>>} – 给定分值范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebyscore/">ZRANGEBYSCORE</a>
      */
     CompletableFuture<List<byte[]>> zrangebyscore(byte[] key, Range<? extends Number> range, Limit limit);
 
     /**
-     * 删除成员
+     * 根据给定的分值范围，返回成员列表（同步）
+     *
+     * @param key   键
+     * @param range 分值范围
+     * @param limit 限定条件：读偏移和读取数量
+     * @return {@code List<byte[]>} – 给定分值范围的成员列表
+     * @see <a href="https://redis.io/docs/latest/commands/zrangebyscore/">ZRANGEBYSCORE</a>
+     */
+    default List<byte[]> zrangebyscoreSync(byte[] key, Range<? extends Number> range, Limit limit) {
+        return RedisFutureHelper.get(zrangebyscore(key, range, limit), getSyncTimeout());
+    }
+
+    /**
+     * 删除成员（异步）
      *
      * @param key     键
      * @param members 成员列表
@@ -423,35 +880,81 @@ public interface RedisOperatorProxy {
      */
     CompletableFuture<Long> zrem(byte[] key, byte[]... members);
 
+    /**
+     * 删除成员（同步）
+     *
+     * @param key     键
+     * @param members 成员列表
+     * @return {@code Long} – 删除的成员数量
+     * @see <a href="https://redis.io/docs/latest/commands/zrem/">ZREM</a>
+     */
+    default Long zremSync(byte[] key, byte[]... members) {
+        return RedisFutureHelper.get(zrem(key, members), getSyncTimeout());
+    }
+
     // -------------------------- sorted set command end ---------------------
 
 
     // -------------------------- script command start -----------------------
 
     /**
-     * 使用指定的键集和参数执行 Script
+     * Redis-Script：使用指定的键集和参数执行 Script（异步）
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
      * @param keys   键列表
-     * @param args   脚本参数列表
+     * @param args   参数列表
      * @return 脚本执行结果
+     * @see <a href="https://redis.io/docs/latest/commands/eval/">EVAL</a>
      */
     <T> CompletableFuture<T> eval(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 使用指定的键集和参数执行只读的 Script
+     * Redis-Script：使用指定的键集和参数执行 Script（同步）
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
      * @param keys   键列表
-     * @param args   脚本参数列表
+     * @param args   参数列表
      * @return 脚本执行结果
+     * @see <a href="https://redis.io/docs/latest/commands/eval/">EVAL</a>
+     */
+    default <T> T evalSync(RedisScript script, byte[][] keys, byte[]... args) {
+        return RedisFutureHelper.get(eval(script, keys, args), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Script：使用指定的键集和参数执行只读的 Script（异步）
+     * <p>
+     * RedisServer available since: 7.0.0
+     *
+     * @param <T>    返回结果类型
+     * @param script 脚本对象
+     * @param keys   键列表
+     * @param args   参数列表
+     * @return 脚本执行结果
+     * @see <a href="https://redis.io/docs/latest/commands/eval_ro/">EVAL_RO</a>
      */
     <T> CompletableFuture<T> evalReadOnly(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 使用指定的键集和参数执行 Script
+     * Redis-Script：使用指定的键集和参数执行只读的 Script（同步）
+     * <p>
+     * RedisServer available since: 7.0.0
+     *
+     * @param <T>    返回结果类型
+     * @param script 脚本对象
+     * @param keys   键列表
+     * @param args   参数列表
+     * @return 脚本执行结果
+     * @see <a href="https://redis.io/docs/latest/commands/eval_ro/">EVAL_RO</a>
+     */
+    default <T> T evalReadOnlySync(RedisScript script, byte[][] keys, byte[]... args) {
+        return RedisFutureHelper.get(evalReadOnly(script, keys, args), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Script：使用指定的键集和参数执行 Script（异步）
      * <p>
      * 可能问题： <p>
      * 1. RedisServer 可能未加载此脚本；<br>
@@ -461,20 +964,36 @@ public interface RedisOperatorProxy {
      * 1.先执行 {@link #scriptLoad(RedisScript)} 方法；<br>
      * 2.再转而执行 {@link #eval(RedisScript, byte[][], byte[]...)} 方法。
      * <p>
-     * 总之，尽可能确保：<br>
+     * 总之，尽可能实现：<br>
      * 1. 数据操作成功；<br>
-     * 2. RedisScript 对象的 SHA1 摘要与 RedisServer 的 SHA1 摘要一致，下一次再用同一 RedisScript 对象调用此方法时，不再出现异常。
+     * 2. 调用此方法后，RedisScript 对象的 SHA1 摘要与 RedisServer 的 SHA1 摘要保持一致，
+     * 下一次再用同一 RedisScript 对象调用此方法时，不再出现异常。
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
      * @param keys   键列表
-     * @param args   脚本参数列表
+     * @param args   参数列表
      * @return 脚本执行结果
      */
     <T> CompletableFuture<T> evalsha(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 使用指定的键集和参数执行只读的 Script
+     * Redis-Script：使用指定的键集和参数执行 Script（同步）
+     *
+     * @param <T>    返回结果类型
+     * @param script 脚本对象
+     * @param keys   键列表
+     * @param args   参数列表
+     * @return 脚本执行结果
+     */
+    default <T> T evalshaSync(RedisScript script, byte[][] keys, byte[]... args) {
+        return RedisFutureHelper.get(evalsha(script, keys, args), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Script：使用指定的键集和参数执行只读的 Script（异步）
+     * <p>
+     * RedisServer available since: 7.0.0
      * <p>
      * 可能问题： <p>
      * 1. RedisServer 可能未加载此脚本；<br>
@@ -484,20 +1003,38 @@ public interface RedisOperatorProxy {
      * 1.先执行 {@link #scriptLoad(RedisScript)} 方法；<br>
      * 2.再转而执行 {@link #evalReadOnly(RedisScript, byte[][], byte[]...)} 方法。
      * <p>
-     * 总之，尽可能确保：<br>
+     * 总之，尽可能实现：<br>
      * 1. 数据操作成功；<br>
-     * 2. RedisScript 对象的 SHA1 摘要与 RedisServer 的 SHA1 摘要一致，下一次再用同一 RedisScript 对象调用此方法时，不再出现异常。
+     * 2. 调用此方法后，RedisScript 对象的 SHA1 摘要与 RedisServer 的 SHA1 摘要保持一致，
+     * 下一次再用同一 RedisScript 对象调用此方法时，不再出现异常。
      *
      * @param <T>    返回结果类型
      * @param script 脚本对象
      * @param keys   键列表
-     * @param args   脚本参数列表
+     * @param args   参数列表
      * @return 脚本执行结果
+     * @see <a href="https://redis.io/docs/latest/commands/evalsha_ro/">EVALSHA_RO</a>
      */
     <T> CompletableFuture<T> evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args);
 
     /**
-     * 加载 Script
+     * Redis-Script：使用指定的键集和参数执行只读的 Script（同步）
+     * <p>
+     * RedisServer available since: 7.0.0
+     *
+     * @param <T>    返回结果类型
+     * @param script 脚本对象
+     * @param keys   键列表
+     * @param args   参数列表
+     * @return 脚本执行结果
+     * @see <a href="https://redis.io/docs/latest/commands/evalsha_ro/">EVALSHA_RO</a>
+     */
+    default <T> T evalshaReadOnlySync(RedisScript script, byte[][] keys, byte[]... args) {
+        return RedisFutureHelper.get(evalshaReadOnly(script, keys, args), getSyncTimeout());
+    }
+
+    /**
+     * Redis-Script：加载 Script（异步）
      * <p>
      * 1.Script 加载到 Redis 服务器；<br>
      * 2.RedisServer 返回的 SHA1 摘要设置到 RedisScript 对象。
@@ -506,6 +1043,19 @@ public interface RedisOperatorProxy {
      * @return {@link String} – SHA1 摘要
      */
     CompletableFuture<String> scriptLoad(RedisScript script);
+
+    /**
+     * Redis-Script：加载 Script（同步）
+     * <p>
+     * 1.Script 加载到 Redis 服务器；<br>
+     * 2.RedisServer 返回的 SHA1 摘要设置到 RedisScript 对象。
+     *
+     * @param script 脚本对象
+     * @return {@link String} – SHA1 摘要
+     */
+    default String scriptLoadSync(RedisScript script) {
+        return RedisFutureHelper.get(scriptLoad(script), getSyncTimeout());
+    }
 
     // -------------------------- script command end -------------------------
 }

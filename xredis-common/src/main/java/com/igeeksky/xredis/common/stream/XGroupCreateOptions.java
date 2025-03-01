@@ -33,7 +33,7 @@ public class XGroupCreateOptions {
      */
     private XGroupCreateOptions(boolean mkstream, Long entriesRead) {
         if (entriesRead != null) {
-            Assert.isTrue(entriesRead >= -1, "entriesRead must be greater than or equal to -1");
+            Assert.isTrue(entriesRead >= -1, "entriesRead must be greater or equal -1");
         }
 
         this.mkstream = mkstream;

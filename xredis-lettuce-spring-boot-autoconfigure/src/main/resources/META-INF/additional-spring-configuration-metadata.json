@@ -2,13 +2,13 @@
   "groups": [
     {
       "name": "xredis.lettuce",
-      "type": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties"
+      "type": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties",
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties"
     },
     {
       "name": "xredis.lettuce.standalone",
       "type": "com.igeeksky.xredis.lettuce.props.LettuceStandalone",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties",
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties",
       "sourceMethod": "getStandalone()"
     },
     {
@@ -50,7 +50,7 @@
     {
       "name": "xredis.lettuce.sentinel",
       "type": "com.igeeksky.xredis.lettuce.props.LettuceSentinel",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties",
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties",
       "sourceMethod": "getSentinel()"
     },
     {
@@ -92,7 +92,7 @@
     {
       "name": "xredis.lettuce.cluster",
       "type": "com.igeeksky.xredis.lettuce.props.LettuceCluster",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties",
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties",
       "sourceMethod": "getCluster()"
     },
     {
@@ -618,26 +618,26 @@
       "name": "xredis.lettuce.id",
       "type": "java.lang.String",
       "description": "RedisOperatorFactory 唯一标识 <p> 如有自定义的 {@link ClientOptionsBuilderCustomizer} ， 可通过此 id 对特定的 {@link RedisOperatorFactory} 进行配置。",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties",
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties",
       "defaultValue": "lettuce"
     },
     {
       "name": "xredis.lettuce.standalone",
       "type": "com.igeeksky.xredis.lettuce.props.LettuceStandalone",
       "description": "单机模式 或 副本集模式 配置 <p> <b>注意：<\/b><br> 初始化客户端时，按（sentinel → cluster → standalone）顺序读取配置， 任一配置不为空，则自动使用该配置，忽略后续其它配置。<br> 如果所有配置均为空，则抛出 {@link RedisConfigException} 异常。",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties"
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties"
     },
     {
       "name": "xredis.lettuce.sentinel",
       "type": "com.igeeksky.xredis.lettuce.props.LettuceSentinel",
       "description": "哨兵模式配置 <p> <b>注意：<\/b><br> 初始化客户端时，按（sentinel → cluster → standalone）顺序读取配置， 任一配置不为空，则自动使用该配置，忽略后续其它配置。<br> 如果所有配置均为空，则抛出 {@link RedisConfigException} 异常。",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties"
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties"
     },
     {
       "name": "xredis.lettuce.cluster",
       "type": "com.igeeksky.xredis.lettuce.props.LettuceCluster",
       "description": "集群模式配置 <p> <b>注意：<\/b><br> 初始化客户端时，按（sentinel → cluster → standalone）顺序读取配置， 任一配置不为空，则自动使用该配置，忽略后续其它配置。<br> 如果所有配置均为空，则抛出 {@link RedisConfigException} 异常。",
-      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.XredisProperties"
+      "sourceType": "com.igeeksky.xredis.lettuce.autoconfigure.LettuceProperties"
     }
   ],
   "hints": []

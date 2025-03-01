@@ -3,6 +3,7 @@ package com.igeeksky.xredis.common.stream.container;
 import com.igeeksky.xredis.common.flow.RetrySink;
 import com.igeeksky.xredis.common.stream.StreamOperator;
 import com.igeeksky.xredis.common.stream.XStreamMessage;
+import com.igeeksky.xtool.core.concurrent.Futures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 流任务抽象类
@@ -26,6 +30,10 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
     private static final Logger log = LoggerFactory.getLogger(StreamGenericTask.class);
 
     private final StreamOperator<K, V> operator;
+
+    private final Lock pullLock = new ReentrantLock();
+
+    private final ArrayList<Future<?>> dispatchFutures = new ArrayList<>();
 
     /**
      * 流信息列表
@@ -49,17 +57,35 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
     @Override
     public void pull() {
         try {
-            this.doPull();
-        } catch (Throwable e) {
-            log.error(e.getMessage(), e);
+            boolean locked = pullLock.tryLock();
+            if (locked) {
+                try {
+                    this.doPull();
+                } catch (Throwable e) {
+                    log.error("Error occurred during doPull: {}", e.getMessage(), e);
+                } finally {
+                    pullLock.unlock();
+                }
+            } else {
+                if (log.isWarnEnabled()) {
+                    log.warn("Failed to acquire lock for pull operation");
+                }
+            }
+        } catch (Throwable ignore) {
         }
     }
 
     private void doPull() {
+        // 需等待 StreamInfo 更新 offset：如果上次任务未完成，那么 offset 可能还未更新，会拉取到重复的消息
+        int size = dispatchFutures.size();
+        int last = Futures.checkAll(0, dispatchFutures);
+        if (last < size) {
+            return;
+        }
+        dispatchFutures.clear();
         if (streams.isEmpty()) {
             return;
         }
-        List<CompletableFuture<Void>> futures = new ArrayList<>(streams.size());
         Iterator<? extends StreamInfo<K, V>> iterator = streams.iterator();
         while (iterator.hasNext()) {
             StreamInfo<K, V> info = iterator.next();
@@ -73,18 +99,11 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
             }
             // 对于无阻塞选项的情况，可以一次性提交所有拉取命令，然后再统一分发数据
             if (info instanceof StreamGroupInfo<K, V> groupInfo) {
-                futures.add(this.dispatch(info, this.xreadgroup(groupInfo)));
+                dispatchFutures.add(this.dispatch(info, this.xreadgroup(groupInfo)));
             } else {
-                futures.add(this.dispatch(info, this.xread(info)));
+                dispatchFutures.add(this.dispatch(info, this.xread(info)));
             }
         }
-        futures.forEach(future -> {
-            try {
-                future.get();
-            } catch (Throwable e) {
-                log.error(e.getMessage(), e);
-            }
-        });
     }
 
     @Override

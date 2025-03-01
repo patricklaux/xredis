@@ -17,9 +17,11 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConfigurationProperties(prefix = "xredis.lettuce")
-public class XredisProperties {
+public class LettuceProperties {
 
     private String id = "lettuce";
+
+    private int syncTimeout = 60000;
 
     @NestedConfigurationProperty
     private LettuceStandalone standalone;
@@ -33,7 +35,7 @@ public class XredisProperties {
     /**
      * 默认构造器
      */
-    public XredisProperties() {
+    public LettuceProperties() {
     }
 
     /**
@@ -52,6 +54,14 @@ public class XredisProperties {
      */
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getSyncTimeout() {
+        return syncTimeout;
+    }
+
+    public void setSyncTimeout(int syncTimeout) {
+        this.syncTimeout = syncTimeout;
     }
 
     /**

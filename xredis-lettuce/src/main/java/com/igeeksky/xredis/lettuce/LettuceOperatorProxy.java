@@ -25,7 +25,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
 /**
- * RedisOperatorProxy（简化批量数据读写）
+ * LettuceOperatorProxy
  *
  * @author Patrick.Lau
  * @since 1.0.0
@@ -35,32 +35,36 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     private static final StringCodec CODEC = StringCodec.getInstance(StandardCharsets.UTF_8);
 
     private final int batchSize;
+    private final long syncTimeout;
     private final RedisOperator<byte[], byte[]> redisOperator;
 
     /**
-     * 创建 RedisOperatorProxy
+     * 使用默认的 {@code batchSize} 和 {@code syncTimeout}，创建 RedisOperatorProxy
      * <p>
      * batchSize 默认值：10000 <br>
-     * batchTimeout 默认值：60000
+     * syncTimeout 默认值：60000
      *
      * @param redisOperator RedisOperator
      */
     public LettuceOperatorProxy(RedisOperator<byte[], byte[]> redisOperator) {
-        this(10000, redisOperator);
+        this(10000, 60000, redisOperator);
     }
 
     /**
-     * 创建 RedisOperatorProxy
+     * 使用指定的 {@code batchSize} 和 {@code syncTimeout}，创建 RedisOperatorProxy
      *
      * @param batchSize     单批次命令提交数量阈值 <br>
      *                      如 batchSize 设为 10000，当 {@link RedisOperatorProxy} 接收到单次操作 100 万条数据的请求时，
      *                      会将数据切分为 100 份，每份 10000条数据，然后分 100 批次提交到 RedisServer。
+     * @param syncTimeout   异步转同步阻塞超时时长，单位：毫秒 <br>
      * @param redisOperator RedisOperator
      */
-    public LettuceOperatorProxy(int batchSize, RedisOperator<byte[], byte[]> redisOperator) {
+    public LettuceOperatorProxy(int batchSize, long syncTimeout, RedisOperator<byte[], byte[]> redisOperator) {
         Assert.isTrue(batchSize > 0, "batchSize must be greater than 0");
+        Assert.isTrue(syncTimeout > 0, "batchTimeout must be greater than 0");
         Assert.notNull(redisOperator, "redisOperator must not be null");
         this.batchSize = batchSize;
+        this.syncTimeout = syncTimeout;
         this.redisOperator = redisOperator;
     }
 
@@ -72,6 +76,11 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     @Override
     public long getBatchSize() {
         return this.batchSize;
+    }
+
+    @Override
+    public long getSyncTimeout() {
+        return this.syncTimeout;
     }
 
     @Override
@@ -131,7 +140,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     }
 
     @Override
-    public long clear(byte[] pattern) {
+    public Long clear(byte[] pattern) {
         return doClear(pattern, 0, 0);
     }
 

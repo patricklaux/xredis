@@ -708,7 +708,8 @@ public class RedisOperatorProxyTestCase {
         //         .toCompletableFuture().join();
         Assertions.assertEquals(length, zrange.size());
 
-        operatorProxy.zrem(key, zrange.toArray(new byte[0][]));
+        Long removed = operatorProxy.zrem(key, zrange.toArray(new byte[0][])).join();
+        Assertions.assertEquals(length, removed);
 
         Assertions.assertEquals(0, operatorProxy.zcard(key).join());
     }
