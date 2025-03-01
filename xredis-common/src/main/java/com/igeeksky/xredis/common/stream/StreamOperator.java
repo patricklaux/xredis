@@ -1,7 +1,6 @@
 package com.igeeksky.xredis.common.stream;
 
 import com.igeeksky.xredis.common.ConnectionMode;
-import com.igeeksky.xredis.common.RedisFutureHelper;
 import com.igeeksky.xredis.common.TimeConvertor;
 import com.igeeksky.xtool.core.AsyncCloseable;
 
@@ -20,21 +19,6 @@ import java.util.concurrent.CompletableFuture;
 public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
 
     /**
-     * 异步转同步阻塞超时时间
-     * <p>
-     * 默认值：60000 单位：毫秒
-     * <p>
-     * 如果调用同步接口，会先调用异步接口获取 {@link CompletableFuture}，
-     * 然后再调用 {@code future.get(timeout, TimeUnit.MILLISECONDS)} 方法等待数据处理完成。<p>
-     * <b>注意：</b><p>
-     * 1、当调用同步接口时，如果异步操作未在设定超时时间内完成或线程被中断，会抛出异常。<br>
-     * 2、当调用同步接口时，请根据单次操作数据量、网络拥堵情况、RedisServer 处理能力等适当调整超时时间。
-     *
-     * @return {@link Long} – 异步转同步阻塞超时时间
-     */
-    long getSyncTimeout();
-
-    /**
      * 获取 RedisServer 当前时间（异步）
      *
      * @return {@code CompletableFuture<List<V>>} – 包含两个元素：1.unix time seconds；2.microseconds。
@@ -46,9 +30,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      *
      * @return {@code List<V>} – 包含两个元素：1.unix time seconds；2.microseconds。
      */
-    default List<V> timeSync() {
-        return RedisFutureHelper.get(time(), getSyncTimeout());
-    }
+    List<V> timeSync();
 
     /**
      * 获取 RedisServer 当前时间（异步）
@@ -64,9 +46,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@link Long} – 当前时间（秒）
      */
-    default Long timeSecondsSync(TimeConvertor<V> convertor) {
-        return RedisFutureHelper.get(timeSeconds(convertor), getSyncTimeout());
-    }
+    Long timeSecondsSync(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（异步）
@@ -82,9 +62,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@link Long} – 当前时间（毫秒）
      */
-    default Long timeMillisSync(TimeConvertor<V> convertor) {
-        return RedisFutureHelper.get(timeMillis(convertor), getSyncTimeout());
-    }
+    Long timeMillisSync(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（异步）
@@ -100,9 +78,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@link Long} – 当前时间（微秒）
      */
-    default Long timeMicrosSync(TimeConvertor<V> convertor) {
-        return RedisFutureHelper.get(timeMicros(convertor), getSyncTimeout());
-    }
+    Long timeMicrosSync(TimeConvertor<V> convertor);
 
     /**
      * 确认消息（异步）
@@ -122,9 +98,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds 消息 ID 列表
      * @return {@link Long} – 确认数量
      */
-    default Long xackSync(K key, K group, String... messageIds) {
-        return RedisFutureHelper.get(xack(key, group, messageIds), getSyncTimeout());
-    }
+    Long xackSync(K key, K group, String... messageIds);
 
     /**
      * 发布消息（异步）
@@ -142,9 +116,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param body 消息体
      * @return {@link String} – 消息 ID
      */
-    default String xaddSync(K key, Map<K, V> body) {
-        return RedisFutureHelper.get(xadd(key, body), getSyncTimeout());
-    }
+    String xaddSync(K key, Map<K, V> body);
 
     /**
      * 发布消息（异步）
@@ -164,9 +136,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param body    消息体
      * @return {@link String} – 消息 ID
      */
-    default String xaddSync(K key, XAddOptions options, Map<K, V> body) {
-        return RedisFutureHelper.get(xadd(key, options, body), getSyncTimeout());
-    }
+    String xaddSync(K key, XAddOptions options, Map<K, V> body);
 
     /**
      * 认领消息（异步）
@@ -188,9 +158,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds    消息 ID 列表
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    default List<XStreamMessage<K, V>> xclaimSync(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds) {
-        return RedisFutureHelper.get(xclaim(key, groupConsumer, minIdleTime, messageIds), getSyncTimeout());
-    }
+    List<XStreamMessage<K, V>> xclaimSync(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds);
 
     /**
      * 删除消息（异步）
@@ -208,9 +176,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds 消息 ID 列表
      * @return {@link Long} – 删除数量
      */
-    default Long xdelSync(K key, String... messageIds) {
-        return RedisFutureHelper.get(xdel(key, messageIds), getSyncTimeout());
-    }
+    Long xdelSync(K key, String... messageIds);
 
     /**
      * 创建消费组（异步）
@@ -228,9 +194,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param group        消费组名称
      * @return {@link String} – "OK"：创建成功
      */
-    default String xgroupCreateSync(XStreamOffset<K> streamOffset, K group) {
-        return RedisFutureHelper.get(xgroupCreate(streamOffset, group), getSyncTimeout());
-    }
+    String xgroupCreateSync(XStreamOffset<K> streamOffset, K group);
 
     /**
      * 创建消费组（异步）
@@ -250,9 +214,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param options      消费组创建选项
      * @return {@link String} – "OK"：创建成功
      */
-    default String xgroupCreateSync(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options) {
-        return RedisFutureHelper.get(xgroupCreate(streamOffset, group, options), getSyncTimeout());
-    }
+    String xgroupCreateSync(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options);
 
     /**
      * 创建消费者（异步）
@@ -276,9 +238,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @return {@link Boolean} – true：创建成功
      * @see <a href="https://redis.io/docs/latest/commands/xgroup-createconsumer/">XGROUP CREATECONSUMER</a>
      */
-    default Boolean xgroupCreateconsumerSync(K key, XGroupConsumer<K> groupConsumer) {
-        return RedisFutureHelper.get(xgroupCreateconsumer(key, groupConsumer), getSyncTimeout());
-    }
+    Boolean xgroupCreateconsumerSync(K key, XGroupConsumer<K> groupConsumer);
 
     /**
      * 删除消费者（异步）
@@ -302,9 +262,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @return {@link Long} – 截至删除之前，该消费者已读但未确认的消息数量
      * @see <a href="https://redis.io/docs/latest/commands/xgroup-delconsumer/">XGROUP DELCONSUMER</a>
      */
-    default Long xgroupDelconsumerSync(K key, XGroupConsumer<K> groupConsumer) {
-        return RedisFutureHelper.get(xgroupDelconsumer(key, groupConsumer), getSyncTimeout());
-    }
+    Long xgroupDelconsumerSync(K key, XGroupConsumer<K> groupConsumer);
 
     /**
      * 删除消费组（异步）
@@ -322,9 +280,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param group 消费组名称
      * @return {@link Boolean} – true：删除成功
      */
-    default Boolean xgroupDestroySync(K key, K group) {
-        return RedisFutureHelper.get(xgroupDestroy(key, group), getSyncTimeout());
-    }
+    Boolean xgroupDestroySync(K key, K group);
 
     /**
      * 读取消息（异步）
@@ -340,9 +296,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams 流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    default List<XStreamMessage<K, V>> xreadSync(XStreamOffset<K>... streams) {
-        return RedisFutureHelper.get(xread(streams), getSyncTimeout());
-    }
+    List<XStreamMessage<K, V>> xreadSync(XStreamOffset<K>... streams);
 
     /**
      * 读取消息（异步）
@@ -360,9 +314,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams 流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    default List<XStreamMessage<K, V>> xreadSync(XReadOptions options, XStreamOffset<K>... streams) {
-        return RedisFutureHelper.get(xread(options, streams), getSyncTimeout());
-    }
+    List<XStreamMessage<K, V>> xreadSync(XReadOptions options, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（消费组）（异步）
@@ -380,9 +332,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams       流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    default List<XStreamMessage<K, V>> xreadgroupSync(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams) {
-        return RedisFutureHelper.get(xreadgroup(groupConsumer, streams), getSyncTimeout());
-    }
+    List<XStreamMessage<K, V>> xreadgroupSync(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（消费组）（异步）
@@ -402,8 +352,6 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams       流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    default List<XStreamMessage<K, V>> xreadgroupSync(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams) {
-        return RedisFutureHelper.get(xreadgroup(groupConsumer, options, streams), getSyncTimeout());
-    }
+    List<XStreamMessage<K, V>> xreadgroupSync(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams);
 
 }

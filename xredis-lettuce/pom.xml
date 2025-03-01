@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>xredis-lettuce</artifactId>
-    <name>xredis core</name>
+    <name>xredis lettuce</name>
     <description>${project.name}</description>
     <url>https://github.com/patricklaux/xredis</url>
 

@@ -5,7 +5,7 @@ import com.igeeksky.xredis.lettuce.LettuceSentinelFactory;
 import com.igeeksky.xredis.lettuce.LettuceStandaloneFactory;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
-import com.igeeksky.xredis.lettuce.cluster.LettuceClusterFactory;
+import com.igeeksky.xredis.lettuce.LettuceClusterFactory;
 import com.igeeksky.xredis.lettuce.config.ClientOptionsBuilderCustomizer;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceSentinelConfig;
@@ -50,7 +50,6 @@ public class LettuceAutoConfiguration {
                                               ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
 
         String id = lettuceProperties.getId();
-
         LettuceSentinel sentinel = lettuceProperties.getSentinel();
         if (sentinel != null) {
             LettuceSentinelConfig config = LettuceConfigHelper.createConfig(id, sentinel);

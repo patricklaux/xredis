@@ -21,8 +21,6 @@ public class LettuceProperties {
 
     private String id = "lettuce";
 
-    private int syncTimeout = 60000;
-
     @NestedConfigurationProperty
     private LettuceStandalone standalone;
 
@@ -54,14 +52,6 @@ public class LettuceProperties {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    public int getSyncTimeout() {
-        return syncTimeout;
-    }
-
-    public void setSyncTimeout(int syncTimeout) {
-        this.syncTimeout = syncTimeout;
     }
 
     /**

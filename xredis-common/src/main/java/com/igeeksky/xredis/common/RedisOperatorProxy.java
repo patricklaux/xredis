@@ -73,7 +73,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – RedisServer 信息
      */
     default String infoSync() {
-        return RedisFutureHelper.get(info(), getSyncTimeout());
+        return RedisHelper.get(info(), getSyncTimeout());
     }
 
     /**
@@ -91,7 +91,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – RedisServer 指定段的信息
      */
     default String infoSync(String section) {
-        return RedisFutureHelper.get(info(section), getSyncTimeout());
+        return RedisHelper.get(info(section), getSyncTimeout());
     }
 
     /**
@@ -107,7 +107,7 @@ public interface RedisOperatorProxy {
      * @return 版本信息
      */
     default String versionSync() {
-        return RedisFutureHelper.get(version(), getSyncTimeout());
+        return RedisHelper.get(version(), getSyncTimeout());
     }
 
     /**
@@ -123,7 +123,7 @@ public interface RedisOperatorProxy {
      * @return {@link List} – 包含两个元素：1.unix time seconds；2.microseconds。
      */
     default List<byte[]> timeSync() {
-        return RedisFutureHelper.get(time(), getSyncTimeout());
+        return RedisHelper.get(time(), getSyncTimeout());
     }
 
     /**
@@ -139,7 +139,7 @@ public interface RedisOperatorProxy {
      * @return {@code long} – 当前时间（秒）
      */
     default Long timeSecondsSync() {
-        return RedisFutureHelper.get(timeSeconds(), getSyncTimeout());
+        return RedisHelper.get(timeSeconds(), getSyncTimeout());
     }
 
     /**
@@ -155,7 +155,7 @@ public interface RedisOperatorProxy {
      * @return {@code long} – 当前时间（毫秒）
      */
     default Long timeMillisSync() {
-        return RedisFutureHelper.get(timeMillis(), getSyncTimeout());
+        return RedisHelper.get(timeMillis(), getSyncTimeout());
     }
 
     /**
@@ -171,7 +171,7 @@ public interface RedisOperatorProxy {
      * @return {@code long} – 当前时间（微秒）
      */
     default Long timeMicrosSync() {
-        return RedisFutureHelper.get(timeMicros(), getSyncTimeout());
+        return RedisHelper.get(timeMicros(), getSyncTimeout());
     }
 
     // -------------------------- server command end -------------------------
@@ -198,7 +198,7 @@ public interface RedisOperatorProxy {
      * @return {@link Long} – 删除数量
      */
     default Long delSync(byte[]... keys) {
-        return RedisFutureHelper.get(del(keys), getSyncTimeout());
+        return RedisHelper.get(del(keys), getSyncTimeout());
     }
 
     /**
@@ -233,7 +233,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String setSync(byte[] key, byte[] value) {
-        return RedisFutureHelper.get(set(key, value), getSyncTimeout());
+        return RedisHelper.get(set(key, value), getSyncTimeout());
     }
 
     /**
@@ -251,7 +251,7 @@ public interface RedisOperatorProxy {
      * @return {@code byte[]} – 值
      */
     default byte[] getSync(byte[] key) {
-        return RedisFutureHelper.get(get(key), getSyncTimeout());
+        return RedisHelper.get(get(key), getSyncTimeout());
     }
 
     /**
@@ -273,7 +273,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String msetSync(Map<byte[], byte[]> keyValues) {
-        return RedisFutureHelper.get(mset(keyValues), getSyncTimeout());
+        return RedisHelper.get(mset(keyValues), getSyncTimeout());
     }
 
     /**
@@ -295,7 +295,7 @@ public interface RedisOperatorProxy {
      * @return {@code List<KeyValue<byte[], byte[]>>} – 键值对列表
      */
     default List<KeyValue<byte[], byte[]>> mgetSync(byte[][] keys) {
-        return RedisFutureHelper.get(mget(keys), getSyncTimeout());
+        return RedisHelper.get(mget(keys), getSyncTimeout());
     }
 
     /**
@@ -317,7 +317,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String psetexSync(byte[] key, long milliseconds, byte[] value) {
-        return RedisFutureHelper.get(psetex(key, milliseconds, value), getSyncTimeout());
+        return RedisHelper.get(psetex(key, milliseconds, value), getSyncTimeout());
     }
 
     /**
@@ -339,7 +339,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String psetexSync(List<ExpiryKeyValue<byte[], byte[]>> expiryKeyValues) {
-        return RedisFutureHelper.get(psetex(expiryKeyValues), getSyncTimeout());
+        return RedisHelper.get(psetex(expiryKeyValues), getSyncTimeout());
     }
 
     /**
@@ -363,7 +363,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String psetexSync(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds) {
-        return RedisFutureHelper.get(psetex(keyValues, milliseconds), getSyncTimeout());
+        return RedisHelper.get(psetex(keyValues, milliseconds), getSyncTimeout());
     }
 
     // -------------------------- string command end -------------------------
@@ -394,7 +394,7 @@ public interface RedisOperatorProxy {
      * @return {@link Boolean} – 如果命令执行成功，则返回 true
      */
     default Boolean hsetSync(byte[] key, byte[] field, byte[] value) {
-        return RedisFutureHelper.get(hset(key, field, value), getSyncTimeout());
+        return RedisHelper.get(hset(key, field, value), getSyncTimeout());
     }
 
     /**
@@ -416,7 +416,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String hmsetSync(Map<byte[], Map<byte[], byte[]>> keyFieldValues) {
-        return RedisFutureHelper.get(hmset(keyFieldValues), getSyncTimeout());
+        return RedisHelper.get(hmset(keyFieldValues), getSyncTimeout());
     }
 
     /**
@@ -440,7 +440,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – 如果命令执行成功，则返回 OK
      */
     default String hmsetSync(byte[] key, Map<byte[], byte[]> fieldValues) {
-        return RedisFutureHelper.get(hmset(key, fieldValues), getSyncTimeout());
+        return RedisHelper.get(hmset(key, fieldValues), getSyncTimeout());
     }
 
     /**
@@ -470,7 +470,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     default Long hpsetSync(byte[] key, long milliseconds, byte[] field, byte[] value) {
-        return RedisFutureHelper.get(hpset(key, milliseconds, field, value), getSyncTimeout());
+        return RedisHelper.get(hpset(key, milliseconds, field, value), getSyncTimeout());
     }
 
     /**
@@ -502,7 +502,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     default List<Long> hmpsetSync(byte[] key, long milliseconds, List<KeyValue<byte[], byte[]>> fieldsValues) {
-        return RedisFutureHelper.get(hmpset(key, milliseconds, fieldsValues), getSyncTimeout());
+        return RedisHelper.get(hmpset(key, milliseconds, fieldsValues), getSyncTimeout());
     }
 
     /**
@@ -532,7 +532,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     default List<Long> hmpsetSync(byte[] key, List<ExpiryKeyValue<byte[], byte[]>> expiryFieldsValues) {
-        return RedisFutureHelper.get(hmpset(key, expiryFieldsValues), getSyncTimeout());
+        return RedisHelper.get(hmpset(key, expiryFieldsValues), getSyncTimeout());
     }
 
     /**
@@ -560,7 +560,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     default List<Long> hmpsetSync(Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> expiryKeysFieldsValues) {
-        return RedisFutureHelper.get(hmpset(expiryKeysFieldsValues), getSyncTimeout());
+        return RedisHelper.get(hmpset(expiryKeysFieldsValues), getSyncTimeout());
     }
 
     /**
@@ -590,7 +590,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/hpexpire/">HPEXPIRE</a>
      */
     default List<Long> hmpsetSync(Map<byte[], List<KeyValue<byte[], byte[]>>> keysFieldsValues, long milliseconds) {
-        return RedisFutureHelper.get(hmpset(keysFieldsValues, milliseconds), getSyncTimeout());
+        return RedisHelper.get(hmpset(keysFieldsValues, milliseconds), getSyncTimeout());
     }
 
     /**
@@ -610,7 +610,7 @@ public interface RedisOperatorProxy {
      * @return {@code byte[]} – 字段对应的值
      */
     default byte[] hgetSync(byte[] key, byte[] field) {
-        return RedisFutureHelper.get(hget(key, field), getSyncTimeout());
+        return RedisHelper.get(hget(key, field), getSyncTimeout());
     }
 
     /**
@@ -634,7 +634,7 @@ public interface RedisOperatorProxy {
      * @return {@code List<KeyValue<字段, 值>>}
      */
     default List<KeyValue<byte[], byte[]>> hmgetSync(byte[] key, byte[]... fields) {
-        return RedisFutureHelper.get(hmget(key, fields), getSyncTimeout());
+        return RedisHelper.get(hmget(key, fields), getSyncTimeout());
     }
 
     /**
@@ -658,7 +658,7 @@ public interface RedisOperatorProxy {
      * 返回结果不区分是从哪个 Key 获取的字段和值，如果要区分不同的键，请使用不同的键分别调用 {@link #hmget(byte[], byte[]...)}
      */
     default List<KeyValue<byte[], byte[]>> hmgetSync(Map<byte[], List<byte[]>> keyFields) {
-        return RedisFutureHelper.get(hmget(keyFields), getSyncTimeout());
+        return RedisHelper.get(hmget(keyFields), getSyncTimeout());
     }
 
     /**
@@ -680,7 +680,7 @@ public interface RedisOperatorProxy {
      * @return {@link Long} – 删除数量
      */
     default Long hdelSync(Map<byte[], List<byte[]>> keyFields) {
-        return RedisFutureHelper.get(hdel(keyFields), getSyncTimeout());
+        return RedisHelper.get(hdel(keyFields), getSyncTimeout());
     }
 
     /**
@@ -704,7 +704,7 @@ public interface RedisOperatorProxy {
      * @return {@link Long} – 删除数量
      */
     default Long hdelSync(byte[] key, byte[]... fields) {
-        return RedisFutureHelper.get(hdel(key, fields), getSyncTimeout());
+        return RedisHelper.get(hdel(key, fields), getSyncTimeout());
     }
 
     // -------------------------- hash command end ---------------------------
@@ -733,7 +733,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
      */
     default Long zaddSync(byte[] key, double score, byte[] member) {
-        return RedisFutureHelper.get(zadd(key, score, member), getSyncTimeout());
+        return RedisHelper.get(zadd(key, score, member), getSyncTimeout());
     }
 
     /**
@@ -755,7 +755,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zadd/">ZADD</a>
      */
     default Long zaddSync(byte[] key, ScoredValue<byte[]>... scoredValues) {
-        return RedisFutureHelper.get(zadd(key, scoredValues), getSyncTimeout());
+        return RedisHelper.get(zadd(key, scoredValues), getSyncTimeout());
     }
 
     /**
@@ -775,7 +775,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zcard/">ZCARD</a>
      */
     default Long zcardSync(byte[] key) {
-        return RedisFutureHelper.get(zcard(key), getSyncTimeout());
+        return RedisHelper.get(zcard(key), getSyncTimeout());
     }
 
     /**
@@ -797,7 +797,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zrangebylex/">ZRANGEBYLEX</a>
      */
     default List<byte[]> zrangebylexSync(byte[] key, Range<byte[]> range) {
-        return RedisFutureHelper.get(zrangebylex(key, range), getSyncTimeout());
+        return RedisHelper.get(zrangebylex(key, range), getSyncTimeout());
     }
 
     /**
@@ -821,7 +821,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zrangebylex/">ZRANGEBYLEX</a>
      */
     default List<byte[]> zrangebylexSync(byte[] key, Range<byte[]> range, Limit limit) {
-        return RedisFutureHelper.get(zrangebylex(key, range, limit), getSyncTimeout());
+        return RedisHelper.get(zrangebylex(key, range, limit), getSyncTimeout());
     }
 
     /**
@@ -843,7 +843,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zrangebyscore/">ZRANGEBYSCORE</a>
      */
     default List<byte[]> zrangebyscoreSync(byte[] key, Range<? extends Number> range) {
-        return RedisFutureHelper.get(zrangebyscore(key, range), getSyncTimeout());
+        return RedisHelper.get(zrangebyscore(key, range), getSyncTimeout());
     }
 
     /**
@@ -867,7 +867,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zrangebyscore/">ZRANGEBYSCORE</a>
      */
     default List<byte[]> zrangebyscoreSync(byte[] key, Range<? extends Number> range, Limit limit) {
-        return RedisFutureHelper.get(zrangebyscore(key, range, limit), getSyncTimeout());
+        return RedisHelper.get(zrangebyscore(key, range, limit), getSyncTimeout());
     }
 
     /**
@@ -889,7 +889,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/zrem/">ZREM</a>
      */
     default Long zremSync(byte[] key, byte[]... members) {
-        return RedisFutureHelper.get(zrem(key, members), getSyncTimeout());
+        return RedisHelper.get(zrem(key, members), getSyncTimeout());
     }
 
     // -------------------------- sorted set command end ---------------------
@@ -920,7 +920,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/eval/">EVAL</a>
      */
     default <T> T evalSync(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisFutureHelper.get(eval(script, keys, args), getSyncTimeout());
+        return RedisHelper.get(eval(script, keys, args), getSyncTimeout());
     }
 
     /**
@@ -950,7 +950,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/eval_ro/">EVAL_RO</a>
      */
     default <T> T evalReadOnlySync(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisFutureHelper.get(evalReadOnly(script, keys, args), getSyncTimeout());
+        return RedisHelper.get(evalReadOnly(script, keys, args), getSyncTimeout());
     }
 
     /**
@@ -987,7 +987,7 @@ public interface RedisOperatorProxy {
      * @return 脚本执行结果
      */
     default <T> T evalshaSync(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisFutureHelper.get(evalsha(script, keys, args), getSyncTimeout());
+        return RedisHelper.get(evalsha(script, keys, args), getSyncTimeout());
     }
 
     /**
@@ -1030,7 +1030,7 @@ public interface RedisOperatorProxy {
      * @see <a href="https://redis.io/docs/latest/commands/evalsha_ro/">EVALSHA_RO</a>
      */
     default <T> T evalshaReadOnlySync(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisFutureHelper.get(evalshaReadOnly(script, keys, args), getSyncTimeout());
+        return RedisHelper.get(evalshaReadOnly(script, keys, args), getSyncTimeout());
     }
 
     /**
@@ -1054,7 +1054,7 @@ public interface RedisOperatorProxy {
      * @return {@link String} – SHA1 摘要
      */
     default String scriptLoadSync(RedisScript script) {
-        return RedisFutureHelper.get(scriptLoad(script), getSyncTimeout());
+        return RedisHelper.get(scriptLoad(script), getSyncTimeout());
     }
 
     // -------------------------- script command end -------------------------
