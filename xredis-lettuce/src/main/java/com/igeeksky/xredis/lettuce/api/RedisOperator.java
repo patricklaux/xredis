@@ -1,13 +1,11 @@
 package com.igeeksky.xredis.lettuce.api;
 
-import com.igeeksky.xtool.core.AsyncCloseable;
 import com.igeeksky.xredis.common.ConnectionMode;
+import com.igeeksky.xtool.core.AsyncCloseable;
 
 /**
  * Redis 操作入口
  * <p>
- * 此接口实现有两条 RedisServer 链接：<br>
- * {@link Pipeline} 独享一条链接；<br>
  * {@link RedisSyncOperator} {@link RedisAsyncOperator} {@link RedisReactiveOperator} 共用一条链接。
  *
  * @param <K> 键类型
