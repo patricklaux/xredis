@@ -215,7 +215,7 @@ public class StreamContainerTask<K, V> implements StreamTask<K, V> {
         if (CollectionUtils.isEmpty(offsets)) {
             return CompletableFuture.completedFuture(null);
         }
-        return this.operator.xread(this.options, offsets.toArray(new XStreamOffset[0]));
+        return this.operator.xreadAsync(this.options, offsets.toArray(new XStreamOffset[0]));
     }
 
 }

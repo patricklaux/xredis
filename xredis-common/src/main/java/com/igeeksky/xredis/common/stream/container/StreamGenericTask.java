@@ -126,12 +126,12 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
 
     @SuppressWarnings("unchecked")
     private CompletableFuture<List<XStreamMessage<K, V>>> xread(StreamInfo<K, V> info) {
-        return this.operator.xread(info.getOptions(), info.getOffset());
+        return this.operator.xreadAsync(info.getOptions(), info.getOffset());
     }
 
     @SuppressWarnings("unchecked")
     private CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(StreamGroupInfo<K, V> info) {
-        return this.operator.xreadgroup(info.getConsumer(), info.getOptions(), info.getOffset());
+        return this.operator.xreadgroupAsync(info.getConsumer(), info.getOptions(), info.getOffset());
     }
 
     /**

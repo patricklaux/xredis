@@ -23,14 +23,14 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      *
      * @return {@code CompletableFuture<List<V>>} – 包含两个元素：1.unix time seconds；2.microseconds。
      */
-    CompletableFuture<List<V>> time();
+    CompletableFuture<List<V>> timeAsync();
 
     /**
      * 获取 RedisServer 当前时间（同步）
      *
      * @return {@code List<V>} – 包含两个元素：1.unix time seconds；2.microseconds。
      */
-    List<V> timeSync();
+    List<V> time();
 
     /**
      * 获取 RedisServer 当前时间（异步）
@@ -38,7 +38,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@code CompletableFuture<Long>} – 当前时间（秒）
      */
-    CompletableFuture<Long> timeSeconds(TimeConvertor<V> convertor);
+    CompletableFuture<Long> timeSecondsAsync(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（同步）
@@ -46,7 +46,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@link Long} – 当前时间（秒）
      */
-    Long timeSecondsSync(TimeConvertor<V> convertor);
+    Long timeSeconds(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（异步）
@@ -54,7 +54,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@code CompletableFuture<Long>} – 当前时间（毫秒）
      */
-    CompletableFuture<Long> timeMillis(TimeConvertor<V> convertor);
+    CompletableFuture<Long> timeMillisAsync(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（同步）
@@ -62,7 +62,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@link Long} – 当前时间（毫秒）
      */
-    Long timeMillisSync(TimeConvertor<V> convertor);
+    Long timeMillis(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（异步）
@@ -70,7 +70,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@code CompletableFuture<Long>} – 当前时间（微秒）
      */
-    CompletableFuture<Long> timeMicros(TimeConvertor<V> convertor);
+    CompletableFuture<Long> timeMicrosAsync(TimeConvertor<V> convertor);
 
     /**
      * 获取 RedisServer 当前时间（同步）
@@ -78,7 +78,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param convertor 时间格式转换器
      * @return {@link Long} – 当前时间（微秒）
      */
-    Long timeMicrosSync(TimeConvertor<V> convertor);
+    Long timeMicros(TimeConvertor<V> convertor);
 
     /**
      * 确认消息（异步）
@@ -88,7 +88,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds 消息 ID 列表
      * @return {@code CompletableFuture<Long>} – 确认数量
      */
-    CompletableFuture<Long> xack(K key, K group, String... messageIds);
+    CompletableFuture<Long> xackAsync(K key, K group, String... messageIds);
 
     /**
      * 确认消息（同步）
@@ -98,7 +98,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds 消息 ID 列表
      * @return {@link Long} – 确认数量
      */
-    Long xackSync(K key, K group, String... messageIds);
+    Long xack(K key, K group, String... messageIds);
 
     /**
      * 发布消息（异步）
@@ -107,7 +107,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param body 消息体
      * @return {@code CompletableFuture<String>} – 消息 ID
      */
-    CompletableFuture<String> xadd(K key, Map<K, V> body);
+    CompletableFuture<String> xaddAsync(K key, Map<K, V> body);
 
     /**
      * 发布消息（同步）
@@ -116,7 +116,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param body 消息体
      * @return {@link String} – 消息 ID
      */
-    String xaddSync(K key, Map<K, V> body);
+    String xadd(K key, Map<K, V> body);
 
     /**
      * 发布消息（异步）
@@ -126,7 +126,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param body    消息体
      * @return {@code CompletableFuture<String>} – 消息 ID
      */
-    CompletableFuture<String> xadd(K key, XAddOptions options, Map<K, V> body);
+    CompletableFuture<String> xaddAsync(K key, XAddOptions options, Map<K, V> body);
 
     /**
      * 发布消息（同步）
@@ -136,7 +136,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param body    消息体
      * @return {@link String} – 消息 ID
      */
-    String xaddSync(K key, XAddOptions options, Map<K, V> body);
+    String xadd(K key, XAddOptions options, Map<K, V> body);
 
     /**
      * 认领消息（异步）
@@ -147,7 +147,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds    消息 ID 列表
      * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
      */
-    CompletableFuture<List<XStreamMessage<K, V>>> xclaim(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds);
+    CompletableFuture<List<XStreamMessage<K, V>>> xclaimAsync(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds);
 
     /**
      * 认领消息（同步）
@@ -158,7 +158,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds    消息 ID 列表
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    List<XStreamMessage<K, V>> xclaimSync(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds);
+    List<XStreamMessage<K, V>> xclaim(K key, XGroupConsumer<K> groupConsumer, long minIdleTime, String... messageIds);
 
     /**
      * 删除消息（异步）
@@ -167,7 +167,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds 消息 ID 列表
      * @return {@code CompletableFuture<Long>} – 删除数量
      */
-    CompletableFuture<Long> xdel(K key, String... messageIds);
+    CompletableFuture<Long> xdelAsync(K key, String... messageIds);
 
     /**
      * 删除消息（同步）
@@ -176,7 +176,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param messageIds 消息 ID 列表
      * @return {@link Long} – 删除数量
      */
-    Long xdelSync(K key, String... messageIds);
+    Long xdel(K key, String... messageIds);
 
     /**
      * 创建消费组（异步）
@@ -185,7 +185,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param group        消费组名称
      * @return {@code CompletableFuture<String>} – "OK"：创建成功
      */
-    CompletableFuture<String> xgroupCreate(XStreamOffset<K> streamOffset, K group);
+    CompletableFuture<String> xgroupCreateAsync(XStreamOffset<K> streamOffset, K group);
 
     /**
      * 创建消费组（同步）
@@ -194,7 +194,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param group        消费组名称
      * @return {@link String} – "OK"：创建成功
      */
-    String xgroupCreateSync(XStreamOffset<K> streamOffset, K group);
+    String xgroupCreate(XStreamOffset<K> streamOffset, K group);
 
     /**
      * 创建消费组（异步）
@@ -204,7 +204,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param options      消费组创建选项
      * @return {@code CompletableFuture<String>} – "OK"：创建成功
      */
-    CompletableFuture<String> xgroupCreate(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options);
+    CompletableFuture<String> xgroupCreateAsync(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options);
 
     /**
      * 创建消费组（同步）
@@ -214,7 +214,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param options      消费组创建选项
      * @return {@link String} – "OK"：创建成功
      */
-    String xgroupCreateSync(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options);
+    String xgroupCreate(XStreamOffset<K> streamOffset, K group, XGroupCreateOptions options);
 
     /**
      * 创建消费者（异步）
@@ -226,7 +226,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @return {@code CompletableFuture<Boolean>} – true：创建成功
      * @see <a href="https://redis.io/docs/latest/commands/xgroup-createconsumer/">XGROUP CREATECONSUMER</a>
      */
-    CompletableFuture<Boolean> xgroupCreateconsumer(K key, XGroupConsumer<K> groupConsumer);
+    CompletableFuture<Boolean> xgroupCreateconsumerAsync(K key, XGroupConsumer<K> groupConsumer);
 
     /**
      * 创建消费者（同步）
@@ -238,7 +238,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @return {@link Boolean} – true：创建成功
      * @see <a href="https://redis.io/docs/latest/commands/xgroup-createconsumer/">XGROUP CREATECONSUMER</a>
      */
-    Boolean xgroupCreateconsumerSync(K key, XGroupConsumer<K> groupConsumer);
+    Boolean xgroupCreateconsumer(K key, XGroupConsumer<K> groupConsumer);
 
     /**
      * 删除消费者（异步）
@@ -250,7 +250,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @return {@code CompletableFuture<Long>} – 截至删除之前，该消费者已读但未确认的消息数量
      * @see <a href="https://redis.io/docs/latest/commands/xgroup-delconsumer/">XGROUP DELCONSUMER</a>
      */
-    CompletableFuture<Long> xgroupDelconsumer(K key, XGroupConsumer<K> groupConsumer);
+    CompletableFuture<Long> xgroupDelconsumerAsync(K key, XGroupConsumer<K> groupConsumer);
 
     /**
      * 删除消费者（同步）
@@ -262,7 +262,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @return {@link Long} – 截至删除之前，该消费者已读但未确认的消息数量
      * @see <a href="https://redis.io/docs/latest/commands/xgroup-delconsumer/">XGROUP DELCONSUMER</a>
      */
-    Long xgroupDelconsumerSync(K key, XGroupConsumer<K> groupConsumer);
+    Long xgroupDelconsumer(K key, XGroupConsumer<K> groupConsumer);
 
     /**
      * 删除消费组（异步）
@@ -271,7 +271,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param group 消费组名称
      * @return {@code CompletableFuture<Boolean>} – true：删除成功
      */
-    CompletableFuture<Boolean> xgroupDestroy(K key, K group);
+    CompletableFuture<Boolean> xgroupDestroyAsync(K key, K group);
 
     /**
      * 删除消费组（同步）
@@ -280,7 +280,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param group 消费组名称
      * @return {@link Boolean} – true：删除成功
      */
-    Boolean xgroupDestroySync(K key, K group);
+    Boolean xgroupDestroy(K key, K group);
 
     /**
      * 读取消息（异步）
@@ -288,7 +288,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams 流名称及其偏移量
      * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
      */
-    CompletableFuture<List<XStreamMessage<K, V>>> xread(XStreamOffset<K>... streams);
+    CompletableFuture<List<XStreamMessage<K, V>>> xreadAsync(XStreamOffset<K>... streams);
 
     /**
      * 读取消息（同步）
@@ -296,7 +296,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams 流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    List<XStreamMessage<K, V>> xreadSync(XStreamOffset<K>... streams);
+    List<XStreamMessage<K, V>> xread(XStreamOffset<K>... streams);
 
     /**
      * 读取消息（异步）
@@ -305,7 +305,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams 流名称及其偏移量
      * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
      */
-    CompletableFuture<List<XStreamMessage<K, V>>> xread(XReadOptions options, XStreamOffset<K>... streams);
+    CompletableFuture<List<XStreamMessage<K, V>>> xreadAsync(XReadOptions options, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（同步）
@@ -314,7 +314,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams 流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    List<XStreamMessage<K, V>> xreadSync(XReadOptions options, XStreamOffset<K>... streams);
+    List<XStreamMessage<K, V>> xread(XReadOptions options, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（消费组）（异步）
@@ -323,7 +323,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams       流名称及其偏移量
      * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
      */
-    CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams);
+    CompletableFuture<List<XStreamMessage<K, V>>> xreadgroupAsync(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（消费组）（同步）
@@ -332,7 +332,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams       流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    List<XStreamMessage<K, V>> xreadgroupSync(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams);
+    List<XStreamMessage<K, V>> xreadgroup(XGroupConsumer<K> groupConsumer, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（消费组）（异步）
@@ -342,7 +342,7 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams       流名称及其偏移量
      * @return {@code CompletableFuture<List<XStreamMessage<K, V>>>} – 消息列表
      */
-    CompletableFuture<List<XStreamMessage<K, V>>> xreadgroup(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams);
+    CompletableFuture<List<XStreamMessage<K, V>>> xreadgroupAsync(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams);
 
     /**
      * 读取消息（消费组）（同步）
@@ -352,6 +352,6 @@ public interface StreamOperator<K, V> extends ConnectionMode, AsyncCloseable {
      * @param streams       流名称及其偏移量
      * @return {@code List<XStreamMessage<K, V>>} – 消息列表
      */
-    List<XStreamMessage<K, V>> xreadgroupSync(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams);
+    List<XStreamMessage<K, V>> xreadgroup(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams);
 
 }
