@@ -8,6 +8,8 @@ import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.lettuce.config.LettuceGenericConfig;
 import io.lettuce.core.AbstractRedisClient;
 import io.lettuce.core.codec.RedisCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
@@ -20,6 +22,7 @@ import java.util.concurrent.*;
 public abstract sealed class AbstractLettuceFactory implements RedisOperatorFactory
         permits LettuceStandaloneFactory, LettuceSentinelFactory, LettuceClusterFactory {
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractLettuceFactory.class);
     /**
      * 优雅关闭：超时时间
      */
@@ -77,20 +80,13 @@ public abstract sealed class AbstractLettuceFactory implements RedisOperatorFact
     }
 
     @Override
-    public void shutdown(long quietPeriod, long timeout, TimeUnit unit) {
-        AbstractRedisClient client = getClient();
+    public void shutdown(long quietPeriod, long timeout, TimeUnit timeUnit) {
         try {
-            try {
-                if (quietPeriod > 0) {
-                    boolean ignored = executor.awaitTermination(quietPeriod, unit);
-                }
-                executor.shutdown();
-            } catch (InterruptedException e) {
-                executor.shutdownNow();
-            }
-        } catch (Exception ignored) {
+            this.shutdownAsync(quietPeriod, timeout, timeUnit).get(timeout, timeUnit);
+        } catch (InterruptedException | ExecutionException ignored) {
+        } catch (TimeoutException e) {
+            log.error("Graceful shutdown timeout. wait: {} {}", timeout, timeUnit.name(), e);
         }
-        client.shutdown(quietPeriod, timeout, unit);
     }
 
     @Override
@@ -99,24 +95,34 @@ public abstract sealed class AbstractLettuceFactory implements RedisOperatorFact
     }
 
     @Override
-    public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit unit) {
-        AbstractRedisClient client = getClient();
-        return CompletableFuture.completedFuture(Boolean.TRUE)
-                .thenApply(bool -> {
-                    boolean terminated = false;
-                    try {
-                        try {
-                            if (quietPeriod > 0) {
-                                terminated = executor.awaitTermination(quietPeriod, unit);
-                            }
-                            executor.shutdown();
-                        } catch (InterruptedException e) {
-                            executor.shutdownNow();
-                        }
-                    } catch (Exception ignored) {
+    public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit timeUnit) {
+        log.info("Commencing graceful shutdown. Waiting for active connection to complete.");
+        return CompletableFuture.supplyAsync(() -> {
+            boolean terminated = false;
+            try {
+                try {
+                    if (quietPeriod > 0) {
+                        terminated = executor.awaitTermination(quietPeriod, timeUnit);
                     }
-                    return terminated;
-                }).thenCompose(ignored -> client.shutdownAsync(quietPeriod, timeout, unit));
+                    executor.shutdown();
+                } catch (InterruptedException e) {
+                    executor.shutdownNow();
+                }
+            } catch (Throwable t) {
+                log.error("[Executor] Graceful shutdown has error. {}", t.getMessage(), t);
+            }
+            return terminated;
+        }).thenCompose(ignored -> {
+            AbstractRedisClient client = this.getClient();
+            return client.shutdownAsync(quietPeriod, timeout, timeUnit)
+                    .whenComplete((v, t) -> {
+                        if (t != null) {
+                            log.error("[RedisClient] Graceful shutdown has error.{}", t.getMessage(), t);
+                        } else {
+                            log.info("[RedisClient] Graceful shutdown completed.");
+                        }
+                    });
+        });
     }
 
 }

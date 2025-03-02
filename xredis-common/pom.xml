@@ -15,7 +15,6 @@
         <dependency>
             <groupId>com.igeeksky.xtool</groupId>
             <artifactId>xtool</artifactId>
-            <version>${xtool.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

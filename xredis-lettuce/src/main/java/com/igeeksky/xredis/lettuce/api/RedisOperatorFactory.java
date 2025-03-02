@@ -4,7 +4,7 @@ import com.igeeksky.xredis.common.stream.StreamOperator;
 import com.igeeksky.xredis.common.stream.container.ReadOptions;
 import com.igeeksky.xredis.common.stream.container.StreamContainer;
 import com.igeeksky.xredis.common.stream.container.StreamGenericContainer;
-import com.igeeksky.xtool.core.Shutdown;
+import com.igeeksky.xtool.core.GracefulShutdown;
 import io.lettuce.core.codec.RedisCodec;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * @author Patrick.Lau
  * @since 0.0.4 2023-10-01
  */
-public interface RedisOperatorFactory extends Shutdown {
+public interface RedisOperatorFactory extends GracefulShutdown {
 
     /**
      * 创建新的 Redis 批操作客户端
