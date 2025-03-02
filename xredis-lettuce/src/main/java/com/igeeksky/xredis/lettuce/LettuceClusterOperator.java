@@ -1,4 +1,4 @@
-package com.igeeksky.xredis.lettuce.cluster;
+package com.igeeksky.xredis.lettuce;
 
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;

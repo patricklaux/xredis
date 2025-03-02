@@ -22,9 +22,12 @@
 - [X] 【开发】 RedisAsyncOperator, RedisReactiveOperator：evalRedisScript
 - [X] 【开发】 RedisOperatorFactory：executor shutdown 释放资源
 - [X] 【开发】 Xcache 适配 Xredis 接口
+- [X] 【文档】 application-all.yml 示例
+- [X] 【开发】 AsyncCloseable（资源释放）：RedisOperator，Pipeline，StreamOperator
+- [X] 【开发】 GracefulShutdown（优雅关闭）：ClientResources，RedisOperatorFactory，StreamContainer，StreamGenericContainer
 
 ### 待完成任务
 
-- [ ] 【开发】 closeAsync，shutdown 释放资源
-- [ ] 【文档】 Reference
+- [ ] 【文档】 README.md
+- [ ] 【文档】 Reference.md
 - [ ] 【开发】 RedisPooledOperator

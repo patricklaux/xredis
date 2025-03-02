@@ -1,7 +1,5 @@
 package com.igeeksky.xredis.lettuce;
 
-import com.igeeksky.xredis.lettuce.cluster.LettuceClusterOperator;
-import com.igeeksky.xredis.lettuce.cluster.LettuceClusterPipeline;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.RedisNode;
 import io.lettuce.core.AbstractRedisClient;

@@ -1,7 +1,7 @@
 package com.igeeksky.xredis.common.stream.container;
 
 import com.igeeksky.xredis.common.stream.StreamOperator;
-import com.igeeksky.xtool.core.Shutdown;
+import com.igeeksky.xtool.core.GracefulShutdown;
 import com.igeeksky.xtool.core.lang.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import java.util.concurrent.locks.LockSupport;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public abstract class AbstractStreamContainer<K, V> implements Shutdown {
+public abstract class AbstractStreamContainer<K, V> implements GracefulShutdown {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractStreamContainer.class);
 
@@ -78,11 +78,12 @@ public abstract class AbstractStreamContainer<K, V> implements Shutdown {
      * @since 1.0.0
      */
     @Override
-    public void shutdown(long quietPeriod, long timeout, TimeUnit unit) {
+    public void shutdown(long quietPeriod, long timeout, TimeUnit timeUnit) {
         try {
-            this.shutdownAsync(quietPeriod, timeout, unit).get(timeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.error(e.getMessage(), e);
+            this.shutdownAsync(quietPeriod, timeout, timeUnit).get(timeout, timeUnit);
+        } catch (InterruptedException | ExecutionException ignored) {
+        } catch (TimeoutException e) {
+            log.error("Graceful shutdown timeout. wait: {} {}", timeout, timeUnit.name(), e);
         }
     }
 
@@ -112,21 +113,29 @@ public abstract class AbstractStreamContainer<K, V> implements Shutdown {
      * @since 1.0.0
      */
     @Override
-    public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit unit) {
+    public CompletableFuture<Void> shutdownAsync(long quietPeriod, long timeout, TimeUnit timeUnit) {
+        log.info("Commencing graceful shutdown. Waiting for active task to complete.");
         return CompletableFuture.supplyAsync(() -> {
-            if (this.schedulePullFuture != null) {
-                this.schedulePullFuture.cancel(false);
-            }
-            if (this.scheduleConsumeFuture != null) {
-                this.scheduleConsumeFuture.cancel(false);
-            }
-            return null;
-        }).thenCompose(ignore -> {
-            if (this.quietPeriod > 0) {
-                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(this.quietPeriod));
-            }
-            return this.operator.closeAsync();
-        });
+                    if (this.schedulePullFuture != null) {
+                        this.schedulePullFuture.cancel(false);
+                    }
+                    if (this.scheduleConsumeFuture != null) {
+                        this.scheduleConsumeFuture.cancel(false);
+                    }
+                    return null;
+                }).thenCompose(ignore -> {
+                    if (this.quietPeriod > 0) {
+                        LockSupport.parkNanos(timeUnit.toNanos(this.quietPeriod));
+                    }
+                    return this.operator.closeAsync();
+                })
+                .whenComplete((v, t) -> {
+                    if (t != null) {
+                        log.error("Graceful shutdown has error.{}", t.getMessage(), t);
+                    } else {
+                        log.info("Graceful shutdown completed.");
+                    }
+                });
     }
 
 }
