@@ -29,7 +29,7 @@ Xredis 是对 Lettuce 的一个薄封装，最大限度地保留了 Lettuce 的�
 
 作为新项目，自然要支持 JDK 最让人兴奋的更新：虚拟线程，所以 **JDK** 的要求是 21+。
 
-另外，RedisServer 的新功能也在不断发布中，譬如 ``JSON`` ，譬如 ``Hash`` 字段设置过期时间，而这些新特性只有 **Lettuce** 的最新版本才支持，所以 **Lettuce** 版本要求是 6.5.4.RELEASE+。
+另外，Redis Server 也有一些比较令人心动的新功能，譬如 ``JSON`` 支持，譬如 ``Hash`` 字段过期时间设置，而这些新特性只有 **Lettuce** 的最新版本才支持，所以 **Lettuce** 版本要求是 6.5.4.RELEASE+。
 
 ## 4. 开始使用
 

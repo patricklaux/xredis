@@ -97,8 +97,8 @@
     </dependencyManagement>
 
     <modules>
-        <module>xredis-lettuce</module>
         <module>xredis-common</module>
+        <module>xredis-lettuce</module>
         <module>xredis-lettuce-resources-autoconfigure</module>
         <module>xredis-lettuce-spring-boot-autoconfigure</module>
     </modules>
