@@ -2,9 +2,13 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/v/release/patricklaux/xredis)](https://github.com/patricklaux/xredis/releases) [![Maven](https://img.shields.io/maven-central/v/com.igeeksky.xredis/xredis.svg)](https://central.sonatype.com/namespace/com.igeeksky.xredis) [![Last commit](https://img.shields.io/github/last-commit/patricklaux/xredis)](https://github.com/patricklaux/xredis/commits)
 
+
+
 ## 1. 简介
 
-Xredis 是基于 `Lettuce` 实现的 Redis 客户端，用于简化 `Redis` 数据操作。
+Xredis 是基于 `Lettuce` 实现的 `Redis` 客户端，用于简化 `Redis` 数据操作。
+
+
 
 ## 2. 特性
 
@@ -19,9 +23,11 @@ Xredis 是对 `Lettuce` 的一个非常非常薄的封装。
 
 总之，项目初衷是希望保留性能强大且功能灵活的 `Lettuce` 原生 API，在此基础上再去扩展一些实用的常用的功能。同时，能够支持 ``SpringBoot `` 的自动配置，做到开箱即用。
 
+
+
 ## 3. 运行环境
 
-|                | 版本           | 关键理由                                                     |
+| 名称           | 版本           | 关键理由                                                     |
 | -------------- | -------------- | ------------------------------------------------------------ |
 | **JDK**        | 21+            | 虚拟线程                                                     |
 | **Lettuce**    | 6.5.4.RELEASE+ | 支持 `Redis-JSON` 操作，支持 `Redis-Hash` 设置字段的过期时间 |
@@ -64,11 +70,11 @@ xredis:
 
 以上，就是 xredis 的最简配置，其余配置项都采用默认配置。
 
-当然，如果你希望更精细地控制 Lettuce 客户端，或者想看看完整的配置项，那么，请查看示例项目的 ``application-all.yml`` 文件。
+当然，如果你希望更精细地控制 `Lettuce` 客户端，或者想看看完整的配置项，那么，请查看示例项目的 ``application-all.yml`` 文件。
 
 ### 4.3. 第三步：调用方法
 
-这里将 RedisServer 作为用户信息数据库来使用，仅演示了 async 异步操作。
+这里将 Redis Server 作为用户信息数据库来使用，仅演示了 async 异步操作。
 
 ```java
 @Service
@@ -140,6 +146,8 @@ public class UserService {
 }
 ```
 
+
+
 ## 5. 项目构建
 
 如希望尝试新特性，或者修改源码，可以将项目克隆到本地进行编译。
@@ -154,6 +162,8 @@ cd xredis
 # 3. 执行 maven 命令编译
 mvn clean install
 ```
+
+
 
 ## 6. 项目参与
 
@@ -179,6 +189,8 @@ https://github.com/patricklaux/xredis/issues
 如您发现功能缺陷，或有任何开发建议，欢迎在此提交。
 
 如您发现安全漏洞，请私信与我联系。
+
+
 
 ## 7. 许可证
 
