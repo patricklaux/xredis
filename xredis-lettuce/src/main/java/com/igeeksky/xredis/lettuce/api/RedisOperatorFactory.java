@@ -18,6 +18,13 @@ import java.util.concurrent.ScheduledExecutorService;
 public interface RedisOperatorFactory extends GracefulShutdown {
 
     /**
+     * 获取 Redis 客户端工厂的 ID
+     *
+     * @return Redis 客户端工厂的 ID
+     */
+    String getId();
+
+    /**
      * 创建新的 Redis 批操作客户端
      *
      * @param <K>   键类型

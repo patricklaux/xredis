@@ -47,7 +47,7 @@ Xredis 是对 Lettuce 的一个薄封装，最大限度地保留了 Lettuce 的�
 5. 提供 RedisOperatorProxy，简化批数据操作，提高批数据操作性能。
 6. 提供 SpringBoot 自动配置，可以通过配置文件直接配置 Lettuce 的绝大部分配置项（除了需编程实现的特殊配置）。
 
-总之，项目的初衷就是希望提供更灵活的原生 API，得到更好的性能表现，简化一些常用的数据操作。
+总之，项目初衷是希望能够统一集群模式与非集群模式的接口，提供一些常用功能扩展，与及高性能的批数据操作。
 
 ### 2.3. 运行环境
 
@@ -56,10 +56,6 @@ Xredis 是对 Lettuce 的一个薄封装，最大限度地保留了 Lettuce 的�
 **Lettuce**： 6.5.4.RELEASE+
 
 **JDK**： 21+
-
-作为新项目，自然要支持 JDK 最让人兴奋的更新：虚拟线程，所以 **JDK** 的要求是 21+。
-
-另外，Redis Server 也有一些比较令人心动的新功能，譬如 ``JSON`` 支持，譬如 ``Hash`` 字段过期时间设置，而这些新特性只有 **Lettuce** 的最新版本才支持，所以 **Lettuce** 版本要求是 6.5.4.RELEASE+。
 
 ## 3. 项目示例
 
@@ -116,9 +112,9 @@ xredis:
       node: 127.0.0.1:6379 # Redis 节点
 ```
 
-以上，就是 xredis 的最简配置，其余配置项不填的话都将采用默认配置。
+以上是 xredis 的最简配置，其余配置项均采用默认配置。
 
-当然，如果你希望更精细地控制客户端行为，或者想看看完整的配置项，那么，请查看[7. 完全配置](#7. 完全配置)。
+如果你希望更精细地控制客户端行为，或者想看看完整的配置项，那么，请查看[7. 完全配置](#7. 完全配置)。
 
 ### 3.3. 第三步：调用方法
 
@@ -230,9 +226,9 @@ public interface RedisOperator<K, V> extends ConnectionMode, AsyncCloseable {
 }
 ```
 
-``RedisOperator`` 有两个具体实现：一是非集群模式 ``LettuceOperator``；二是集群模式 ``LettuceClusterOperator``。
+``RedisOperator`` 有两个实现类：一是非集群模式 ``LettuceOperator``；二是集群模式 ``LettuceClusterOperator``。
 
-当应用需要执行事务命令时，那么需要明确声明为 ``LettuceOperator``；当应用需要执行一些特殊的集群命令时，那么需要明确声明为 ``LettuceClusterOperator``。
+当应用需要执行事务命令时，那么可以明确声明为 ``LettuceOperator``；当应用需要执行一些特殊的集群命令时，那么可以明确声明为 ``LettuceClusterOperator``。
 
 除这两种情况之外，都建议直接声明为 ``RedisOperator`` 。
 
@@ -316,7 +312,7 @@ public class RedisOperatorTest {
 
 #### 4.4.1. 创建 Pipeline
 
-考虑到 ``Pipeline`` 操作并不常用，因此并没有通过自动配置类创建该对象，如需使用，需通过如下代码进行创建。
+考虑到 ``Pipeline`` 操作并不常用，因此并没有通过自动配置类创建该对象，如需使用，可通过如下代码进行创建。
 
 > 注意：``RedisOperatorFactory`` 已通过 ``LettuceAutoConfiguration`` 预创建，这里直接使用注入的对象即可。
 
@@ -386,9 +382,9 @@ public class PipelineTest {
 
 ##### 性能
 
-经过我的简单测试，``Pipeline`` 批量提交命令 和 ``RedisAsyncOperator`` 逐个提交命令，两者有一定的性能差异，但差距微小。
+经简单测试，``Pipeline`` 批量提交命令 和 ``RedisAsyncOperator`` 逐个提交命令，两者有一定的性能差异，但差距微小。
 
-因为 ``RedisAsyncOperator`` 是异步操作，调用者无需等待上一命令的返回结果就可以接着发出下一个命令，其实与批量提交命令差别不大，批量提交命令仅仅是减少了 ``flush`` 次数带来了一些微弱的优势。
+因为 ``RedisAsyncOperator`` 是异步操作，调用者无需等待上一命令的返回结果就可以继续发出下一个命令，其实与批量提交命令差别不大，批量提交命令仅仅是减少了 ``flush`` 次数从而带来一些微弱的优势。
 
 总之，大多数情况下，使用 ``RedisAsyncOperator`` 即可。
 
@@ -402,7 +398,7 @@ public class PipelineTest {
 
 ``Pipeline`` 从设计目标上来说是线程安全的。
 
-也就是说，多个线程可以共享使用一个 ``Pipeline`` 对象，但每个线程批量提交命令后都需要调用  ``pipeline.flushCommands()`` ，才能将命令发送到 Redis Server。
+也就是说，多个线程可以共用一个 ``Pipeline`` 对象，但每个线程批量提交命令后都需要调用  ``pipeline.flushCommands()`` ，才能将命令发送到 Redis Server。
 
 譬如，线程1 提交命令后，还未调用 ``flushCommands()``，而线程2 调用了  ``flushCommands()``，那么线程1 的命令也会被提交，并且线程1和线程2 都会收到各自的命令的正确响应结果。
 
@@ -420,13 +416,15 @@ GitHub 上的官方说明是可能需等到 ``6.6.0`` 版本才会修复。
 
 Q：是否会有性能损失？
 
-A：不会，只是将接口重新组织，既没有再加一层，也没有对象类型转换。
+A：不会，只是将接口重新组织，既没有加一层，也没有对象类型转换。
 
 Q：是否会有功能损失？
 
 A：不会，实现类也是继承自 Lettuce 的原生类。
 
 总之，原生 API 怎么用就怎么用，原生 API 什么性能就什么性能，原生 API 有什么 bug 就有什么 bug。
+
+
 
 ## 5. 扩展实现
 
@@ -452,7 +450,7 @@ Xredis 关于资源释放有两类接口：
 
 ## 7. 完全配置
 
-### 7.1. 所有配置项
+### 7.1. 完全配置
 
 即示例项目的 ``application-all.yml``。
 
@@ -615,7 +613,7 @@ xredis:
           fixedTimeout: # 固定超时时间（默认值：-1，单位：毫秒，无超时配置）
 ```
 
-### 7.2. 配置元数据
+### 7.2. 信息提示
 
 xredis 在编译过程中创建了 ``spring-configuration-metadata``，所有配置项都可通过 IDE 实现自动补全、信息提示……等功能。
 

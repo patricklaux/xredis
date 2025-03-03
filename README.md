@@ -4,32 +4,30 @@
 
 ## 1. 简介
 
-Xredis 是基于 Lettuce 实现的 Redis 客户端，用于简化 Redis 数据操作。
+Xredis 是基于 `Lettuce` 实现的 Redis 客户端，用于简化 `Redis` 数据操作。
 
 ## 2. 特性
 
-Xredis 是对 Lettuce 的一个薄封装，最大限度地保留了 Lettuce 的原生 API。
+Xredis 是对 `Lettuce` 的一个非常非常薄的封装。
 
-1. 统一 standalone、sentinel 和 cluster 的 API，统一通过 RedisOperator 操作数据。
-2. 提供 RedisSyncOperator 、RedisAsyncOperator 和 RedisReactiveOperator  接口，可以根据业务场景灵活使用不同的编程范式。
-3. 提供 Pipeline 接口，支持批提交命令。
-4. 提供 StreamContainer，简化 stream 订阅。
-5. 提供 RedisOperatorProxy，简化批数据操作，提高批数据操作性能。
-6. 提供 SpringBoot 自动配置，可以通过配置文件直接配置 Lettuce 的绝大部分配置项（除了需编程实现的特殊配置）。
+1. 统一 `standalone`、`sentinel` 和 `cluster` 的 API，统一通过 `RedisOperator` 操作数据。
+2. 提供 `RedisSyncOperator` 、`RedisAsyncOperator` 和 `RedisReactiveOperator` 接口，可以灵活使用不同编程范式。
+3. 提供 `Pipeline` 接口，支持批提交命令。
+4. 提供 `StreamContainer` 和 `StreamPublisher` ，简化 `Redis-Stream` 的订阅发布。
+5. 提供 `RedisOperatorProxy`，简化批数据操作，提高批数据操作性能。
+6. 提供 `SpringBoot` 自动配置，可以通过配置文件直接配置 `Lettuce` 的绝大部分配置项（有些特殊配置项需编程实现）。
 
-总之，项目的初衷就是希望提供更灵活的原生 API，得到更好的性能表现，简化一些常用的数据操作。
+总之，项目初衷是希望保留性能强大且功能灵活的 `Lettuce` 原生 API，在此基础上再去扩展一些实用的常用的功能。同时，能够支持 ``SpringBoot `` 的自动配置，做到开箱即用。
 
 ## 3. 运行环境
 
-**SpringBoot**：3.4.0+
+|                | 版本           | 关键理由                                                     |
+| -------------- | -------------- | ------------------------------------------------------------ |
+| **JDK**        | 21+            | 虚拟线程                                                     |
+| **Lettuce**    | 6.5.4.RELEASE+ | 支持 `Redis-JSON` 操作，支持 `Redis-Hash` 设置字段的过期时间 |
+| **SpringBoot** | 3.3.0+         | 虚拟线程                                                     |
 
-**Lettuce**：6.5.4.RELEASE+
 
-**JDK**：21+
-
-作为新项目，自然要支持 JDK 最让人兴奋的更新：虚拟线程，所以 **JDK** 的要求是 21+。
-
-另外，Redis Server 也有一些比较令人心动的新功能，譬如 ``JSON`` 支持，譬如 ``Hash`` 字段过期时间设置，而这些新特性只有 **Lettuce** 的最新版本才支持，所以 **Lettuce** 版本要求是 6.5.4.RELEASE+。
 
 ## 4. 开始使用
 
