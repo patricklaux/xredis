@@ -176,7 +176,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     /**
      * 等待 RedisServer 响应的最大时长
      * <p>
-     * 默认值：60000  单位：毫秒
+     * 默认值：60000，单位：毫秒（必须大于 0）
      * <p>
      * 如执行类似于 mset、mget、hmget、hmset……等批处理命令，
      * 且单次操作的数据量大，则需结合网络情况，RedisServer 性能等条件适当调整此值。
@@ -190,7 +190,7 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     /**
      * 等待 RedisServer 响应的最大时长
      * <p>
-     * 默认值：60000  单位：毫秒
+     * 默认值：60000，单位：毫秒（必须大于 0）
      * <p>
      * 如执行类似于 mset、mget、hmget、hmset……等批处理命令，
      * 且单次操作的数据量大，则需结合网络情况，RedisServer 性能等条件适当调整此值。
@@ -202,9 +202,9 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 客户端资源关闭最大等待时长，单位：毫秒
+     * 客户端优雅停机最大等待时长
      * <p>
-     * 默认为 2000 ms
+     * 默认为 2000，单位：毫秒（必须大于等于 0）
      *
      * @return {@code long} – 客户端资源关闭最大等待时长，单位：毫秒
      */
@@ -213,24 +213,22 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 客户端资源关闭最大等待时长，单位：毫秒
+     * 客户端优雅停机最大等待时长
      * <p>
-     * 默认为 2000 ms
+     * 默认为 2000，单位：毫秒（必须大于等于 0）
      *
-     * @param shutdownTimeout 客户端资源关闭最大等待时长，单位：毫秒
+     * @param shutdownTimeout 客户端优雅停机最大等待时长，单位：毫秒
      */
     public void setShutdownTimeout(Long shutdownTimeout) {
         this.shutdownTimeout = shutdownTimeout;
     }
 
     /**
-     * 客户端资源关闭静默时长（优雅关闭），单位：毫秒
+     * 客户端优雅停机静默时长
      * <p>
-     * 默认为 100 ms
-     * <p>
-     * 必须大于等于 0
+     * 默认为 100，单位：毫秒（必须大于等于 0）
      *
-     * @return {@code long} – 客户端资源关闭静默时长
+     * @return {@code long} – 客户端优雅停机静默时长
      * @see <a href="https://redis.github.io/lettuce/advanced-usage/#shutdown">ClientResources-shutdown</a>
      * @see <a href="https://www.javadoc.io/static/io.lettuce/lettuce-core/6.5.3.RELEASE/io/lettuce/core/AbstractRedisClient.html#shutdown">RedisClient-shutdown</a>
      */
@@ -239,13 +237,11 @@ public sealed class LettuceGeneric permits LettuceStandalone, LettuceSentinel, L
     }
 
     /**
-     * 客户端资源关闭静默时长（优雅关闭），单位：毫秒
+     * 客户端优雅停机静默时长
      * <p>
-     * 默认为 100 ms
-     * <p>
-     * 必须大于等于 0
+     * 默认为 100，单位：毫秒（必须大于等于 0）
      *
-     * @param shutdownQuietPeriod 客户端关闭安静时间，单位：毫秒
+     * @param shutdownQuietPeriod 客户端优雅停机静默时长，单位：毫秒
      * @see <a href="https://redis.github.io/lettuce/advanced-usage/#shutdown">ClientResources-shutdown</a>
      * @see <a href="https://www.javadoc.io/static/io.lettuce/lettuce-core/6.5.3.RELEASE/io/lettuce/core/AbstractRedisClient.html#shutdown">RedisClient-shutdown</a>
      */

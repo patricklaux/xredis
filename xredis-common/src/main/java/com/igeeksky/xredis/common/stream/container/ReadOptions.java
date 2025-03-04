@@ -42,4 +42,48 @@ public record ReadOptions(Long block, int count, boolean noack) {
         return XReadOptions.builder().block(block).count((long) count).noack(noack).build();
     }
 
+    /**
+     * 创建 {@link ReadOptions}
+     *
+     * @param count 最大读取数量
+     * @return {@link ReadOptions}
+     */
+    public static ReadOptions from(int count) {
+        return new ReadOptions(null, count, false);
+    }
+
+    /**
+     * 创建 {@link ReadOptions}
+     *
+     * @param block 最大阻塞时长
+     * @param count 最大读取数量
+     * @return {@link ReadOptions}
+     */
+    public static ReadOptions from(Long block, int count) {
+        return new ReadOptions(block, count, false);
+    }
+
+    /**
+     * 创建 {@link ReadOptions}
+     *
+     * @param count 最大读取数量
+     * @param noack 是否自动确认
+     * @return {@link ReadOptions}
+     */
+    public static ReadOptions from(int count, boolean noack) {
+        return new ReadOptions(null, count, noack);
+    }
+
+    /**
+     * 创建 {@link ReadOptions}
+     *
+     * @param block 最大阻塞时长
+     * @param count 最大读取数量
+     * @param noack 是否自动确认
+     * @return {@link ReadOptions}
+     */
+    public static ReadOptions from(Long block, int count, boolean noack) {
+        return new ReadOptions(block, count, noack);
+    }
+
 }

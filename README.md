@@ -21,7 +21,7 @@ Xredis 是对 `Lettuce` 的一个非常非常薄的封装。
 5. 提供 `RedisOperatorProxy`，简化批数据操作，提高批数据操作性能。
 6. 提供 `SpringBoot` 自动配置，可以通过配置文件直接配置 `Lettuce` 的绝大部分配置项（有些特殊配置项需编程实现）。
 
-总之，项目初衷是希望保留性能强大且功能灵活的 `Lettuce` 原生 API，在此基础上再去扩展一些实用的常用的功能。同时，能够支持 ``SpringBoot `` 的自动配置，做到开箱即用。
+总之，项目初衷是希望保留性能强大且功能灵活的 `Lettuce` 原生 API，在此基础上再去扩展一些实用的常用的功能。同时，能够支持 `SpringBoot ` 的自动配置，做到开箱即用。
 
 
 
@@ -68,13 +68,13 @@ xredis:
       node: 127.0.0.1:6379 # Redis 节点
 ```
 
-以上，就是 xredis 的最简配置，其余配置项都采用默认配置。
+这是 xredis 的最简配置，其余配置项均采用默认参数。
 
-当然，如果你希望更精细地控制 `Lettuce` 客户端，或者想看看完整的配置项，那么，请查看示例项目的 ``application-all.yml`` 文件。
+如果你希望更精细地控制客户端行为，想了解完整的配置项，请查看 [参考手册](docs/Reference.md)（或 [示例项目](https://github.com/patricklaux/xredis-samples)的 `application-all.yml` 文件）。
 
 ### 4.3. 第三步：调用方法
 
-这里将 Redis Server 作为用户信息数据库来使用，仅演示了 async 异步操作。
+这里是将 Redis Server 作为用户信息存储，并使用 ``async`` 异步操作 Redis 数据。
 
 ```java
 @Service
@@ -150,7 +150,7 @@ public class UserService {
 
 ## 5. 项目构建
 
-如希望尝试新特性，或者修改源码，可以将项目克隆到本地进行编译。
+如希望尝试新特性，或者修改源码，可将项目克隆到本地进行编译。
 
 ```bash
 # 1. git clone项目到本地

@@ -12,12 +12,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 循环监听 Stream 消息（仅适用于非消费者组）
+ * 使用公共读取参数的流容器（仅适用于非消费者组）
  * <p>
- * 使用公共的 {@link ReadOptions} 参数，将所有流合并到一个 {@code xread} 命令读取。
- * <p>
- * 对于非消费者组的流消息读取，{@code xread} 支持一次命令读取多个流的消息，
- * 因此特别创建此类，以最大限度地减少命令阻塞和多次发送命令带来地网络时延。
+ * 使用定时任务拉取 Stream 消息并推送给消费者，
+ * 拉取消息时所有 Stream 都使用公共的 {@link ReadOptions} 参数，
+ * 并且将所有 Stream 合并到一个 {@code xread} 命令进行读取，以减少命令阻塞带来的时延。
  *
  * @param <K> 键类型
  * @param <V> 值类型
@@ -50,7 +49,6 @@ public class StreamContainer<K, V> extends AbstractStreamContainer<K, V> {
                            ScheduledExecutorService scheduler, long quietPeriod, long timeout,
                            long interval, ReadOptions options) {
         super(operator, quietPeriod, timeout);
-        Assert.notNull(operator, "operator must not be null");
         Assert.notNull(executor, "executor must not be null");
         Assert.notNull(scheduler, "scheduler must not be null");
         Assert.notNull(options, "options must not be null");

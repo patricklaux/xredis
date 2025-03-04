@@ -3,7 +3,7 @@ package com.igeeksky.xredis.common.flow;
 import java.time.Duration;
 
 /**
- * 可重试的订阅关系管理接口
+ * 可重试的订阅关系维护接口
  *
  * @param <E> 元素类型
  * @author Patrick.Lau

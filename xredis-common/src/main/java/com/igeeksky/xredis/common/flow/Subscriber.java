@@ -22,7 +22,7 @@ public interface Subscriber<E> {
      * 譬如：RedisServer 连接异常，数据序列化异常……等.
      *
      * @param t 错误
-     * @param s 订阅
+     * @param s 订阅关系维护
      */
     void onError(Throwable t, Subscription s);
 
@@ -32,9 +32,9 @@ public interface Subscriber<E> {
      * 如果调用 {@link RetrySubscription#retry}，
      *
      * @param t        错误
-     * @param element  消息
-     * @param attempts 已重试次数
-     * @param s        订阅
+     * @param element  数据元素
+     * @param attempts 消费失败次数
+     * @param s        可重试的订阅关系维护
      */
     void onError(Throwable t, E element, int attempts, RetrySubscription<E> s);
 

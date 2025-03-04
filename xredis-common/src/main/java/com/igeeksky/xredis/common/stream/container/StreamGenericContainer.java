@@ -15,9 +15,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 循环监听 Stream 消息
+ * 使用公共读取参数的流容器
  * <p>
- * 当有多个流有 block 选项，
+ * 使用定时任务拉取 Stream 消息并推送给消费者，
+ * 拉取消息时每个 Stream 都使用独立的 {@link ReadOptions} 参数，
+ * 如果有多个 Stream，那么会分多次发送命令并接收结果，因为底层实现只有一条连接，所以不是并行操作，而是串行操作。
+ * <p>
+ * 因此，如果有多个 Stream：<br>
+ * 1. 要么无 block 选项，要么 block 选项值很小且非 0；<br>
+ * 2. 或者使用多个 {@link StreamGenericContainer} 实例，每个 Stream 使用一个独占实例。
  *
  * @param <K> 键类型
  * @param <V> 值类型
@@ -26,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class StreamGenericContainer<K, V> extends AbstractStreamContainer<K, V> {
 
-    private final StreamTask<K, V> streamTask;
+    private final StreamGenericTask<K, V> streamTask;
 
     private final long interval;
     private final ExecutorService executor;

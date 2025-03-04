@@ -3,7 +3,7 @@ package com.igeeksky.xredis.lettuce.api;
 import com.igeeksky.xtool.core.AsyncCloseable;
 
 /**
- * Redis 管道接口
+ * Redis 管道操作接口
  * <p>
  * <b>注意：</b>
  * <p>

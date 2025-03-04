@@ -97,7 +97,7 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
             if (sink.isNotReady() || sink.isNotEnoughSpace() || sink.isPullPaused()) {
                 continue;
             }
-            // 对于无阻塞选项的情况，可以一次性提交所有拉取命令，然后再统一分发数据
+            // 分开提交命令，统一等待结果并分发数据
             if (info instanceof StreamGroupInfo<K, V> groupInfo) {
                 dispatchFutures.add(this.dispatch(info, this.xreadgroup(groupInfo)));
             } else {

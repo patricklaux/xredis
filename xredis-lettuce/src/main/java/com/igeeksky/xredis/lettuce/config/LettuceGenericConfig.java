@@ -168,35 +168,33 @@ public sealed class LettuceGenericConfig permits LettuceStandaloneConfig, Lettuc
     }
 
     /**
-     * 客户端关闭超时，单位：毫秒
+     * 客户端优雅停机最大等待时长，单位：毫秒
      * <p>
-     * 默认为 2000 ms
+     * 默认为 2000 ms（必须大于等于 0）
      *
-     * @return {@code long} – 客户端关闭超时，单位：毫秒
+     * @return {@code long} – 客户端优雅停机最大等待时长
      */
     public long getShutdownTimeout() {
         return shutdownTimeout;
     }
 
     /**
-     * 客户端关闭超时，单位：毫秒
+     * 客户端优雅停机最大等待时长，单位：毫秒
      * <p>
-     * 默认为 2000 ms
+     * 默认为 2000 ms（必须大于等于 0）
      *
-     * @param shutdownTimeout 客户端关闭超时，单位：毫秒
+     * @param shutdownTimeout 客户端优雅停机最大等待时长
      */
     public void setShutdownTimeout(long shutdownTimeout) {
         this.shutdownTimeout = shutdownTimeout;
     }
 
     /**
-     * 获取：客户端优雅关闭静默期，单位：毫秒
+     * 获取：客户端优雅停机静默时长，单位：毫秒
      * <p>
-     * 默认为 100 ms
-     * <p>
-     * 必须：大于等于 0 且 小于 shutdownTimeout
+     * 默认为 100 ms（必须大于等于 0）
      *
-     * @return {@code long} – 客户端优雅关闭静默期
+     * @return {@code long} – 客户端优雅停机静默时长
      * @see <a href="https://redis.github.io/lettuce/advanced-usage/#shutdown">ClientResources-shutdown</a>
      * @see <a href="https://www.javadoc.io/static/io.lettuce/lettuce-core/6.5.3.RELEASE/io/lettuce/core/AbstractRedisClient.html#shutdown">RedisClient-shutdown</a>
      */
@@ -207,9 +205,9 @@ public sealed class LettuceGenericConfig permits LettuceStandaloneConfig, Lettuc
     /**
      * 客户端优雅关闭静默期，单位：毫秒
      * <p>
-     * 默认为 100 ms
+     * 默认为 100 ms（必须大于等于 0）
      *
-     * @param shutdownQuietPeriod 客户端优雅关闭静默期，单位：毫秒
+     * @param shutdownQuietPeriod 客户端优雅停机静默时长，单位：毫秒
      */
     public void setShutdownQuietPeriod(long shutdownQuietPeriod) {
         this.shutdownQuietPeriod = shutdownQuietPeriod;
