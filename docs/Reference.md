@@ -1,6 +1,6 @@
 ## Xredis  Reference Guide
 
-**Author**: Patrick.Lau		**Version**: 1.0.0
+**Author**: Patrick.Lau		**Version**: 1.0.1
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/v/release/patricklaux/xredis)](https://github.com/patricklaux/xredis/releases) [![Maven](https://img.shields.io/maven-central/v/com.igeeksky.xredis/xredis.svg)](https://central.sonatype.com/namespace/com.igeeksky.xredis) [![Last commit](https://img.shields.io/github/last-commit/patricklaux/xredis)](https://github.com/patricklaux/xredis/commits)
 
@@ -28,9 +28,11 @@ https://github.com/patricklaux/xredis/issues
 
 ### 1.4. 项目测试
 
-https://github.com/patricklaux/xredis/tree/main/xredis-test
+**测试用例**：https://github.com/patricklaux/xredis/tree/main/xredis-lettuce/src/test/
 
-如您希望扩展实现，又或者对某处代码逻辑有疑问，您可以参考此测试项目，并对相关实现进行调试。
+**示例项目**：https://github.com/patricklaux/xredis-samples
+
+如您希望扩展实现，又或者对某处代码逻辑有疑问，您可以参考测试用例和示例项目，并对相关实现进行调试。
 
 当然，也欢迎您补充更多的测试用例。
 

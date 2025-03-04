@@ -24,9 +24,10 @@
 - [X] 【开发】 AsyncCloseable（资源释放）：RedisOperator，Pipeline，StreamOperator
 - [X] 【开发】 GracefulShutdown（优雅关闭）：ClientResources，RedisOperatorFactory，StreamContainer，StreamGenericContainer
 - [X] 【测试】 RedisOperatorProxy 同步接口
+- [X] 【文档】 README.md
+- [X] 【文档】 Reference.md
+- [X] 【开发】 RedisPooledOperator（放弃：真正需要连接池的只有事务命令，但可以采用 script、function替代，因此放弃）
 
 ### 待完成任务
 
-- [ ] 【文档】 README.md
-- [ ] 【文档】 Reference.md
-- [ ] 【开发】 RedisPooledOperator
+- [ ] 【开发】 添加方法：LettuceHelper.createFactory()，方便在不使用 Spring 的情况下创建 RedisOperatorFactory
