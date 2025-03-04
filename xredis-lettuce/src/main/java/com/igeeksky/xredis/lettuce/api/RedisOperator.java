@@ -16,21 +16,21 @@ import com.igeeksky.xtool.core.AsyncCloseable;
 public interface RedisOperator<K, V> extends ConnectionMode, AsyncCloseable {
 
     /**
-     * 同步操作
+     * 获取同步操作客户端
      *
      * @return RedisSyncOperator
      */
     RedisSyncOperator<K, V> sync();
 
     /**
-     * 异步操作
+     * 获取异步操作客户端
      *
      * @return RedisAsyncOperator
      */
     RedisAsyncOperator<K, V> async();
 
     /**
-     * 响应式操作
+     * 获取响应式操作客户端
      *
      * @return RedisReactiveOperator
      */

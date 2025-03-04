@@ -2,40 +2,60 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/v/release/patricklaux/xredis)](https://github.com/patricklaux/xredis/releases) [![Maven](https://img.shields.io/maven-central/v/com.igeeksky.xredis/xredis.svg)](https://central.sonatype.com/namespace/com.igeeksky.xredis) [![Last commit](https://img.shields.io/github/last-commit/patricklaux/xredis)](https://github.com/patricklaux/xredis/commits)
 
+
+
 ## 1. 简介
 
-Xredis 是基于 Lettuce 实现的 Redis 客户端，用于简化 Redis 数据操作。
+Xredis 是基于 `Lettuce` 实现的 `Redis` 客户端，用于简化 `Redis` 数据操作。
+
+
 
 ## 2. 特性
 
-Xredis 是对 Lettuce 的一个薄封装，最大限度地保留了 Lettuce 的原 API。
+Xredis 是对 `Lettuce` 的一个非常非常薄的封装。
 
-1. 统一 standalone、sentinel 和 cluster 的 API，统一通过 RedisOperator 操作数据。
-2. 提供了 RedisSyncOperator 、RedisAsyncOperator 和 RedisReactiveOperator  接口，可以根据业务场景灵活切换编程范式。
-3. 提供了 Pipeline 接口，支持批提交命令。
-4. 提供了 StreamContainer，简化 stream 的订阅发布。
-5. 提供了 RedisOperatorProxy，简化批数据处理。
+1. 统一 `standalone`、`sentinel` 和 `cluster` 的 API，统一通过 `RedisOperator` 操作数据。
+2. 提供 `RedisSyncOperator` 、`RedisAsyncOperator` 和 `RedisReactiveOperator` 接口，可以灵活使用不同编程范式。
+3. 提供 `Pipeline` 接口，支持批提交命令。
+4. 提供 `StreamContainer` 和 `StreamPublisher` ，简化 `Redis-Stream` 的订阅发布。
+5. 提供 `RedisOperatorProxy`，简化批数据操作，提高批数据操作性能。
+6. 提供 `SpringBoot` 自动配置，可以通过配置文件直接配置 `Lettuce` 的绝大部分配置项（有些特殊配置项需编程实现）。
+
+总之，项目初衷是希望保留性能强大且功能灵活的 `Lettuce` 原生 API，在此基础上再去扩展一些实用的常用的功能。同时，能够支持 `SpringBoot ` 的自动配置，做到开箱即用。
+
+
 
 ## 3. 运行环境
 
-SpringBoot：3.3.0+
+| 名称           | 版本           | 关键理由                                                     |
+| -------------- | -------------- | ------------------------------------------------------------ |
+| **JDK**        | 21+            | 虚拟线程                                                     |
+| **Lettuce**    | 6.5.4.RELEASE+ | 支持 `Redis-JSON` 操作，支持 `Redis-Hash` 设置字段的过期时间 |
+| **SpringBoot** | 3.3.0+         | 虚拟线程                                                     |
 
-Lettuce：6.5.0+
 
-JDK：21+
 
 ## 4. 开始使用
+
+**示例项目**：[xredis-samples](https://github.com/patricklaux/xredis-samples)
 
 ### 4.1. 第一步：引入依赖
 
 ```xml
 <dependencies>
+    <!-- ... xredis 依赖 ... -->
     <dependency>
         <groupId>com.igeeksky.xredis</groupId>
-        <artifactId>xredis-spring-boot-autoconfigure</artifactId>
+        <artifactId>xredis-lettuce-spring-boot-autoconfigure</artifactId>
         <version>${xredis.version}</version>
     </dependency>
-    <!-- ... other ... -->
+
+    <!-- ... 其它：假定使用 SpringWeb ... -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <version>${spring.boot.version}</version>
+    </dependency>
 </dependencies>
 ```
 
@@ -44,20 +64,93 @@ JDK：21+
 ```yaml
 xredis:
   lettuce: # Lettuce 客户端配置
-    id: lettuce # RedisOperatorFactory 唯一标识
     standalone: # 单机模式 或 副本集模式
       node: 127.0.0.1:6379 # Redis 节点
 ```
 
+这是 xredis 的最简配置，其余配置项均采用默认参数。
+
+如果你希望更精细地控制客户端行为，想了解完整的配置项，请查看 [参考手册](docs/Reference.md)（或 [示例项目](https://github.com/patricklaux/xredis-samples)的 `application-all.yml` 文件）。
+
 ### 4.3. 第三步：调用方法
 
-```java
+这里是将 Redis Server 作为用户信息存储，并使用 ``async`` 异步操作 Redis 数据。
 
+```java
+@Service
+public class UserService {
+
+    private final RedisOperator<String, String> redisOperator;
+    private final JacksonCodec<User> codec = new JacksonCodec<>(User.class);
+
+    /**
+     * 使用 Spring 注入的 RedisOperator，创建 UserService
+     *
+     * @param redisOperator RedisOperator
+     */
+    public UserService(RedisOperator<String, String> redisOperator) {
+        this.redisOperator = redisOperator;
+    }
+
+    /**
+     * 添加用户信息
+     *
+     * @param user 用户信息
+     * @return 添加结果
+     */
+    public CompletableFuture<Response<Void>> addUser(User user) {
+        return redisOperator.async().set(user.getId() + "", codec.encode(user))
+                .toCompletableFuture()
+                .thenApply(result -> {
+                    if (Objects.equals("OK", result)) {
+                        return Response.ok();
+                    }
+                    return Response.error("Failed to add user.");
+                });
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @param id 用户 ID
+     * @return 用户信息
+     */
+    public CompletableFuture<Response<User>> getUser(Long id) {
+        return redisOperator.async().get(id + "")
+                .toCompletableFuture()
+                .thenApply(s -> {
+                    if (s == null) {
+                        return Response.error("User not found.");
+                    }
+                    return Response.ok(codec.decode(s));
+                });
+    }
+
+    /**
+     * 删除用户信息
+     *
+     * @param id 用户 ID
+     * @return 删除结果
+     */
+    public CompletableFuture<Response<Void>> deleteUser(Long id) {
+        return redisOperator.async().del(id + "")
+                .toCompletableFuture()
+                .thenApply(result -> {
+                    if (Objects.equals(1L, result)) {
+                        return Response.ok();
+                    }
+                    return Response.error("User doesn't exist.");
+                });
+    }
+
+}
 ```
+
+
 
 ## 5. 项目构建
 
-如希望尝试新特性，可以将项目克隆到本地进行编译（需要 JDK21）。
+如希望尝试新特性，或者修改源码，可将项目克隆到本地进行编译。
 
 ```bash
 # 1. git clone项目到本地
@@ -69,6 +162,8 @@ cd xredis
 # 3. 执行 maven 命令编译
 mvn clean install
 ```
+
+
 
 ## 6. 项目参与
 
@@ -94,6 +189,8 @@ https://github.com/patricklaux/xredis/issues
 如您发现功能缺陷，或有任何开发建议，欢迎在此提交。
 
 如您发现安全漏洞，请私信与我联系。
+
+
 
 ## 7. 许可证
 

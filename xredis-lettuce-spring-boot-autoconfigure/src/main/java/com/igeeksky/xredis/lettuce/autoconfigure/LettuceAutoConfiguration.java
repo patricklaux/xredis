@@ -1,11 +1,11 @@
 package com.igeeksky.xredis.lettuce.autoconfigure;
 
 import com.igeeksky.xredis.common.RedisConfigException;
+import com.igeeksky.xredis.lettuce.LettuceClusterFactory;
 import com.igeeksky.xredis.lettuce.LettuceSentinelFactory;
 import com.igeeksky.xredis.lettuce.LettuceStandaloneFactory;
 import com.igeeksky.xredis.lettuce.api.RedisOperator;
 import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
-import com.igeeksky.xredis.lettuce.LettuceClusterFactory;
 import com.igeeksky.xredis.lettuce.config.ClientOptionsBuilderCustomizer;
 import com.igeeksky.xredis.lettuce.config.LettuceClusterConfig;
 import com.igeeksky.xredis.lettuce.config.LettuceSentinelConfig;
@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Xredis 自动配置
+ * Lettuce 自动配置
  *
  * @author Patrick.Lau
  * @since 0.0.4 2023-09-18
@@ -37,7 +37,7 @@ public class LettuceAutoConfiguration {
     private final LettuceProperties lettuceProperties;
 
     /**
-     * Xredis 配置
+     * Lettuce 自动配置
      *
      * @param lettuceProperties 配置项
      */
@@ -45,6 +45,13 @@ public class LettuceAutoConfiguration {
         this.lettuceProperties = lettuceProperties;
     }
 
+    /**
+     * 根据配置创建 {@link RedisOperatorFactory}
+     *
+     * @param clientResources Lettuce 客户端资源
+     * @param customizers     自定义的客户端选项（部分选项需通过编程实现）
+     * @return {@link RedisOperatorFactory} – Redis 客户端工厂
+     */
     @Bean(destroyMethod = "shutdown")
     RedisOperatorFactory redisOperatorFactory(ClientResourcesHolder clientResources,
                                               ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
@@ -71,6 +78,12 @@ public class LettuceAutoConfiguration {
         throw new RedisConfigException("xredis.lettuce:[" + id + "] init error." + lettuceProperties);
     }
 
+    /**
+     * 创建支持操作 String 类型的 {@link RedisOperator}
+     *
+     * @param redisOperatorFactory RedisOperatorFactory
+     * @return {@link RedisOperator} – 支持操作 String 类型
+     */
     @Bean(name = "stringRedisOperator")
     RedisOperator<String, String> stringRedisOperator(RedisOperatorFactory redisOperatorFactory) {
         return redisOperatorFactory.redisOperator(StringCodec.UTF8);

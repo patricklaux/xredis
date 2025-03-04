@@ -20,11 +20,10 @@
 - [X] 【开发】 StreamGenericContainer
 - [X] 【开发】 补充代码注释
 - [X] 【开发】 RedisAsyncOperator, RedisReactiveOperator：evalRedisScript
-- [X] 【开发】 RedisOperatorFactory：executor shutdown 释放资源
-- [X] 【开发】 Xcache 适配 Xredis 接口
 - [X] 【文档】 application-all.yml 示例
 - [X] 【开发】 AsyncCloseable（资源释放）：RedisOperator，Pipeline，StreamOperator
 - [X] 【开发】 GracefulShutdown（优雅关闭）：ClientResources，RedisOperatorFactory，StreamContainer，StreamGenericContainer
+- [X] 【测试】 RedisOperatorProxy 同步接口
 
 ### 待完成任务
 

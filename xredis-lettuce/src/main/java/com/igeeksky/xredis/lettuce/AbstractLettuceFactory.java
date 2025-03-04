@@ -23,6 +23,11 @@ public abstract sealed class AbstractLettuceFactory implements RedisOperatorFact
         permits LettuceStandaloneFactory, LettuceSentinelFactory, LettuceClusterFactory {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractLettuceFactory.class);
+
+    /**
+     * RedisOperatorFactory 唯一标识
+     */
+    private final String id;
     /**
      * 优雅关闭：超时时间
      */
@@ -42,9 +47,15 @@ public abstract sealed class AbstractLettuceFactory implements RedisOperatorFact
      * @param config Lettuce 配置
      */
     public AbstractLettuceFactory(LettuceGenericConfig config) {
+        this.id = config.getId();
         this.timeout = config.getShutdownTimeout();
         this.quietPeriod = config.getShutdownQuietPeriod();
         this.executor = Executors.newThreadPerTaskExecutor(RedisHelper.getStreamVirtualFactory());
+    }
+
+    @Override
+    public String getId() {
+        return id;
     }
 
     @Override

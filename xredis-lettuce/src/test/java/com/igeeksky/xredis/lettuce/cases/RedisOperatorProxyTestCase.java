@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * RedisOperatorProxy 测试用例
@@ -47,6 +48,16 @@ public class RedisOperatorProxyTestCase {
      * 测试非性能测试的所有方法
      */
     public void testAll() {
+        getBatchSize();
+        getTimeout();
+        info();
+        infoServerSection();
+        version();
+        time();
+        timeSeconds();
+        timeMillis();
+        timeMicros();
+
         set();
         get();
         mset();
@@ -62,12 +73,80 @@ public class RedisOperatorProxyTestCase {
         hmget2();
         hdel();
         hdel2();
-
-        version();
     }
 
     public boolean isCluster() {
         return operatorProxy.isCluster();
+    }
+
+    public long getBatchSize() {
+        long batchSize = operatorProxy.getBatchSize();
+        Assertions.assertTrue(batchSize > 0);
+        return batchSize;
+    }
+
+    public long getTimeout() {
+        long timeout = operatorProxy.getTimeout();
+        Assertions.assertTrue(timeout > 0);
+        return timeout;
+    }
+
+    public String info() {
+        String info = operatorProxy.info();
+        Assertions.assertNotNull(info);
+        return info;
+    }
+
+    public String infoServerSection() {
+        String info = operatorProxy.info("Server");
+        Assertions.assertNotNull(info);
+        return info;
+    }
+
+    /**
+     * 获取版本信息
+     */
+    public String version() {
+        String version = operatorProxy.version();
+        System.out.println(version);
+        Assertions.assertNotNull(version);
+
+        String[] array = version.split("\\.");
+        Assertions.assertTrue(array.length >= 3);
+        Assertions.assertTrue(Integer.parseInt(array[0]) >= 5);
+        return version;
+    }
+
+    public List<byte[]> time() {
+        List<byte[]> serverTime = operatorProxy.time();
+        Assertions.assertEquals(2, serverTime.size());
+        Assertions.assertNotNull(serverTime.getFirst());
+        Assertions.assertNotNull(serverTime.getLast());
+        return serverTime;
+    }
+
+    public long timeSeconds() {
+        Long serverTime = operatorProxy.timeSeconds();
+        long localTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+        Assertions.assertTrue(serverTime > (localTime - 1000));
+        Assertions.assertTrue(serverTime < (localTime + 1000));
+        return serverTime;
+    }
+
+    public long timeMillis() {
+        Long serverTime = operatorProxy.timeMillis();
+        long localTime = System.currentTimeMillis();
+        Assertions.assertTrue(serverTime > (localTime - 1000000));
+        Assertions.assertTrue(serverTime < (localTime + 1000000));
+        return serverTime;
+    }
+
+    public long timeMicros() {
+        Long serverTime = operatorProxy.timeMicros();
+        long localTime = TimeUnit.MILLISECONDS.toMicros(System.currentTimeMillis());
+        Assertions.assertTrue(serverTime > (localTime - 1000000));
+        Assertions.assertTrue(serverTime < (localTime + 1000000));
+        return serverTime;
     }
 
     public void clear(String prefix, int expectedSize) {
@@ -92,14 +171,11 @@ public class RedisOperatorProxyTestCase {
     public void set_get_del(String prefix) {
         byte[] key = codec.encode(prefix + RandomUtils.nextString(5));
         byte[] val = codec.encode(prefix + RandomUtils.nextString(5));
-        operatorProxy.delAsync(key).join();
 
-        String ok = operatorProxy.setAsync(key, val).join();
-        Assertions.assertEquals(RedisOperatorProxy.OK, ok);
-
-        Assertions.assertArrayEquals(val, operatorProxy.getAsync(key).join());
-
-        operatorProxy.delAsync(key).join();
+        Assertions.assertTrue(operatorProxy.del(key) >= 0);
+        Assertions.assertEquals(RedisOperatorProxy.OK, operatorProxy.set(key, val));
+        Assertions.assertArrayEquals(val, operatorProxy.get(key));
+        Assertions.assertEquals(1, (long) operatorProxy.del(key));
     }
 
     public void mset() {
@@ -124,20 +200,17 @@ public class RedisOperatorProxyTestCase {
         byte[][] keysArray = LettuceTestHelper.toKeysArray(keys.length, keys);
         Map<byte[], byte[]> keyValues = LettuceTestHelper.createKeyValues(size, keysArray);
 
-        operatorProxy.delAsync(keysArray).join();
+        Assertions.assertTrue(operatorProxy.del(keysArray) >= 0);
+        Assertions.assertEquals(RedisOperatorProxy.OK, operatorProxy.mset(keyValues));
 
-        String ok = operatorProxy.msetAsync(keyValues).join();
-        Assertions.assertEquals(RedisOperatorProxy.OK, ok);
-
-        List<KeyValue<byte[], byte[]>> results = operatorProxy.mgetAsync(keysArray).join();
+        List<KeyValue<byte[], byte[]>> results = operatorProxy.mget(keysArray);
         Assertions.assertEquals(size, results.size());
 
         Map<String, String> results1 = LettuceTestHelper.fromKeyValues(results);
         Assertions.assertEquals(size, results1.size());
 
         LettuceTestHelper.validateValues(keys, results1, size);
-
-        operatorProxy.delAsync(keysArray).join();
+        Assertions.assertEquals(size, (long) operatorProxy.del(keysArray));
     }
 
     public void psetex() {
@@ -238,18 +311,6 @@ public class RedisOperatorProxyTestCase {
         operatorProxy.delAsync(keyBytes).join();
     }
 
-    /**
-     * 获取版本信息
-     */
-    void version() {
-        String version = operatorProxy.versionAsync().join();
-        System.out.println(version);
-        Assertions.assertNotNull(version);
-
-        String[] array = version.split("\\.");
-        Assertions.assertTrue(array.length >= 3);
-        Assertions.assertTrue(Integer.parseInt(array[0]) >= 5);
-    }
 
     /**
      * 性能测试（1000万数据，单线程，批量保存 ）
