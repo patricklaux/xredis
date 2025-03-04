@@ -1,12 +1,12 @@
 package com.igeeksky.xredis.common.flow;
 
+import com.igeeksky.xtool.core.collection.RingBuffer;
 import com.igeeksky.xtool.core.concurrent.Futures;
 import com.igeeksky.xtool.core.lang.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,7 +38,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
 
     private volatile Future<?>[] futures;
     private volatile ConsumeTask<?>[] tasks;
-    private volatile ArrayBlockingQueue<E> buffer;
+    private volatile RingBuffer<E> buffer;
 
     /**
      * 构造函数
@@ -70,7 +70,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
             if (this.subscriber != null) {
                 throw new IllegalStateException("subscriber already set.");
             }
-            this.buffer = new ArrayBlockingQueue<>(this.count << 1);
+            this.buffer = new RingBuffer<>(this.count << 1);
             this.subscriber = subscriber;
             this.tasks = new ConsumeTask[parallelism];
             for (int i = 0; i < parallelism; i++) {
@@ -231,7 +231,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
                         this.processFailed(s);
                         continue;
                     }
-                    ArrayBlockingQueue<E> buf = this.sink.buffer;
+                    RingBuffer<E> buf = this.sink.buffer;
                     if (buf == null) {
                         return;
                     }
@@ -255,6 +255,9 @@ public class RetrySink<E> implements Sink<E>, Runnable {
          */
         private void processFailed(Subscriber<E> s) {
             E e1 = this.element;
+            if (e1 == null) {
+                return;
+            }
             long delay = this.delayNanos;
             if (delay > 0) {
                 LockSupport.parkNanos(delay);
