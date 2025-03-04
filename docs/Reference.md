@@ -28,9 +28,11 @@ https://github.com/patricklaux/xredis/issues
 
 ### 1.4. 项目测试
 
-https://github.com/patricklaux/xredis/tree/main/xredis-test
+**测试用例**：https://github.com/patricklaux/xredis/tree/main/xredis-lettuce/src/test/
 
-如您希望扩展实现，又或者对某处代码逻辑有疑问，您可以参考此测试项目，并对相关实现进行调试。
+**示例项目**：https://github.com/patricklaux/xredis-samples
+
+如您希望扩展实现，又或者对某处代码逻辑有疑问，您可以参考测试用例和示例项目，并对相关实现进行调试。
 
 当然，也欢迎您补充更多的测试用例。
 
