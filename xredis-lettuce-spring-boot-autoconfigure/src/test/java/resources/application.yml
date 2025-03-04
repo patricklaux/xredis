@@ -1,9 +1,0 @@
-spring:
-  threads:
-    virtual:
-      enabled: true
-
-xredis:
-  lettuce: # Lettuce 客户端配置
-    standalone: # 单机模式 或 副本集模式
-      node: 192.168.50.157:6379 # Redis 节点，支持 UnixSocket 方式
