@@ -217,7 +217,7 @@ public class RedisOperatorProxyTestCase {
         byte[] key = codec.encode("test-psetex");
         byte[] value = codec.encode("test-psetex-value");
         operatorProxy.delAsync(key).join();
-        String ok = operatorProxy.psetexAsync(key, RandomUtils.nextInt(1000000, 2000000), value).join();
+        String ok = operatorProxy.psetex(key, RandomUtils.nextInt(1000000, 2000000), value);
         Assertions.assertEquals("OK", ok);
 
         Assertions.assertArrayEquals(value, operatorProxy.getAsync(key).join());
@@ -296,7 +296,7 @@ public class RedisOperatorProxyTestCase {
 
         long start = System.currentTimeMillis();
         // 保存 key-value 到 redis
-        operatorProxy.psetexAsync(keyValues, 10000000).join();
+        operatorProxy.psetex(keyValues, 10000000);
         System.out.println("size: [" + size + "]\t psetex-cost: [" + (System.currentTimeMillis() - start) + "]");
 
         // 读取 redis 数据

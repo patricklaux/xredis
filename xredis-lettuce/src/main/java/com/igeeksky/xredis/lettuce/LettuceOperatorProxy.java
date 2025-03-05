@@ -34,8 +34,8 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     private static final StringCodec CODEC = StringCodec.getInstance(StandardCharsets.UTF_8);
 
-    private final int batchSize;
     private final long timeout;
+    private final int batchSize;
     private final RedisOperator<byte[], byte[]> redisOperator;
 
     /**
@@ -47,21 +47,21 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
      * @param redisOperator RedisOperator
      */
     public LettuceOperatorProxy(RedisOperator<byte[], byte[]> redisOperator) {
-        this(10000, 60000, redisOperator);
+        this(60000, 10000, redisOperator);
     }
 
     /**
      * 使用指定的 {@code batchSize} 和 {@code syncTimeout}，创建 RedisOperatorProxy
      *
-     * @param batchSize     单批次命令提交数量阈值 <br>
+     * @param timeout       同步获取结果最大等待时长，单位：毫秒 <br>
+     * @param batchSize     单批次提交数据的最大数量 <br>
      *                      如 batchSize 设为 10000，当 {@link RedisOperatorProxy} 接收到单次操作 100 万条数据的请求时，
      *                      会将数据切分为 100 份，每份 10000条数据，然后分 100 批次提交到 RedisServer。
-     * @param timeout       异步转同步阻塞超时时长，单位：毫秒 <br>
      * @param redisOperator RedisOperator
      */
-    public LettuceOperatorProxy(int batchSize, long timeout, RedisOperator<byte[], byte[]> redisOperator) {
-        Assert.isTrue(batchSize > 0, "batchSize must be greater than 0");
+    public LettuceOperatorProxy(long timeout, int batchSize, RedisOperator<byte[], byte[]> redisOperator) {
         Assert.isTrue(timeout > 0, "timeout must be greater than 0");
+        Assert.isTrue(batchSize > 0, "batchSize must be greater than 0");
         Assert.notNull(redisOperator, "redisOperator must not be null");
         this.timeout = timeout;
         this.batchSize = batchSize;
@@ -1036,6 +1036,11 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             }
         }
         return future;
+    }
+
+    @Override
+    public CompletableFuture<Void> closeAsync() {
+        return redisOperator.closeAsync();
     }
 
 }

@@ -378,11 +378,11 @@ public class RedisExtendAutoConfiguration {
     @Bean
     RedisOperatorProxy redisProxy(RedisOperatorFactory factory) {
         RedisOperator<byte[], byte[]> redisOperator = factory.redisOperator(ByteArrayCodec.INSTANCE);
-        // 单批次命令提交数量阈值
-        int batchSize = 10000;
-        // 同步阻塞超时时长
+        // 同步获取结果最大等待时长
         long timeout = 60000;
-        return new LettuceOperatorProxy(batchSize, timeout, redisOperator);
+        // 单批次提交数据的最大数量
+        int batchSize = 10000;
+        return new LettuceOperatorProxy(timeout, batchSize, redisOperator);
     }
 
     /**

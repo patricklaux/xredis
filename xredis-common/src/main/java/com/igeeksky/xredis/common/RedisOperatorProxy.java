@@ -1,6 +1,7 @@
 package com.igeeksky.xredis.common;
 
 
+import com.igeeksky.xtool.core.AsyncCloseable;
 import com.igeeksky.xtool.core.ExpiryKeyValue;
 import com.igeeksky.xtool.core.KeyValue;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Patrick.Lau
  * @since 1.0.0
  */
-public interface RedisOperatorProxy {
+public interface RedisOperatorProxy extends AsyncCloseable {
 
     /**
      * Redis 命令成功响应状态值
