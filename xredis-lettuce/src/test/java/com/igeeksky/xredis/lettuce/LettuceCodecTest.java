@@ -3,6 +3,7 @@ package com.igeeksky.xredis.lettuce;
 import io.lettuce.core.codec.ByteArrayCodec;
 import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.internal.Futures;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +57,11 @@ public class LettuceCodecTest {
             }
         }
         System.out.println(System.currentTimeMillis() - start);
+    }
+
+    @Test
+    public void testStringCodec() {
+        Futures.failed(new Exception("test"));
     }
 
 }
