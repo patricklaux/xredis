@@ -78,7 +78,7 @@ public class StreamGenericTask<K, V> implements StreamTask<K, V> {
     private void doPull() {
         // 需等待 StreamInfo 更新 offset：如果上次任务未完成，那么 offset 可能还未更新，会拉取到重复的消息
         int size = dispatchFutures.size();
-        int last = Futures.checkAll(0, dispatchFutures);
+        int last = Futures.checkAll(dispatchFutures);
         if (last < size) {
             return;
         }

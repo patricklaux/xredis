@@ -110,7 +110,7 @@ public class RetrySink<E> implements Sink<E>, Runnable {
             }
             Future<?>[] futures1 = this.futures;
             if (futures1 != null) {
-                Futures.cancelAll(0, futures1, false);
+                Futures.cancelAll(futures1, false);
                 this.futures = null;
             }
             this.tasks = null;
