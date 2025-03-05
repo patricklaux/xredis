@@ -12,7 +12,7 @@
 
 ## 2. 特性
 
-Xredis 是对 `Lettuce` 的一个非常非常薄的封装。
+`xredis` 是对 `Lettuce` 的一个非常非常薄的封装。
 
 1. 统一 `standalone`、`sentinel` 和 `cluster` 的 API，统一通过 `RedisOperator` 操作数据。
 2. 提供 `RedisSyncOperator` 、`RedisAsyncOperator` 和 `RedisReactiveOperator` 接口，可以灵活使用不同编程范式。
@@ -180,7 +180,7 @@ mvn clean install
 
 https://github.com/patricklaux/xredis/discussions
 
-如您希望了解如何使用 xcache，或在使用中遇到问题无法解决，欢迎在此提问。
+如您希望了解如何使用 `xredis`，或在使用中遇到问题无法解决，欢迎在此提问。
 
 ### 6.3. 建议反馈
 
