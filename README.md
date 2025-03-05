@@ -1,4 +1,4 @@
-## Xredis
+## xRedis
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/v/release/patricklaux/xredis)](https://github.com/patricklaux/xredis/releases) [![Maven](https://img.shields.io/maven-central/v/com.igeeksky.xredis/xredis.svg)](https://central.sonatype.com/namespace/com.igeeksky.xredis) [![Last commit](https://img.shields.io/github/last-commit/patricklaux/xredis)](https://github.com/patricklaux/xredis/commits)
 
@@ -6,7 +6,7 @@
 
 ## 1. 简介
 
-Xredis 是基于 `Lettuce` 实现的 `Redis` 客户端，用于简化 `Redis` 数据操作。
+`xredis` 是基于 `Lettuce` 实现的 `Redis` 客户端，用于简化 `Redis` 数据操作。
 
 
 
@@ -68,13 +68,13 @@ xredis:
       node: 127.0.0.1:6379 # Redis 节点
 ```
 
-这是 xredis 的最简配置，其余配置项均采用默认参数。
+这是 `xredis` 的最简配置，其余配置项均采用默认参数。
 
-如果你希望更精细地控制客户端行为，想了解完整的配置项，请查看 [参考手册](docs/Reference.md)（或 [示例项目](https://github.com/patricklaux/xredis-samples)的 `application-all.yml` 文件）。
+如果你希望更精细地控制客户端行为，想了解完整的配置项，请查看 [参考手册](docs/reference.md)（或 [示例项目](https://github.com/patricklaux/xredis-samples)的 `application-all.yml` 文件）。
 
 ### 4.3. 第三步：调用方法
 
-这里是将 Redis Server 作为用户信息存储，并使用 ``async`` 异步操作 Redis 数据。
+这里是将 `Redis Server` 作为用户信息存储，并使用 `async` 异步操作数据。
 
 ```java
 @Service
@@ -194,5 +194,5 @@ https://github.com/patricklaux/xredis/issues
 
 ## 7. 许可证
 
-Xredis 采用 Apache License Version 2.0 进行许可。有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
+`xredis` 采用 `Apache License Version 2.0` 进行许可。有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
 

@@ -1,4 +1,4 @@
-## Xredis  Reference Guide
+## xRedis Reference Guide
 
 **Author**: Patrick.Lau		**Version**: 1.0.1
 
@@ -16,7 +16,7 @@
 
 https://github.com/patricklaux/xredis/discussions
 
-如您希望了解如何使用 xredis，或在使用中遇到问题无法解决，欢迎在此提问。
+如您希望了解如何使用 `xredis`，或在使用中遇到问题无法解决，欢迎在此提问。
 
 ### 1.3. 建议反馈
 
@@ -42,7 +42,7 @@ https://github.com/patricklaux/xredis/issues
 
 ### 2.1. 简介
 
-Xredis 是对 `Lettuce` 的一个非常非常薄的封装。
+`xredis` 是对 `Lettuce` 的一个非常非常薄的封装。
 
 1. 统一 `standalone`、`sentinel` 和 `cluster` 的 API，统一通过 `RedisOperator` 操作数据。
 2. 提供 `RedisSyncOperator` 、`RedisAsyncOperator` 和 `RedisReactiveOperator` 接口，可以灵活使用不同编程范式。
@@ -73,7 +73,7 @@ git clone https://github.com/patricklaux/xredis-samples.git
 
 ### 3.0. Maven bom
 
-Xredis 支持 `bom` 方式，可在 `pom.xml` 文件中添加如下配置统一管理版本依赖。
+`xredis` 支持 `bom` 方式，可在 `pom.xml` 文件中添加如下配置统一管理版本依赖。
 
 ```xml
 <dependencyManagement>
@@ -118,13 +118,13 @@ xredis:
       node: 127.0.0.1:6379 # Redis 节点
 ```
 
-这是 xredis 的最简配置，其余配置项均采用默认参数。
+这是 `xredis` 的最简配置，其余配置项均采用默认参数。
 
 如果你希望更精细地控制客户端行为，想了解完整的配置项，请查看[8. 完全配置](#8. 完全配置)。
 
 ### 3.3. 第三步：调用方法
 
-这里是将 Redis Server 作为用户信息存储，并使用 `async` 异步操作 Redis 数据。
+这里是将 `Redis Server` 作为用户信息存储，并使用 `async` 异步操作数据。
 
 ```java
 @Service
@@ -314,7 +314,7 @@ public class RedisOperatorTest {
 
 ### 4.4. 小结
 
-通过以上示例，其实可以发现 xredis 接口与 Lettuce 原生接口调用方式是完全一致的，事实上 ``RedisSyncOperator``、``RedisAsyncOperator``、``RedisReactiveOperator`` 和 ``Pipeline`` 接口都是继承自 Lettuce 原生接口。
+通过以上示例，其实可以发现 `xredis` 接口与 Lettuce 原生接口调用方式是完全一致的，事实上 ``RedisSyncOperator``、``RedisAsyncOperator``、``RedisReactiveOperator`` 和 ``Pipeline`` 接口都是继承自 Lettuce 原生接口。
 
 Q：是否会有性能损失？
 
@@ -332,7 +332,7 @@ A：不会，实现类也是继承自 Lettuce 的原生类。
 
 ### 5.0. 概述
 
-`Xredis` 的主要扩展实现有 6 个：
+`xredis` 的主要扩展实现有 6 个：
 
 1. `Pipeline`：管道，用于批量提交命令。
 2. `RedisOperatorProxy`：代理类，主要用于简化批量数据操作。
@@ -874,7 +874,7 @@ get:	 1741010102883
 
 ## 7. 资源释放
 
-Xredis 关于资源释放有两类接口：
+`xredis` 关于资源释放有两类接口：
 
 一是 `GracefulShutdown`，支持优雅停机，主要是一些池化类对象和工厂类对象实现此接口，可以通过配置调整静默时长和等待超时。
 
@@ -1071,7 +1071,7 @@ xredis:
 
 ### 8.2. 信息提示
 
-`Xredis` 在编译过程中创建了 `spring-configuration-metadata`，所有配置项都可通过 IDE 实现自动补全、信息提示……等。
+`xredis` 在编译过程中创建了 `spring-configuration-metadata`，所有配置项都可通过 IDE 实现自动补全、信息提示……等。
 
 ![配置提示](images/Reference/config-tips.png)
 
@@ -1079,7 +1079,7 @@ xredis:
 
 ## 9. 项目模块
 
-`Xredis` 当前共有 5 个模块，以下是各模块的简单介绍。
+`xredis` 当前共有 5 个模块，以下是各模块的简单介绍。
 
 | 模块名称                                 | 类型 | 模块说明                                                   |
 | :--------------------------------------- | :--: | :--------------------------------------------------------- |
