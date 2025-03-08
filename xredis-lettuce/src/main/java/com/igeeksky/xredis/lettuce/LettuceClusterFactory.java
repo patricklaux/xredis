@@ -45,18 +45,18 @@ public final class LettuceClusterFactory extends AbstractLettuceFactory {
     public <K, V> LettuceClusterPipeline<K, V> pipeline(RedisCodec<K, V> codec) {
         StatefulRedisClusterConnection<K, V> batchConnection = this.connect(codec, false);
         if (jsonParser != null) {
-            return new LettuceClusterPipeline<>(batchConnection, codec, jsonParser);
+            return new LettuceClusterPipeline<>(batchConnection, codec, quietPeriod, timeout, jsonParser);
         }
-        return new LettuceClusterPipeline<>(batchConnection, codec);
+        return new LettuceClusterPipeline<>(batchConnection, codec, quietPeriod, timeout);
     }
 
     @Override
     public <K, V> LettuceClusterOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
         StatefulRedisClusterConnection<K, V> connection = this.connect(codec, true);
         if (jsonParser != null) {
-            return new LettuceClusterOperator<>(connection, codec, jsonParser);
+            return new LettuceClusterOperator<>(connection, codec, quietPeriod, timeout, jsonParser);
         }
-        return new LettuceClusterOperator<>(connection, codec);
+        return new LettuceClusterOperator<>(connection, codec, quietPeriod, timeout);
     }
 
     @Override

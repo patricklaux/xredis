@@ -21,9 +21,9 @@ public abstract class AbstractStreamContainer<K, V> implements GracefulShutdown 
 
     private static final Logger log = LoggerFactory.getLogger(AbstractStreamContainer.class);
 
-    private final long quietPeriod;
-
     private final long timeout;
+
+    private final long quietPeriod;
 
     /**
      * Redis 流操作对象

@@ -84,7 +84,7 @@ public class LettuceAutoConfiguration {
      * @param redisOperatorFactory RedisOperatorFactory
      * @return {@link RedisOperator} – 支持操作 String 类型
      */
-    @Bean(name = "stringRedisOperator")
+    @Bean(name = "stringRedisOperator", destroyMethod = "closeAsync")
     RedisOperator<String, String> stringRedisOperator(RedisOperatorFactory redisOperatorFactory) {
         return redisOperatorFactory.redisOperator(StringCodec.UTF8);
     }

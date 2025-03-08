@@ -280,6 +280,11 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
     }
 
     @Override
+    public void close() {
+        this.operator.close();
+    }
+
+    @Override
     public CompletableFuture<Void> closeAsync() {
         return this.operator.closeAsync();
     }

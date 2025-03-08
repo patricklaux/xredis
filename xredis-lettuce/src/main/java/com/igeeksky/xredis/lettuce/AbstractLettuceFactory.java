@@ -31,11 +31,11 @@ public abstract sealed class AbstractLettuceFactory implements RedisOperatorFact
     /**
      * 优雅关闭：超时时间
      */
-    private final long timeout;
+    protected final long timeout;
     /**
      * 优雅关闭：静默时间
      */
-    private final long quietPeriod;
+    protected final long quietPeriod;
     /**
      * 虚拟线程池
      */
