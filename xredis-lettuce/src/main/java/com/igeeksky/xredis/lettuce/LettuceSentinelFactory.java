@@ -45,18 +45,18 @@ public final class LettuceSentinelFactory extends AbstractLettuceFactory {
     public <K, V> LettucePipeline<K, V> pipeline(RedisCodec<K, V> codec) {
         StatefulRedisMasterReplicaConnection<K, V> batchConnection = connect(codec, false);
         if (jsonParser != null) {
-            return new LettucePipeline<>(batchConnection, codec, jsonParser);
+            return new LettucePipeline<>(batchConnection, codec, quietPeriod, timeout, jsonParser);
         }
-        return new LettucePipeline<>(batchConnection, codec);
+        return new LettucePipeline<>(batchConnection, codec, quietPeriod, timeout);
     }
 
     @Override
     public <K, V> LettuceOperator<K, V> redisOperator(RedisCodec<K, V> codec) {
         StatefulRedisMasterReplicaConnection<K, V> connection = connect(codec, true);
         if (jsonParser != null) {
-            return new LettuceOperator<>(connection, codec, jsonParser);
+            return new LettuceOperator<>(connection, codec, quietPeriod, timeout, jsonParser);
         }
-        return new LettuceOperator<>(connection, codec);
+        return new LettuceOperator<>(connection, codec, quietPeriod, timeout);
     }
 
     @Override

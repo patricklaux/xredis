@@ -1,5 +1,8 @@
 ## xRedis release note
 
+### 1.0.3
+* RedisOperator、Pipeline support graceful close
+
 ### 1.0.2
 * upgrade xtool to 1.2.1
 
