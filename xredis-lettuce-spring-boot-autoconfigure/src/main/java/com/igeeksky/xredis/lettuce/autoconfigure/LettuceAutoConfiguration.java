@@ -18,10 +18,12 @@ import io.lettuce.core.ClientOptions;
 import io.lettuce.core.cluster.ClusterClientOptions;
 import io.lettuce.core.codec.StringCodec;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 
 /**
  * Lettuce 自动配置
@@ -30,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 0.0.4 2023-09-18
  */
 @Configuration(proxyBeanMethods = false)
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @AutoConfigureAfter(LettuceClientResourcesConfiguration.class)
 @EnableConfigurationProperties(LettuceProperties.class)
 public class LettuceAutoConfiguration {
@@ -52,9 +55,10 @@ public class LettuceAutoConfiguration {
      * @param customizers     自定义的客户端选项（部分选项需通过编程实现）
      * @return {@link RedisOperatorFactory} – Redis 客户端工厂
      */
-    @Bean(destroyMethod = "shutdown")
-    RedisOperatorFactory redisOperatorFactory(ClientResourcesHolder clientResources,
-                                              ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    @Bean(name = "lettuceOperatorFactory", destroyMethod = "shutdown")
+    RedisOperatorFactory lettuceOperatorFactory(ClientResourcesHolder clientResources,
+                                                ObjectProvider<ClientOptionsBuilderCustomizer> customizers) {
 
         String id = lettuceProperties.getId();
         LettuceSentinel sentinel = lettuceProperties.getSentinel();
@@ -84,6 +88,7 @@ public class LettuceAutoConfiguration {
      * @param redisOperatorFactory RedisOperatorFactory
      * @return {@link RedisOperator} – 支持操作 String 类型
      */
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     @Bean(name = "stringRedisOperator", destroyMethod = "closeAsync")
     RedisOperator<String, String> stringRedisOperator(RedisOperatorFactory redisOperatorFactory) {
         return redisOperatorFactory.redisOperator(StringCodec.UTF8);
