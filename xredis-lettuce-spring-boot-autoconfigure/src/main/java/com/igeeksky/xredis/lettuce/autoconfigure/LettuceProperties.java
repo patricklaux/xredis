@@ -5,9 +5,10 @@ import com.igeeksky.xredis.lettuce.api.RedisOperatorFactory;
 import com.igeeksky.xredis.lettuce.props.LettuceCluster;
 import com.igeeksky.xredis.lettuce.props.LettuceSentinel;
 import com.igeeksky.xredis.lettuce.props.LettuceStandalone;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Role;
 
 /**
  * Lettuce 自动配置属性
@@ -15,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Patrick.Lau
  * @since 0.0.4 2023-09-26
  */
-@Configuration
+@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 @ConfigurationProperties(prefix = "xredis.lettuce")
 public class LettuceProperties {
 
