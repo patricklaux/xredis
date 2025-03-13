@@ -1,5 +1,9 @@
 ## xRedis release note
 
+### 1.0.6
+
+- [X] fix bug: `ClusterClientOptions` NPE
+
 ### 1.0.5
 
 - [X] `StreamPublisher` remove `AsyncCloseable`
