@@ -253,7 +253,8 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
     @SafeVarargs
     @Override
     public final CompletableFuture<List<XStreamMessage<K, V>>> xreadgroupAsync(XGroupConsumer<K> groupConsumer,
-                                                                               XReadOptions options, XStreamOffset<K>... streams) {
+                                                                               XReadOptions options,
+                                                                               XStreamOffset<K>... streams) {
         return CompletableFuture.completedFuture(streams)
                 .thenApply(LettuceConvertor::toXStreamOffsets)
                 .thenCompose(offsets -> {
@@ -266,7 +267,8 @@ public class LettuceStreamOperator<K, V> implements StreamOperator<K, V> {
 
     @SafeVarargs
     @Override
-    public final List<XStreamMessage<K, V>> xreadgroup(XGroupConsumer<K> groupConsumer, XReadOptions options, XStreamOffset<K>... streams) {
+    public final List<XStreamMessage<K, V>> xreadgroup(XGroupConsumer<K> groupConsumer, XReadOptions options,
+                                                       XStreamOffset<K>... streams) {
         XReadArgs.StreamOffset<K>[] offsets = LettuceConvertor.toXStreamOffsets(streams);
         Consumer<K> consumer = LettuceConvertor.toXGroupConsumer(groupConsumer);
         XReadArgs readArgs = LettuceConvertor.toXReadArgs(options);

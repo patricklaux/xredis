@@ -2,7 +2,6 @@ package com.igeeksky.xredis.common.stream;
 
 
 import com.igeeksky.xredis.common.RedisOperationException;
-import com.igeeksky.xtool.core.AsyncCloseable;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Patrick.Lau
  * @since 0.0.4 2023-09-12
  */
-public class StreamPublisher<K, V, T> implements AsyncCloseable {
+public class StreamPublisher<K, V, T> {
 
     private final K stream;
     private final XAddOptions options;
@@ -67,11 +66,6 @@ public class StreamPublisher<K, V, T> implements AsyncCloseable {
             return operator.xaddAsync(stream, body).toCompletableFuture();
         }
         return operator.xaddAsync(stream, options, body).toCompletableFuture();
-    }
-
-    @Override
-    public CompletableFuture<Void> closeAsync() {
-        return operator.closeAsync();
     }
 
 }
