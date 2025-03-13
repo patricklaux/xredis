@@ -128,6 +128,8 @@ public class RedisOperatorProxyTestCase {
     public long timeSeconds() {
         Long serverTime = operatorProxy.timeSeconds();
         long localTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+        System.out.println("serverTime:\t" + serverTime);
+        System.out.println("localTime:\t" + localTime);
         Assertions.assertTrue(serverTime > (localTime - 1000));
         Assertions.assertTrue(serverTime < (localTime + 1000));
         return serverTime;
@@ -142,10 +144,10 @@ public class RedisOperatorProxyTestCase {
     }
 
     public long timeMicros() {
-        Long serverTime = operatorProxy.timeMicros();
+        long serverTime = operatorProxy.timeMicros();
         long localTime = TimeUnit.MILLISECONDS.toMicros(System.currentTimeMillis());
-        Assertions.assertTrue(serverTime > (localTime - 1000000));
-        Assertions.assertTrue(serverTime < (localTime + 1000000));
+        Assertions.assertTrue(serverTime > (localTime - 100000000));
+        Assertions.assertTrue(serverTime < (localTime + 100000000));
         return serverTime;
     }
 

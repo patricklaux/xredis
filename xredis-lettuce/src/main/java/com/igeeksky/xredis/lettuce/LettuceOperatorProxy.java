@@ -870,7 +870,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                     }
                 });
         return future.exceptionallyCompose(e -> {
-            if (e instanceof RedisNoScriptException) {
+            if (e instanceof RedisNoScriptException || e.getCause() instanceof RedisNoScriptException) {
                 return this.scriptLoadAsync(script)
                         .thenCompose(ignored -> this.evalAsync(script, keys, args));
             }
@@ -895,7 +895,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
                     }
                 });
         return future.exceptionallyCompose(e -> {
-            if (e instanceof RedisNoScriptException) {
+            if (e instanceof RedisNoScriptException || e.getCause() instanceof RedisNoScriptException) {
                 return this.scriptLoadAsync(script)
                         .thenCompose(ignored -> this.evalReadOnlyAsync(script, keys, args));
             }
