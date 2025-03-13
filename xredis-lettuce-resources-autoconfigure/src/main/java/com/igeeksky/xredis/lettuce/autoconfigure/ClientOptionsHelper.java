@@ -74,28 +74,30 @@ public abstract class ClientOptionsHelper {
 
         setClientOptionsBuilder(id, clientOptions, builder, customizers);
 
-        Integer maxRedirects = clientOptions.getMaxRedirects();
-        if (maxRedirects != null) {
-            builder.maxRedirects(maxRedirects);
+        if (clientOptions != null) {
+            Integer maxRedirects = clientOptions.getMaxRedirects();
+            if (maxRedirects != null) {
+                builder.maxRedirects(maxRedirects);
+            }
+
+            Boolean validateClusterNodeMembership = clientOptions.getValidateClusterNodeMembership();
+            if (validateClusterNodeMembership != null) {
+                builder.validateClusterNodeMembership(validateClusterNodeMembership);
+            }
+
+            Set<String> nodeFilter = clientOptions.getNodeFilter();
+            if (CollectionUtils.isNotEmpty(nodeFilter)) {
+                Set<RedisNode> allows = new HashSet<>(nodeFilter.size());
+                nodeFilter.forEach(s -> allows.add(new RedisNode(s)));
+
+                builder.nodeFilter(node -> {
+                    RedisURI uri = node.getUri();
+                    return allows.contains(new RedisNode(uri.getHost(), uri.getPort(), uri.getSocket()));
+                });
+            }
+
+            setRefreshOptionsBuilder(clientOptions.getTopologyRefreshOptions(), builder);
         }
-
-        Boolean validateClusterNodeMembership = clientOptions.getValidateClusterNodeMembership();
-        if (validateClusterNodeMembership != null) {
-            builder.validateClusterNodeMembership(validateClusterNodeMembership);
-        }
-
-        Set<String> nodeFilter = clientOptions.getNodeFilter();
-        if (CollectionUtils.isNotEmpty(nodeFilter)) {
-            Set<RedisNode> allows = new HashSet<>(nodeFilter.size());
-            nodeFilter.forEach(s -> allows.add(new RedisNode(s)));
-
-            builder.nodeFilter(node -> {
-                RedisURI uri = node.getUri();
-                return allows.contains(new RedisNode(uri.getHost(), uri.getPort(), uri.getSocket()));
-            });
-        }
-
-        setRefreshOptionsBuilder(clientOptions.getTopologyRefreshOptions(), builder);
 
         customizers.orderedStream().forEach(c -> c.customizeClusterClient(id, builder));
         return builder.build();
