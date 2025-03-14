@@ -2,7 +2,7 @@
 
 ### 1.0.7
 
-- [X] `RedisHelper.get(Future<T> future,…… )` 超时后取消任务运行
+- [X] `RedisHelper.get(Future<T> future,…… )` when timeout, cancel task
 
 ### 1.0.6
 
