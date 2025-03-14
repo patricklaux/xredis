@@ -52,6 +52,9 @@ public final class RedisHelper {
 
     /**
      * 获取 Future 结果（指定超时时间，直到获取结果或发生异常）
+     * <p>
+     * {@code interrupt} 默认为 {@code false} <br>
+     * {@code TimeUnit} 默认为 {@link TimeUnit#MILLISECONDS}
      *
      * @param future        Future
      * @param timeoutMillis 超时时间（毫秒）
@@ -64,6 +67,8 @@ public final class RedisHelper {
 
     /**
      * 获取 Future 结果（指定超时时间，直到获取结果或发生异常）
+     * <p>
+     * {@code interrupt} 默认为 {@code false}
      *
      * @param future  Future
      * @param timeout 超时时间
@@ -72,6 +77,20 @@ public final class RedisHelper {
      * @return 结果
      */
     public static <T> T get(Future<T> future, long timeout, TimeUnit unit) {
+        return get(future, timeout, unit, false);
+    }
+
+    /**
+     * 获取 Future 结果（指定超时时间，直到获取结果或发生异常）
+     *
+     * @param future    Future
+     * @param timeout   超时时间
+     * @param unit      时间单位
+     * @param interrupt 是否中断
+     * @param <T>       泛型
+     * @return 结果
+     */
+    public static <T> T get(Future<T> future, long timeout, TimeUnit unit, boolean interrupt) {
         try {
             return future.get(timeout, unit);
         } catch (InterruptedException e) {
@@ -80,6 +99,7 @@ public final class RedisHelper {
         } catch (ExecutionException e) {
             throw convert(e);
         } catch (TimeoutException e) {
+            future.cancel(interrupt);
             throw convert(e, timeout, unit);
         }
     }
