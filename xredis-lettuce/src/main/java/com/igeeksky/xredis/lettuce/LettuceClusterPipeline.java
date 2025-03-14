@@ -83,7 +83,7 @@ public class LettuceClusterPipeline<K, V> extends RedisAdvancedClusterAsyncComma
     @Override
     public void close() {
         try {
-            RedisHelper.get(closeAsync(), timeout);
+            RedisHelper.get(closeAsync(), timeout, TimeUnit.MILLISECONDS, false, false);
         } catch (Exception e) {
             log.error("LettuceClusterPipeline: Close has error. {}", e.getMessage(), e);
         }

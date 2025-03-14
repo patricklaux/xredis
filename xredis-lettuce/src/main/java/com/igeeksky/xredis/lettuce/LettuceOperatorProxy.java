@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -90,7 +91,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String info() {
-        return RedisHelper.get(infoAsync(), timeout);
+        return RedisHelper.get(infoAsync(), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -100,7 +101,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String info(String section) {
-        return RedisHelper.get(infoAsync(section), timeout);
+        return RedisHelper.get(infoAsync(section), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -120,7 +121,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String version() {
-        return RedisHelper.get(versionAsync(), timeout);
+        return RedisHelper.get(versionAsync(), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -130,7 +131,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<byte[]> time() {
-        return RedisHelper.get(timeAsync(), timeout);
+        return RedisHelper.get(timeAsync(), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -140,7 +141,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long timeSeconds() {
-        return RedisHelper.get(timeSecondsAsync(), timeout);
+        return RedisHelper.get(timeSecondsAsync(), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -150,7 +151,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long timeMillis() {
-        return RedisHelper.get(timeMillisAsync(), timeout);
+        return RedisHelper.get(timeMillisAsync(), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -160,7 +161,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long timeMicros() {
-        return RedisHelper.get(timeMicrosAsync(), timeout);
+        return RedisHelper.get(timeMicrosAsync(), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     public CompletableFuture<Long> delAsync(byte[]... keys) {
@@ -180,7 +181,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long del(byte[]... keys) {
-        return RedisHelper.get(delAsync(keys), timeout);
+        return RedisHelper.get(delAsync(keys), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -217,7 +218,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String set(byte[] key, byte[] value) {
-        return RedisHelper.get(setAsync(key, value), timeout);
+        return RedisHelper.get(setAsync(key, value), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -227,7 +228,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public byte[] get(byte[] key) {
-        return RedisHelper.get(getAsync(key), timeout);
+        return RedisHelper.get(getAsync(key), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -248,7 +249,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String mset(Map<byte[], byte[]> keyValues) {
-        return RedisHelper.get(msetAsync(keyValues), timeout);
+        return RedisHelper.get(msetAsync(keyValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -270,7 +271,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<KeyValue<byte[], byte[]>> mget(byte[][] keys) {
-        return RedisHelper.get(mgetAsync(keys), timeout);
+        return RedisHelper.get(mgetAsync(keys), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -280,7 +281,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String psetex(byte[] key, long milliseconds, byte[] value) {
-        return RedisHelper.get(psetexAsync(key, milliseconds, value), timeout);
+        return RedisHelper.get(psetexAsync(key, milliseconds, value), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -339,7 +340,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String psetex(List<ExpiryKeyValue<byte[], byte[]>> expiryKeyValues) {
-        return RedisHelper.get(psetexAsync(expiryKeyValues), timeout);
+        return RedisHelper.get(psetexAsync(expiryKeyValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -401,7 +402,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String psetex(List<KeyValue<byte[], byte[]>> keyValues, long milliseconds) {
-        return RedisHelper.get(psetexAsync(keyValues, milliseconds), timeout);
+        return RedisHelper.get(psetexAsync(keyValues, milliseconds), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
 
@@ -412,7 +413,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Boolean hset(byte[] key, byte[] field, byte[] value) {
-        return RedisHelper.get(hsetAsync(key, field, value), timeout);
+        return RedisHelper.get(hsetAsync(key, field, value), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -434,7 +435,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String hmset(Map<byte[], Map<byte[], byte[]>> keyFieldValues) {
-        return RedisHelper.get(hmsetAsync(keyFieldValues), timeout);
+        return RedisHelper.get(hmsetAsync(keyFieldValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -456,7 +457,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String hmset(byte[] key, Map<byte[], byte[]> fieldValues) {
-        return RedisHelper.get(hmsetAsync(key, fieldValues), timeout);
+        return RedisHelper.get(hmsetAsync(key, fieldValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -468,7 +469,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long hpset(byte[] key, long milliseconds, byte[] field, byte[] value) {
-        return RedisHelper.get(hpsetAsync(key, milliseconds, field, value), timeout);
+        return RedisHelper.get(hpsetAsync(key, milliseconds, field, value), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -493,7 +494,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<Long> hmpset(Map<byte[], List<KeyValue<byte[], byte[]>>> keysFieldsValues, long milliseconds) {
-        return RedisHelper.get(hmpsetAsync(keysFieldsValues, milliseconds), timeout);
+        return RedisHelper.get(hmpsetAsync(keysFieldsValues, milliseconds), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -545,7 +546,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<Long> hmpset(byte[] key, long milliseconds, List<KeyValue<byte[], byte[]>> fieldsValues) {
-        return RedisHelper.get(hmpsetAsync(key, milliseconds, fieldsValues), timeout);
+        return RedisHelper.get(hmpsetAsync(key, milliseconds, fieldsValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -568,7 +569,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<Long> hmpset(Map<byte[], List<ExpiryKeyValue<byte[], byte[]>>> expiryKeysFieldsValues) {
-        return RedisHelper.get(hmpsetAsync(expiryKeysFieldsValues), timeout);
+        return RedisHelper.get(hmpsetAsync(expiryKeysFieldsValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -616,7 +617,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<Long> hmpset(byte[] key, List<ExpiryKeyValue<byte[], byte[]>> expiryFieldsValues) {
-        return RedisHelper.get(hmpsetAsync(key, expiryFieldsValues), timeout);
+        return RedisHelper.get(hmpsetAsync(key, expiryFieldsValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -626,7 +627,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public byte[] hget(byte[] key, byte[] field) {
-        return RedisHelper.get(hgetAsync(key, field), timeout);
+        return RedisHelper.get(hgetAsync(key, field), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -649,7 +650,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<KeyValue<byte[], byte[]>> hmget(Map<byte[], List<byte[]>> keyFields) {
-        return RedisHelper.get(hmgetAsync(keyFields), timeout);
+        return RedisHelper.get(hmgetAsync(keyFields), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -671,7 +672,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<KeyValue<byte[], byte[]>> hmget(byte[] key, byte[]... fields) {
-        return RedisHelper.get(hmgetAsync(key, fields), timeout);
+        return RedisHelper.get(hmgetAsync(key, fields), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -691,7 +692,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long hdel(Map<byte[], List<byte[]>> keyFields) {
-        return RedisHelper.get(hdelAsync(keyFields), timeout);
+        return RedisHelper.get(hdelAsync(keyFields), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -712,7 +713,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long hdel(byte[] key, byte[]... fields) {
-        return RedisHelper.get(hdelAsync(key, fields), timeout);
+        return RedisHelper.get(hdelAsync(key, fields), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -722,7 +723,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long zadd(byte[] key, double score, byte[] member) {
-        return RedisHelper.get(zaddAsync(key, score, member), timeout);
+        return RedisHelper.get(zaddAsync(key, score, member), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @SafeVarargs
@@ -745,7 +746,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
     @SafeVarargs
     @Override
     public final Long zadd(byte[] key, ScoredValue<byte[]>... scoredValues) {
-        return RedisHelper.get(zaddAsync(key, scoredValues), timeout);
+        return RedisHelper.get(zaddAsync(key, scoredValues), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -755,7 +756,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long zcard(byte[] key) {
-        return RedisHelper.get(zcardAsync(key), timeout);
+        return RedisHelper.get(zcardAsync(key), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -767,7 +768,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<byte[]> zrangebylex(byte[] key, Range<byte[]> range) {
-        return RedisHelper.get(zrangebylexAsync(key, range), timeout);
+        return RedisHelper.get(zrangebylexAsync(key, range), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -782,7 +783,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<byte[]> zrangebylex(byte[] key, Range<byte[]> range, Limit limit) {
-        return RedisHelper.get(zrangebylexAsync(key, range, limit), timeout);
+        return RedisHelper.get(zrangebylexAsync(key, range, limit), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -794,7 +795,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<byte[]> zrangebyscore(byte[] key, Range<? extends Number> range) {
-        return RedisHelper.get(zrangebyscoreAsync(key, range), timeout);
+        return RedisHelper.get(zrangebyscoreAsync(key, range), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -809,7 +810,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public List<byte[]> zrangebyscore(byte[] key, Range<? extends Number> range, Limit limit) {
-        return RedisHelper.get(zrangebyscoreAsync(key, range, limit), timeout);
+        return RedisHelper.get(zrangebyscoreAsync(key, range, limit), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -819,7 +820,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public Long zrem(byte[] key, byte[]... members) {
-        return RedisHelper.get(zremAsync(key, members), timeout);
+        return RedisHelper.get(zremAsync(key, members), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -837,7 +838,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public <T> T eval(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisHelper.get(evalAsync(script, keys, args), timeout);
+        return RedisHelper.get(evalAsync(script, keys, args), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -855,7 +856,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public <T> T evalReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisHelper.get(evalReadOnlyAsync(script, keys, args), timeout);
+        return RedisHelper.get(evalReadOnlyAsync(script, keys, args), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -880,7 +881,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public <T> T evalsha(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisHelper.get(evalshaAsync(script, keys, args), timeout);
+        return RedisHelper.get(evalshaAsync(script, keys, args), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -905,7 +906,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public <T> T evalshaReadOnly(RedisScript script, byte[][] keys, byte[]... args) {
-        return RedisHelper.get(evalshaReadOnlyAsync(script, keys, args), timeout);
+        return RedisHelper.get(evalshaReadOnlyAsync(script, keys, args), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     @Override
@@ -925,7 +926,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public String scriptLoad(RedisScript script) {
-        return RedisHelper.get(scriptLoadAsync(script), timeout);
+        return RedisHelper.get(scriptLoadAsync(script), timeout, TimeUnit.MILLISECONDS, true, true);
     }
 
     /**

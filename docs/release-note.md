@@ -1,5 +1,9 @@
 ## xRedis release note
 
+### 1.0.7
+
+- [X] `RedisHelper.get(Future<T> future,…… )` 超时后取消任务运行
+
 ### 1.0.6
 
 - [X] fix bug: `ClusterClientOptions` NPE
