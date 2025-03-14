@@ -34,7 +34,7 @@ public class StreamGenericContainer<K, V> extends AbstractStreamContainer<K, V> 
 
     private final StreamGenericTask<K, V> streamTask;
 
-    private final long interval;
+    private final long period;
     private final ExecutorService executor;
     private final ScheduledExecutorService scheduler;
 
@@ -46,16 +46,16 @@ public class StreamGenericContainer<K, V> extends AbstractStreamContainer<K, V> 
      * @param scheduler   调度器
      * @param quietPeriod quietPeriod 优雅关闭（等待正在运行的任务完成，单位毫秒）
      * @param timeout     timeout 优雅关闭（最大等待时间，单位毫秒）
-     * @param interval    拉取消息任务的间隔时间，单位毫秒（必须大于 0）
+     * @param period      拉取消息任务的间隔时间，单位毫秒（必须大于 0）
      */
     public StreamGenericContainer(StreamOperator<K, V> operator, ExecutorService executor,
-                                  ScheduledExecutorService scheduler, long quietPeriod, long timeout, long interval) {
+                                  ScheduledExecutorService scheduler, long quietPeriod, long timeout, long period) {
         super(operator, quietPeriod, timeout);
         Assert.notNull(executor, "executor must not be null");
         Assert.notNull(scheduler, "scheduler must not be null");
-        Assert.isTrue(interval > 0, "interval must be greater than 0");
+        Assert.isTrue(period > 0, "interval must be greater than 0");
 
-        this.interval = interval;
+        this.period = period;
         this.executor = executor;
         this.scheduler = scheduler;
         this.streamTask = new StreamGenericTask<>(operator);
@@ -67,9 +67,9 @@ public class StreamGenericContainer<K, V> extends AbstractStreamContainer<K, V> 
      */
     private void start() {
         this.schedulePullFuture = this.scheduler.scheduleWithFixedDelay(this.streamTask::pull,
-                this.interval, this.interval, TimeUnit.MILLISECONDS);
+                this.period, this.period, TimeUnit.MILLISECONDS);
         this.scheduleConsumeFuture = this.scheduler.scheduleWithFixedDelay(this.streamTask::consume,
-                this.interval, Math.max(1, this.interval / 2), TimeUnit.MILLISECONDS);
+                this.period, Math.max(1, this.period / 2), TimeUnit.MILLISECONDS);
     }
 
     /**

@@ -28,7 +28,7 @@ public class StreamContainer<K, V> extends AbstractStreamContainer<K, V> {
     private final StreamContainerTask<K, V> streamTask;
 
     private final int count;
-    private final long interval;
+    private final long period;
     private final XReadOptions options;
 
     private final ExecutorService executor;
@@ -42,21 +42,21 @@ public class StreamContainer<K, V> extends AbstractStreamContainer<K, V> {
      * @param scheduler   定时任务调度器（不能为空）
      * @param quietPeriod quietPeriod 优雅关闭（等待正在运行的任务完成，单位毫秒）
      * @param timeout     timeout 优雅关闭（最大等待时间，单位毫秒）
-     * @param interval    两次拉取消息的时间间隔，单位毫秒 {@code interval > 0}
+     * @param period      两次拉取消息的时间间隔，单位毫秒 {@code interval > 0}
      * @param options     读选项（不能为空）
      */
     public StreamContainer(StreamOperator<K, V> operator, ExecutorService executor,
                            ScheduledExecutorService scheduler, long quietPeriod, long timeout,
-                           long interval, ReadOptions options) {
+                           long period, ReadOptions options) {
         super(operator, quietPeriod, timeout);
         Assert.notNull(executor, "executor must not be null");
         Assert.notNull(scheduler, "scheduler must not be null");
         Assert.notNull(options, "options must not be null");
-        Assert.isTrue(interval > 0, "interval must be greater than 0");
+        Assert.isTrue(period > 0, "interval must be greater than 0");
 
         this.count = options.count();
         this.options = options.to();
-        this.interval = interval;
+        this.period = period;
         this.executor = executor;
         this.scheduler = scheduler;
         this.streamTask = new StreamContainerTask<>(operator, this.options);
@@ -65,9 +65,9 @@ public class StreamContainer<K, V> extends AbstractStreamContainer<K, V> {
 
     private void start() {
         this.schedulePullFuture = this.scheduler.scheduleWithFixedDelay(this.streamTask::pull,
-                this.interval, this.interval, TimeUnit.MILLISECONDS);
+                this.period, this.period, TimeUnit.MILLISECONDS);
         this.scheduleConsumeFuture = this.scheduler.scheduleWithFixedDelay(this.streamTask::consume,
-                this.interval, Math.max(1, this.interval / 2), TimeUnit.MILLISECONDS);
+                this.period, Math.max(1, this.period / 2), TimeUnit.MILLISECONDS);
     }
 
     /**

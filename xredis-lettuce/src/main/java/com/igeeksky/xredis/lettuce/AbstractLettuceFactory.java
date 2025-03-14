@@ -65,17 +65,17 @@ public abstract sealed class AbstractLettuceFactory implements RedisOperatorFact
 
     @Override
     public <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler,
-                                                        long interval, ReadOptions options) {
+                                                        long period, ReadOptions options) {
         return new StreamContainer<>(this.streamOperator(codec), executor, scheduler,
-                quietPeriod, timeout, interval, options);
+                quietPeriod, timeout, period, options);
     }
 
     @Override
     public <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec,
                                                                       ScheduledExecutorService scheduler,
-                                                                      long interval) {
+                                                                      long period) {
         return new StreamGenericContainer<>(this.streamOperator(codec), executor, scheduler,
-                quietPeriod, timeout, interval);
+                quietPeriod, timeout, period);
     }
 
     /**

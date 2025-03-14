@@ -62,12 +62,13 @@ public interface RedisOperatorFactory extends GracefulShutdown {
      * @param <K>       键类型
      * @param <V>       值类型
      * @param codec     编解码器
-     * @param interval  流任务执行间隔，单位毫秒
+     * @param period  流任务执行间隔，单位毫秒
      * @param options   拉取流消息时采用的公共参数
      * @param scheduler 定时任务调度器
      * @return {@linkplain StreamContainer} – 使用公共读取参数的流容器
      */
-    <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler, long interval, ReadOptions options);
+    <K, V> StreamContainer<K, V> streamContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler,
+                                                 long period, ReadOptions options);
 
     /**
      * 创建新的 StreamGenericContainer
@@ -76,12 +77,13 @@ public interface RedisOperatorFactory extends GracefulShutdown {
      * 读取操作是串行的，如果有多个 Stream，可能会因命令阻塞而出现较大时延。
      *
      * @param codec     RedisCodec
-     * @param interval  流任务执行间隔，单位毫秒
+     * @param period  流任务执行间隔，单位毫秒
      * @param scheduler 定时任务调度器
      * @param <K>       键类型
      * @param <V>       值类型
      * @return {@linkplain StreamGenericContainer} – 使用独立读取参数的流容器
      */
-    <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec, ScheduledExecutorService scheduler, long interval);
+    <K, V> StreamGenericContainer<K, V> streamGenericContainer(RedisCodec<K, V> codec,
+                                                               ScheduledExecutorService scheduler, long period);
 
 }
