@@ -36,7 +36,7 @@ public final class RedisHelper {
      * 获取 Future 结果（无限期阻塞，直到获取结果或发生异常）
      *
      * @param future Future
-     * @param <T>    泛型
+     * @param <T>    返回结果数据类型
      * @return 结果
      */
     public static <T> T get(Future<T> future) {
@@ -53,12 +53,13 @@ public final class RedisHelper {
     /**
      * 获取 Future 结果（指定超时时间，直到获取结果或发生异常）
      * <p>
-     * {@code interrupt} 默认为 {@code false} <br>
      * {@code TimeUnit} 默认为 {@link TimeUnit#MILLISECONDS}
+     * {@code cancel} 默认为 {@code true} <br>
+     * {@code interrupt} 默认为 {@code false} <br>
      *
      * @param future        Future
      * @param timeoutMillis 超时时间（毫秒）
-     * @param <T>           泛型
+     * @param <T>           返回结果数据类型
      * @return 结果
      */
     public static <T> T get(Future<T> future, long timeoutMillis) {
@@ -68,16 +69,17 @@ public final class RedisHelper {
     /**
      * 获取 Future 结果（指定超时时间，直到获取结果或发生异常）
      * <p>
+     * {@code cancel} 默认为 {@code true} <br>
      * {@code interrupt} 默认为 {@code false}
      *
      * @param future  Future
      * @param timeout 超时时间
      * @param unit    时间单位
-     * @param <T>     泛型
+     * @param <T>     返回结果数据类型
      * @return 结果
      */
     public static <T> T get(Future<T> future, long timeout, TimeUnit unit) {
-        return get(future, timeout, unit, false);
+        return get(future, timeout, unit, true, false);
     }
 
     /**
@@ -86,11 +88,12 @@ public final class RedisHelper {
      * @param future    Future
      * @param timeout   超时时间
      * @param unit      时间单位
-     * @param interrupt 是否中断
-     * @param <T>       泛型
+     * @param cancel    超时后是否取消任务
+     * @param interrupt 超时后是否中断任务
+     * @param <T>       返回结果数据类型
      * @return 结果
      */
-    public static <T> T get(Future<T> future, long timeout, TimeUnit unit, boolean interrupt) {
+    public static <T> T get(Future<T> future, long timeout, TimeUnit unit, boolean cancel, boolean interrupt) {
         try {
             return future.get(timeout, unit);
         } catch (InterruptedException e) {
@@ -99,7 +102,9 @@ public final class RedisHelper {
         } catch (ExecutionException e) {
             throw convert(e);
         } catch (TimeoutException e) {
-            future.cancel(interrupt);
+            if (cancel) {
+                future.cancel(interrupt);
+            }
             throw convert(e, timeout, unit);
         }
     }

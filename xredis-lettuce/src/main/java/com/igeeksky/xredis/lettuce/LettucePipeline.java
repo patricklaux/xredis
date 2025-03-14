@@ -78,7 +78,7 @@ public class LettucePipeline<K, V> extends RedisAsyncCommandsImpl<K, V> implemen
     @Override
     public void close() {
         try {
-            RedisHelper.get(closeAsync(), timeout);
+            RedisHelper.get(closeAsync(), timeout, TimeUnit.MILLISECONDS, false, false);
         } catch (Exception e) {
             log.error("LettucePipeline: Close has error. {}", e.getMessage(), e);
         }

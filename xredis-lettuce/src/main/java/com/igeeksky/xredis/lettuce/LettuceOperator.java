@@ -86,7 +86,7 @@ public class LettuceOperator<K, V> implements RedisOperator<K, V> {
     @Override
     public void close() {
         try {
-            RedisHelper.get(closeAsync(), timeout);
+            RedisHelper.get(closeAsync(), timeout, TimeUnit.MILLISECONDS, false, false);
         } catch (Exception e) {
             log.error("LettuceOperator: Close has error. {}", e.getMessage(), e);
         }
