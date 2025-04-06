@@ -34,7 +34,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     private final long timeout;
     private final int batchSize;
-    private final boolean redisCompatible;
+    private final boolean compatible;
     private final RedisOperator<byte[], byte[]> redisOperator;
 
     /**
@@ -82,13 +82,18 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
         Assert.notNull(redisOperator, "redisOperator must not be null");
         this.timeout = timeout;
         this.batchSize = batchSize;
-        this.redisCompatible = compatible;
+        this.compatible = compatible;
         this.redisOperator = redisOperator;
     }
 
     @Override
     public boolean isCluster() {
         return redisOperator.isCluster();
+    }
+
+    @Override
+    public boolean isCompatible() {
+        return compatible;
     }
 
     @Override
@@ -307,7 +312,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             return CompletableFuture.completedFuture(OK);
         }
 
-        if (this.isCluster() || this.redisCompatible) {
+        if (this.isCluster() || this.compatible) {
             RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
             List<CompletionStage<String>> futures = new ArrayList<>(keyValues.size());
             for (ExpiryKeyValue<byte[], byte[]> kv : keyValues) {
@@ -366,7 +371,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             return CompletableFuture.completedFuture(OK);
         }
 
-        if (this.isCluster() || this.redisCompatible) {
+        if (this.isCluster() || this.compatible) {
             RedisAsyncOperator<byte[], byte[]> async = this.redisOperator.async();
             CompletableFuture<String> future = CompletableFuture.completedFuture(OK);
             List<CompletionStage<String>> futures = new ArrayList<>(keyValues.size());
@@ -479,7 +484,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
 
     @Override
     public CompletableFuture<Long> hpsetAsync(byte[] key, long milliseconds, byte[] field, byte[] value) {
-        if (this.redisCompatible) {
+        if (this.compatible) {
             return this.hpsetCompatible(key, milliseconds, field, value).toCompletableFuture();
         }
 
@@ -540,7 +545,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 
-        if (this.redisCompatible) {
+        if (this.compatible) {
             List<CompletionStage<Long>> futures = new ArrayList<>(fieldsValues.size());
             for (KeyValue<byte[], byte[]> keyValue : fieldsValues) {
                 byte[] field = keyValue.getKey();
@@ -625,7 +630,7 @@ public class LettuceOperatorProxy implements RedisOperatorProxy {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 
-        if (this.redisCompatible) {
+        if (this.compatible) {
             List<CompletionStage<Long>> futures = new ArrayList<>(expiryFieldsValues.size());
             for (ExpiryKeyValue<byte[], byte[]> expiryKeyValue : expiryFieldsValues) {
                 byte[] field = expiryKeyValue.getKey();
