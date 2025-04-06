@@ -41,7 +41,7 @@ public class RedisOperatorProxyTestCase {
      */
     public RedisOperatorProxyTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new LettuceOperatorProxy(redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(60000, 10000, false, redisOperator);
     }
 
     /**
@@ -94,6 +94,7 @@ public class RedisOperatorProxyTestCase {
     public String info() {
         String info = operatorProxy.info();
         Assertions.assertNotNull(info);
+        System.out.println(info);
         return info;
     }
 
