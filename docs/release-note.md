@@ -1,5 +1,9 @@
 ## xRedis release note
 
+### 1.0.9
+
+- [X] `RedisOperatorProxy`：isCompatible
+
 ### 1.0.8
 
 - [X] `RedisOperatorProxy`：支持 Redis-Compatible DB，当处于兼容模式时，不使用脚本执行数据操作
