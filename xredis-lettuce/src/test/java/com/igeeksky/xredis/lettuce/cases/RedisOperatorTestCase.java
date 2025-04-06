@@ -32,7 +32,7 @@ public class RedisOperatorTestCase {
      */
     public RedisOperatorTestCase(RedisOperator<byte[], byte[]> redisOperator) {
         this.redisOperator = redisOperator;
-        this.operatorProxy = new LettuceOperatorProxy(60000,10000,  redisOperator);
+        this.operatorProxy = new LettuceOperatorProxy(60000, 10000, false, redisOperator);
     }
 
     public boolean isCluster() {

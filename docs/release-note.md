@@ -1,8 +1,12 @@
 ## xRedis release note
 
+### 1.0.8
+
+- [X] `RedisOperatorProxy`：支持 Redis-Compatible DB，当处于兼容模式时，不使用脚本执行数据操作
+
 ### 1.0.7
 
-- [X] `RedisHelper.get(Future<T> future,…… )` 超时后取消任务运行
+- [X] `RedisHelper.get(Future<T> future,…… )` when timeout, cancel task
 
 ### 1.0.6
 

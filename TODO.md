@@ -27,6 +27,7 @@
 - [X] 【文档】 README.md
 - [X] 【文档】 Reference.md
 - [X] 【开发】 RedisPooledOperator（放弃：真正需要连接池的只有事务命令，但可以采用 script、function替代，因此放弃）
+- [X] 【开发】 RedisOperatorProxy：支持 Redis-Compatible DB，当处于兼容模式时，不使用脚本执行数据操作
 
 ### 待完成任务
 
