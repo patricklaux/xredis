@@ -37,6 +37,14 @@ public interface RedisOperatorProxy extends AsyncCloseable {
     boolean isCluster();
 
     /**
+     * 判断当前 Redis 是否为兼容模式
+     * <p>
+     * true：兼容模式，无法执行脚本等特殊命令；<br>
+     * false：非兼容模式，可以执行包括脚本在内的全部命令。
+     */
+    boolean isCompatible();
+
+    /**
      * 获取单批次命令提交数量阈值
      * <p>
      * 如 batchSize 设为 10000，当 {@link RedisOperatorProxy} 接收到单次操作 100 万条数据的请求时，
