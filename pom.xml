@@ -46,7 +46,7 @@
         <logback.version>1.5.16</logback.version>
         <junit.version>5.11.4</junit.version>
         <lettuce.version>6.7.1.RELEASE</lettuce.version>
-        <spring.boot.version>3.4.3</spring.boot.version>
+        <spring.boot.version>3.5.4</spring.boot.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.version>3.13.0</maven.compiler.version>

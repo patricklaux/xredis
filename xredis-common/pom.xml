@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>xredis-common</artifactId>
+    <name>xredis-common</name>
 
     <dependencies>
         <dependency>
