@@ -18,7 +18,8 @@ public interface RedisSyncOperator<K, V> extends ConnectionMode,
         RedisGeoCommands<K, V>, RedisHashCommands<K, V>, RedisHLLCommands<K, V>,
         RedisKeyCommands<K, V>, RedisListCommands<K, V>, RedisScriptingCommands<K, V>,
         RedisServerCommands<K, V>, RedisSetCommands<K, V>, RedisSortedSetCommands<K, V>,
-        RedisStreamCommands<K, V>, RedisStringCommands<K, V>, RedisJsonCommands<K, V> {
+        RedisStreamCommands<K, V>, RedisStringCommands<K, V>, RedisJsonCommands<K, V>,
+        RedisVectorSetCommands<K, V> {
 
     /**
      * 获取 RedisServer 当前时间（秒）

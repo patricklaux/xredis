@@ -166,22 +166,26 @@ class LettuceOperatorTest {
 
         async.xadd(stream, "key1", "value1");
         async.xadd(stream, "key1", "value2");
+        async.set("get_test", "get_value");
 
-        Thread.sleep(10);
+        Thread.sleep(100);
 
         XReadArgs readArgs = XReadArgs.Builder.block(5000);
         StreamOffset<String> offset = StreamOffset.from(stream, System.currentTimeMillis() + "-0");
+
+        long start = System.currentTimeMillis();
         RedisFuture<List<StreamMessage<String, String>>> xread = async.xread(readArgs, offset);
+        long end1 = System.currentTimeMillis();
+        System.out.println(end1 - start);
 
         // 测试执行阻塞命令后对其它命令的影响
-        long start = System.currentTimeMillis();
-        RedisFuture<String> future = async.get("key1");
+        RedisFuture<String> future = async.get("get_test");
 
         System.out.println(future.get());
-        long end = System.currentTimeMillis();
-        System.out.println(end - start);
+        long end2 = System.currentTimeMillis();
+        System.out.println(end2 - start);
 
-        Assertions.assertTrue(end - start > 4000);
+        Assertions.assertTrue(end2 - start < 4000);
 
         System.out.println(xread.get());
     }

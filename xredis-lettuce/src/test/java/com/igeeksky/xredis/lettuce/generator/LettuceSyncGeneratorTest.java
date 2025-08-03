@@ -32,7 +32,7 @@ import java.util.zip.ZipInputStream;
 public class LettuceSyncGeneratorTest {
 
     private static final String GROUP_ID = "io.lettuce";
-    private static final String VERSION = "6.5.4.RELEASE";
+    private static final String VERSION = "6.7.1.RELEASE";
     private static final String ARTIFACT_ID = "lettuce-core";
     private static final String BASE_URL = "https://maven.aliyun.com/repository/public/";
     private static final String BASE_PATH = "src/test/resources/";
@@ -44,7 +44,7 @@ public class LettuceSyncGeneratorTest {
 
     @Test
     @Disabled
-    void generateSync() {
+    void generateSync() throws IOException {
         String[] files = new String[]{
                 "BaseRedisCommands.java",
                 "RedisAclCommands.java",
@@ -63,11 +63,12 @@ public class LettuceSyncGeneratorTest {
                 "RedisStringCommands.java",
                 "RedisCommands.java",
                 "RedisTransactionalCommands.java",
-                "RedisClusterCommands.java"
+                "RedisClusterCommands.java",
+                "RedisVectorSetCommands.java"
         };
 
         String head = """
-                import com.igeeksky.redis.api.RedisSyncOperator;
+                import com.igeeksky.xredis.lettuce.api.RedisSyncOperator;
                 import io.lettuce.core.api.sync.RedisCommands;
                 import io.lettuce.core.api.StatefulConnection;
                 
@@ -113,16 +114,16 @@ public class LettuceSyncGeneratorTest {
                 }
                 """;
 
-        String generated = generate(files, "com.igeeksky.redis.lettuce;", head, foot);
+        String generated = generate(files, "com.igeeksky.xredis.lettuce;", head, foot);
         System.out.println(generated);
         System.out.println(generated.length());
 
-        // Files.write(Path.of(BASE_PATH + "LettuceSyncOperator.java"), generated.getBytes());
+        Files.write(Path.of(BASE_PATH + "LettuceSyncOperator1.java"), generated.getBytes());
     }
 
     @Test
     @Disabled
-    void generateClusterSync() {
+    void generateClusterSync() throws IOException {
         String[] files = new String[]{
                 "BaseRedisCommands.java",
                 "RedisAclCommands.java",
@@ -140,11 +141,12 @@ public class LettuceSyncGeneratorTest {
                 "RedisStreamCommands.java",
                 "RedisStringCommands.java",
                 "RedisClusterCommands.java",
-                "RedisAdvancedClusterCommands.java"
+                "RedisAdvancedClusterCommands.java",
+                "RedisVectorSetCommands.java"
         };
 
         String head = """
-                import com.igeeksky.redis.api.RedisSyncOperator;
+                import com.igeeksky.xredis.lettuce.api.RedisSyncOperator;
                 import io.lettuce.core.cluster.api.sync.NodeSelection;
                 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
                 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
@@ -189,11 +191,11 @@ public class LettuceSyncGeneratorTest {
                 }
                 """;
 
-        String generated = generate(files, "com.igeeksky.redis.cluster;", head, foot);
+        String generated = generate(files, "com.igeeksky.xredis.lettuce;", head, foot);
         System.out.println(generated);
         System.out.println(generated.length());
 
-        // Files.write(Path.of(BASE_PATH + "LettuceClusterSyncOperator.java"), generated.getBytes());
+        Files.write(Path.of(BASE_PATH + "LettuceClusterSyncOperator1.java"), generated.getBytes());
     }
 
     public static String generate(String[] files, String pkg, String head, String foot) {
