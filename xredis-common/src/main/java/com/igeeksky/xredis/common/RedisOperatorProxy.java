@@ -39,8 +39,10 @@ public interface RedisOperatorProxy extends AsyncCloseable {
     /**
      * 判断当前 Redis 是否为兼容模式
      * <p>
-     * true：兼容模式，无法执行脚本等特殊命令；<br>
-     * false：非兼容模式，可以执行包括脚本在内的全部命令。
+     * true：兼容模式，不执行脚本等特殊命令；<br>
+     * false：非兼容模式，可执行包括脚本在内的全部命令。
+     *
+     * @return 如果为兼容模式，返回 {@code true} ，否则返回 {@code false}
      */
     boolean isCompatible();
 

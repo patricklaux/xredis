@@ -25,6 +25,8 @@ import io.lettuce.core.protocol.CommandArgs;
 import io.lettuce.core.protocol.CommandType;
 import io.lettuce.core.protocol.ProtocolKeyword;
 import io.lettuce.core.protocol.RedisCommand;
+import io.lettuce.core.vector.RawVector;
+import io.lettuce.core.vector.VectorMetadata;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+
 
 /**
  * 同步操作接口实现（集群模式）
@@ -583,6 +586,46 @@ public class LettuceClusterSyncOperator<K, V> implements RedisSyncOperator<K, V>
     @Override
     public Long hset(K key, Map<K, V> map) {
         return redisCommands.hset(key, map);
+    }
+
+    @Override
+    public Long hsetex(K key, Map<K, V> map) {
+        return redisCommands.hsetex(key, map);
+    }
+
+    @Override
+    public Long hsetex(K key, HSetExArgs hSetExArgs, Map<K, V> map) {
+        return redisCommands.hsetex(key, hSetExArgs, map);
+    }
+
+    @Override
+    @SafeVarargs
+    public final List<KeyValue<K, V>> hgetex(K key, K... fields) {
+        return redisCommands.hgetex(key, fields);
+    }
+
+    @Override
+    @SafeVarargs
+    public final List<KeyValue<K, V>> hgetex(K key, HGetExArgs hGetExArgs, K... fields) {
+        return redisCommands.hgetex(key, hGetExArgs, fields);
+    }
+
+    @Override
+    @SafeVarargs
+    public final Long hgetex(KeyValueStreamingChannel<K, V> channel, K key, HGetExArgs hGetExArgs, K... fields) {
+        return redisCommands.hgetex(channel, key, hGetExArgs, fields);
+    }
+
+    @Override
+    @SafeVarargs
+    public final List<KeyValue<K, V>> hgetdel(K key, K... fields) {
+        return redisCommands.hgetdel(key, fields);
+    }
+
+    @Override
+    @SafeVarargs
+    public final Long hgetdel(KeyValueStreamingChannel<K, V> channel, K key, K... fields) {
+        return redisCommands.hgetdel(channel, key, fields);
     }
 
     @Override
@@ -3093,6 +3136,11 @@ public class LettuceClusterSyncOperator<K, V> implements RedisSyncOperator<K, V>
     }
 
     @Override
+    public StringMatchResult lcs(LcsArgs lcsArgs) {
+        return redisCommands.lcs(lcsArgs);
+    }
+
+    @Override
     public Long strlen(K key) {
         return redisCommands.strlen(key);
     }
@@ -3307,6 +3355,141 @@ public class LettuceClusterSyncOperator<K, V> implements RedisSyncOperator<K, V>
     @Override
     public NodeSelection<K, V> nodes(Predicate<RedisClusterNode> predicate, boolean dynamic) {
         return redisCommands.nodes(predicate, dynamic);
+    }
+
+    @Override
+    public Boolean vadd(K key, V element, Double... vectors) {
+        return redisCommands.vadd(key, element, vectors);
+    }
+
+    @Override
+    public Boolean vadd(K key, int dimensionality, V element, Double... vectors) {
+        return redisCommands.vadd(key, dimensionality, element, vectors);
+    }
+
+    @Override
+    public Boolean vadd(K key, V element, VAddArgs args, Double... vectors) {
+        return redisCommands.vadd(key, element, args, vectors);
+    }
+
+    @Override
+    public Boolean vadd(K key, int dimensionality, V element, VAddArgs args, Double... vectors) {
+        return redisCommands.vadd(key, dimensionality, element, args, vectors);
+    }
+
+    @Override
+    public Long vcard(K key) {
+        return redisCommands.vcard(key);
+    }
+
+    @Override
+    public Boolean vClearAttributes(K key, V element) {
+        return redisCommands.vClearAttributes(key, element);
+    }
+
+    @Override
+    public Long vdim(K key) {
+        return redisCommands.vdim(key);
+    }
+
+    @Override
+    public List<Double> vemb(K key, V element) {
+        return redisCommands.vemb(key, element);
+    }
+
+    @Override
+    public RawVector vembRaw(K key, V element) {
+        return redisCommands.vembRaw(key, element);
+    }
+
+    @Override
+    public String vgetattr(K key, V element) {
+        return redisCommands.vgetattr(key, element);
+    }
+
+    @Override
+    public List<JsonValue> vgetattrAsJsonValue(K key, V element) {
+        return redisCommands.vgetattrAsJsonValue(key, element);
+    }
+
+    @Override
+    public VectorMetadata vinfo(K key) {
+        return redisCommands.vinfo(key);
+    }
+
+    @Override
+    public List<V> vlinks(K key, V element) {
+        return redisCommands.vlinks(key, element);
+    }
+
+    @Override
+    public Map<V, Double> vlinksWithScores(K key, V element) {
+        return redisCommands.vlinksWithScores(key, element);
+    }
+
+    @Override
+    public V vrandmember(K key) {
+        return redisCommands.vrandmember(key);
+    }
+
+    @Override
+    public List<V> vrandmember(K key, int count) {
+        return redisCommands.vrandmember(key, count);
+    }
+
+    @Override
+    public Boolean vrem(K key, V element) {
+        return redisCommands.vrem(key, element);
+    }
+
+    @Override
+    public Boolean vsetattr(K key, V element, String json) {
+        return redisCommands.vsetattr(key, element, json);
+    }
+
+    @Override
+    public Boolean vsetattr(K key, V element, JsonValue json) {
+        return redisCommands.vsetattr(key, element, json);
+    }
+
+    @Override
+    public List<V> vsim(K key, Double... vectors) {
+        return redisCommands.vsim(key, vectors);
+    }
+
+    @Override
+    public List<V> vsim(K key, V element) {
+        return redisCommands.vsim(key, element);
+    }
+
+    @Override
+    public List<V> vsim(K key, VSimArgs args, Double... vectors) {
+        return redisCommands.vsim(key, args, vectors);
+    }
+
+    @Override
+    public List<V> vsim(K key, VSimArgs args, V element) {
+        return redisCommands.vsim(key, args, element);
+    }
+
+    @Override
+    public Map<V, Double> vsimWithScore(K key, Double... vectors) {
+        return redisCommands.vsimWithScore(key, vectors);
+    }
+
+    @Override
+    public Map<V, Double> vsimWithScore(K key, V element) {
+        return redisCommands.vsimWithScore(key, element);
+    }
+
+    @Override
+    public Map<V, Double> vsimWithScore(K key, VSimArgs args, Double... vectors) {
+        return redisCommands.vsimWithScore(key, args, vectors);
+    }
+
+    @Override
+    public Map<V, Double> vsimWithScore(K key, VSimArgs args, V element) {
+        return redisCommands.vsimWithScore(key, args, element);
     }
 
     public StatefulConnection<K, V> getConnection() {

@@ -1,5 +1,10 @@
 ## xRedis release note
 
+### 1.0.10
+
+- [X] lettuce：upgrade to 6.7.1.RELEASE
+
+
 ### 1.0.9
 
 - [X] `RedisOperatorProxy`：isCompatible

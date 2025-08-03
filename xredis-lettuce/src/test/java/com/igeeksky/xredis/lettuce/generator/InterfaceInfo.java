@@ -92,6 +92,9 @@ public class InterfaceInfo {
             if (line.contains("@Deprecated")) {
                 continue;
             }
+            if (line.contains("@Experimental")) {
+                continue;
+            }
             if (!line.endsWith(";")) {
                 prefix.append(line);
                 continue;
