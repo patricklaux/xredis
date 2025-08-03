@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>xredis-lettuce-spring-boot-autoconfigure</artifactId>
+    <name>xredis-lettuce-spring-boot-autoconfigure</name>
 
     <dependencies>
         <dependency>

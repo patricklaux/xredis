@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>xredis-lettuce-resources-autoconfigure</artifactId>
+    <name>xredis-lettuce-resources-autoconfigure</name>
 
     <dependencies>
         <dependency>
