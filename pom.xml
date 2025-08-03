@@ -40,7 +40,7 @@
     </developers>
 
     <properties>
-        <revision>1.0.10</revision>
+        <revision>1.0.11</revision>
         <xtool.version>1.2.1</xtool.version>
         <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.16</logback.version>
